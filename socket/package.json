@@ -1,0 +1,9 @@
+{
+    "name": "@xrplworks/socket",
+    "type": "module",
+    "version": "1.0.0",
+    "main": "index.js",
+    "dependencies": {
+        "@mwni/events": "file:../../events"
+    }
+}
