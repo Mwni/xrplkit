@@ -158,34 +158,3 @@ export function extractCurrencies(tx){
 
 	return currencies
 }
-
-
-export function fromLedgerAmount(amount, convertCurrencyCode){
-	if(typeof amount === 'string')
-		return {
-			currency: 'XRP',
-			value: Decimal.div(amount, '1000000')
-				.toString()
-		}
-	
-	return {
-		currency: convertCurrencyCode
-			? currencyHexToUTF8(amount.currency)
-			: amount.currency,
-		issuer: amount.issuer,
-		value: amount.value
-	}
-}
-
-
-export function toLedgerAmount(amount){
-	if(amount.currency === 'XRP')
-		return Decimal.mul(amount.value, '1000000')
-			.round()
-			.toString()
-	return {
-		currency: currencyUTF8ToHex(amount.currency),
-		issuer: amount.issuer,
-		value: amount.value.toString()
-	}
-}

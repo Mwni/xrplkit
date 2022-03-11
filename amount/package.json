@@ -4,6 +4,7 @@
     "version": "1.0.0",
     "main": "index.js",
     "dependencies": {
+        "@xrplworks/currency": "file:../currency",
         "decimal.js": "^10.3.1"
     }
 }

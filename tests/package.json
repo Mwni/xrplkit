@@ -1,0 +1,10 @@
+{
+    "name": "@xrplworks/tests",
+    "type": "module",
+    "version": "1.0.0",
+    "dependencies": {
+        "@xrplworks/book": "file:../book",
+        "@xrplworks/socket": "file:../socket",
+        "websocket": "^1.0.34"
+    }
+}

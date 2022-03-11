@@ -50,7 +50,7 @@ export default class extends EventEmitter{
 
 	async createSocketConnection(){
 		await new Promise(async (resolve, reject) => {
-			this.socket = new this.websocketClass(this.url)
+			this.socket = new WebSocket(this.url)
 			this.socket.addEventListener('open', () => {
 				this.connected = true
 				this.requestCounter = 0
