@@ -1,11 +1,13 @@
 import { EventEmitter } from '@mwni/events'
 import Decimal from 'decimal.js'
 import { fromRippled as amountFromRippled } from '@xrplworks/amount'
+import { compare as compareCurrency } from '@xrplworks/currency'
 
 
 
-export class Book{
+export class Book extends EventEmitter{
 	constructor({ socket, takerPays, takerGets, ledgerIndex }){
+		super()
 		this.socket = socket
 		this.takerPays = takerPays
 		this.takerGets = takerGets
@@ -20,14 +22,110 @@ export class Book{
 			ledger_index: this.ledgerIndex,
 			taker_gets: this.takerGets,
 			taker_pays: this.takerPays,
-			limit: 99999
+			limit: 1000
 		})
 
 		this.offers = offers.map(this.#parseOffer)
+		this.emit('update')
 	}
 
 	async subscribe(){
-		
+		if(this.subscribed)
+			return
+
+		this.subscribed = true
+
+		await this.load()
+		await this.socket.request({
+			command: 'subscribe',
+			books: [{
+				taker_gets: this.takerGets,
+				taker_pays: this.takerPays,
+				both: true
+			}]
+		})
+
+		this.socket.on('transaction', this.txh = tx => {
+			let didChange = false
+
+			//console.log(tx)
+
+			for(let wrap of tx.meta.AffectedNodes){
+				let key = Object.keys(wrap)[0]
+				let node = wrap[key]
+
+				if(node.LedgerEntryType !== 'Offer')
+					continue
+
+				let account = node.FinalFields?.Account || node.NewFields?.Account
+				let sequence = node.FinalFields?.Sequence || node.NewFields?.Sequence
+				let id = `${account}:${sequence}`
+				let newOffer = this.#parseOffer(node.NewFields || node.FinalFields)
+
+				if(!compareCurrency(newOffer.takerPays, this.takerPays))
+					continue
+
+				if(!compareCurrency(newOffer.takerGets, this.takerGets))
+					continue
+
+				
+				if(key === 'CreatedNode'){
+					this.offers = this.offers
+						.concat([newOffer])
+						.map(offer => ({
+							offer, 
+							r: Decimal.div(
+								offer.takerPays.value, 
+								offer.takerGets.value
+							)
+						}))
+						.sort((a, b) => 
+							!a.r.eq(b.r)
+								? a.r.gt(b.r) ? 1 : -1
+								: 0
+						)
+						.map(({ offer }) => offer)
+
+					didChange = true
+					continue
+				}
+
+
+				let offerIndex = this.offers.findIndex(offer => offer.id === id)
+
+				if(offerIndex === -1)
+					continue
+
+				if(key === 'DeletedNode'){
+					this.offers.splice(offerIndex, 1)
+				}else{
+					Object.assign(
+						this.offers[offerIndex], 
+						newOffer
+					)
+				}
+
+				didChange = true
+			}
+
+			if(didChange)
+				this.emit('update')
+		})
+	}
+
+	async unsubscribe(){
+		if(!this.subscribed)
+			return
+
+		this.subscribed = false
+
+		await this.socket.request({
+			command: 'unsubscribe',
+			books: [{
+				taker_gets: this.takerGets,
+				taker_pays: this.takerPays
+			}]
+		})
 	}
 
 
@@ -68,7 +166,7 @@ export class Book{
 		}
 
 		if(cushion){
-			takerGets = takerGets.times(1 - cushion)
+			amountGet = amountGet.times(1 - cushion)
 		}
 
 		return {
@@ -84,10 +182,17 @@ export class Book{
 
 
 	#parseOffer(offer){
+		let takerGets = amountFromRippled(offer.TakerGets)
+		let takerPays = amountFromRippled(offer.TakerPays)
+
 		return {
-			takerGets: amountFromRippled(offer.TakerGets),
-			takerPays: amountFromRippled(offer.TakerPays),
-			id: `${offer.Account}:${offer.Sequence}`
+			id: `${offer.Account}:${offer.Sequence}`,
+			takerGets,
+			takerPays,
+			price: Decimal.div(
+				takerPays.value, 
+				takerGets.value
+			).toString()
 		}
 	}
 }
