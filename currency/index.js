@@ -22,20 +22,16 @@ export function compare(a, b){
 }
 
 export function decode(code){
-	if(code.length === 3)
+	if(code.length === 3 || !/^[A-Z0-9]{40}$/.test(code))
 		return code
 
-	let decoded = new TextDecoder()
-		.decode(hex => {
-			let bytes = new Uint8Array(hex.length / 2)
+	let bytes = new Uint8Array(code.length / 2)
 
-			for (let i = 0; i !== bytes.length; i++){
-				bytes[i] = parseInt(hex.substr(i * 2, 2), 16)
-			}
+	for (let i = 0; i !== code.length; i++){
+		bytes[i] = parseInt(code.substr(i * 2, 2), 16)
+	}
 
-			return bytes
-		})
-
+	let decoded = new TextDecoder().decode(bytes)
 	let tail = decoded.length
 
 	while(decoded.charAt(tail-1) === '\0')

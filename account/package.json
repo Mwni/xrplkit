@@ -1,5 +1,5 @@
 {
-    "name": "@xrplworks/tx",
+    "name": "@xrplworks/account",
     "type": "module",
     "version": "1.0.0",
     "main": "index.js",
