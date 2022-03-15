@@ -16,13 +16,13 @@ export class Book extends EventEmitter{
 	}
 
 
-	async load(){
+	async load(limit = 1000){
 		let { offers } = await this.socket.request({
 			command: 'book_offers',
 			ledger_index: this.ledgerIndex,
 			taker_gets: this.takerGets,
 			taker_pays: this.takerPays,
-			limit: 1000
+			limit
 		})
 
 		this.offers = offers.map(this.#parseOffer)
@@ -133,6 +133,7 @@ export class Book extends EventEmitter{
 		if(this.offers.length === 0)
 			throw new Error('cannot fill: empty book')
 
+		let incomplete = true
 		let amountPay
 		let amountGet = new Decimal(0)
 		let keyPay
@@ -158,6 +159,7 @@ export class Book extends EventEmitter{
 
 				amountPay = new Decimal(0)
 				amountGet = amountGet.plus(fraction.times(getValue))
+				incomplete = false
 				break
 			}
 
@@ -170,6 +172,7 @@ export class Book extends EventEmitter{
 		}
 
 		return {
+			incomplete,
 			partial: amountPay.gt(0),
 			takerPays: takerPays
 				? Decimal.sub(takerPays, amountPay).toString()
@@ -177,6 +180,23 @@ export class Book extends EventEmitter{
 			takerGets: takerPays
 				? amountGet.toString()
 				: Decimal.sub(takerGets, amountPay).toString()
+		}
+	}
+
+	async fillLazy({ initial = 3, stride = 10, ...args }){
+		let limit = initial
+
+		while(true){
+			let offerCount = this.offers.length
+
+			await this.load(limit)
+
+			let res = this.fill(args)
+
+			if(!res.incomplete || this.offers.length <= offerCount)
+				return res
+
+			limit += stride
 		}
 	}
 
