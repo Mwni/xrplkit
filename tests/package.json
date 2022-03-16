@@ -6,6 +6,7 @@
         "@xrplworks/book": "file:../book",
         "@xrplworks/currency": "file:../currency",
         "@xrplworks/socket": "file:../socket",
+        "@xrplworks/tx": "file:../tx",
         "websocket": "^1.0.34"
     }
 }
