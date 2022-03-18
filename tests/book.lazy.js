@@ -6,17 +6,17 @@ import { Socket } from '@xrplworks/socket'
 global.WebSocket = websocket.w3cwebsocket
 
 
-//buying USD
+//selling ELS
 
 const socket = new Socket('wss://xrplcluster.com')
 const book = new Book({
 	socket,
-	takerPays: {currency: 'XRP'},
-	takerGets: {currency: 'USD', issuer: 'rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq'}
+	takerGets: {currency: 'XRP'},
+	takerPays: {currency: 'ELS', issuer: 'rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg'}
 })
 
 console.log('lazy filling...')
 
-let offer = await book.fillLazy({takerPays: '100000'})
+let offer = await book.fillLazy({takerPays: '1100'})
 
 console.log(offer)

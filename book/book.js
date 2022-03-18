@@ -183,8 +183,9 @@ export class Book extends EventEmitter{
 		}
 	}
 
-	async fillLazy({ initial = 3, stride = 10, ...args }){
+	async fillLazy({ initial = 3, stride = 5, ...args }){
 		let limit = initial
+		let steps = 0
 
 		while(true){
 			let offerCount = this.offers.length
@@ -196,7 +197,7 @@ export class Book extends EventEmitter{
 			if(!res.incomplete || this.offers.length <= offerCount)
 				return res
 
-			limit += stride
+			limit += stride * ++steps
 		}
 	}
 

@@ -4,9 +4,11 @@ import { decode as decodeCurrency, compare as compareCurrency } from '@xrplworks
 
 
 export function extractExchanges(tx, options={}){
-	let hash = tx.hash || tx.transaction.hash
-	let taker = tx.Account || tx.transaction.Account
+	let hash = tx.hash || tx.transaction?.hash || tx.tx?.hash
+	let taker = tx.Account || tx.transaction?.Account || tx.tx?.Account
 	let exchanges = []
+
+	console.log(tx)
 
 	for(let affected of (tx.meta || tx.metaData).AffectedNodes){
 		let node = affected.ModifiedNode || affected.DeletedNode
