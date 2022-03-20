@@ -1,11 +1,11 @@
-import { EventEmitter } from '@mwni/events'
 import Decimal from 'decimal.js'
+import { EventEmitter } from '@mwni/events'
 import { fromRippled as amountFromRippled } from '@xrplworks/amount'
 import { compare as compareCurrency } from '@xrplworks/currency'
 
 
 
-export class Book extends EventEmitter{
+export default class Book extends EventEmitter{
 	constructor({ socket, takerPays, takerGets, ledgerIndex }){
 		super()
 		this.socket = socket

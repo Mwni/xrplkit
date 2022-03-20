@@ -28,14 +28,3 @@ export function wait(ms){
 export function unixNow(){
 	return Math.floor(Date.now() / 1000)
 }
-
-export function onceAndForAll(func){
-	let promise
-
-	return async (...args) => {
-		if(!promise)
-			promise = func(...args)
-
-		return await promise
-	}
-}

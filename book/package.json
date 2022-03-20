@@ -3,10 +3,12 @@
     "type": "module",
     "version": "1.0.0",
     "main": "book.js",
+    "license": "ISC",
+    "author": "xrplworks",
     "dependencies": {
-        "@mwni/events": "file:../../events",
-        "@xrplworks/amount": "file:../amount",
-        "@xrplworks/currency": "file:../currency",
+        "@mwni/events": "^1.0.0",
+        "@xrplworks/amount": "1.0.0",
+        "@xrplworks/currency": "1.0.0",
         "decimal.js": "^10.3.1"
     }
 }

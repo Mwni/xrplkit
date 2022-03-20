@@ -2,5 +2,7 @@
     "name": "@xrplworks/time",
     "type": "module",
     "version": "1.0.0",
-    "main": "time.js"
+    "main": "time.js",
+    "license": "ISC",
+    "author": "xrplworks"
 }

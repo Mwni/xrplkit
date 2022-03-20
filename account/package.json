@@ -1,9 +1,0 @@
-{
-    "name": "@xrplworks/account",
-    "type": "module",
-    "version": "1.0.0",
-    "main": "index.js",
-    "dependencies": {
-        "decimal.js": "^10.3.1"
-    }
-}

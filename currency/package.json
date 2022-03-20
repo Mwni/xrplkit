@@ -2,5 +2,7 @@
     "name": "@xrplworks/currency",
     "type": "module",
     "version": "1.0.0",
-    "main": "index.js"
+    "main": "index.js",
+    "license": "ISC",
+    "author": "xrplworks"
 }
