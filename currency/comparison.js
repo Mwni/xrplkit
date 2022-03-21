@@ -1,3 +1,4 @@
+import { encode  } from './encoding.js'
 
 export function compare(a, b){
 	if(typeof a === 'string')
