@@ -4,6 +4,6 @@
     "version": "1.0.0",
     "main": "socket.js",
     "dependencies": {
-        "@mwni/events": "file:../../events"
+        "@mwni/events": "^1.0.0"
     }
 }
