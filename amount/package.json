@@ -8,5 +8,8 @@
     "dependencies": {
         "@xrplworks/currency": "1.0.0",
         "decimal.js": "^10.3.1"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }

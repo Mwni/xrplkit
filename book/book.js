@@ -48,7 +48,8 @@ export default class Book extends EventEmitter{
 		this.socket.on('transaction', this.txh = tx => {
 			let didChange = false
 
-			//console.log(tx)
+			if(!tx?.meta?.AffectedNodes)
+				return
 
 			for(let wrap of tx.meta.AffectedNodes){
 				let key = Object.keys(wrap)[0]
