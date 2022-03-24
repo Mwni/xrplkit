@@ -1,0 +1,1 @@
+declare function format(value: String, options?: {compact: Boolean, decimals: Number}): String
