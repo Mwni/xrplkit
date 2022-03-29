@@ -155,7 +155,7 @@ export function extractBalanceChanges(tx){
 	return parties
 }
 
-export function extractCurrencies(tx){
+export function extractCurrenciesInvolved(tx){
 	let currencies = []
 	let add = entry => {
 		if(typeof entry === 'string')
@@ -178,4 +178,23 @@ export function extractCurrencies(tx){
 	}
 
 	return currencies
+}
+
+// todo improve
+export function extractAffectedAccounts(tx){
+	let accounts = []
+
+	for(let node of (tx.meta || tx.metaData).AffectedNodes){
+		let nodeKey = Object.keys(node)[0]
+		let nodeData = node[nodeKey]
+		let fields = nodeData.FinalFields || nodeData.NewFields
+
+		if(!fields?.Account)
+			continue
+
+		if(!accounts.includes(fields.Account))
+			accounts.push(fields.Account)
+	}
+
+	return accounts
 }
