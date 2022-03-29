@@ -1,0 +1,13 @@
+{
+	"include": [
+		"../amount/index.d.ts",
+		"../currency/index.d.ts",
+	],
+	"typedocOptions": {
+		"entryPoints": [
+			"../amount/index.d.ts",
+			"../currency/index.d.ts",
+		],
+		"out": "docs"
+	},
+}

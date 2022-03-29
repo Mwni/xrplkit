@@ -12,6 +12,16 @@ export default class extends EventEmitter{
 			this.connect(url)
 	}
 
+	async connect(url, options = {stayConnected: true}){
+		this.url = url
+		this.options = options
+
+		await this.createConnection(url)
+		
+		return this
+	}
+
+
 	async request(payload){
 		await this.whenReady
 
@@ -24,33 +34,10 @@ export default class extends EventEmitter{
 		})
 	}
 
-	connect(url){
-		this.url = url
-		this.connectRelentlessly()
-		
-		return this
-	}
-
-
-	async connectRelentlessly(){
-		while(true){
-			try{
-				await this.createSocketConnection()
-
-				this.nowReady()
-				this.emit('connected')
-
-				break
-			}catch(error){
-				await new Promise(resolve => setTimeout(resolve, 1000))
-			}
-		}
-	}
-
-
-	async createSocketConnection(){
+	async createConnection(url){
 		await new Promise(async (resolve, reject) => {
-			this.socket = new WebSocket(this.url)
+			this.socket = new WebSocket(url)
+			
 			this.socket.addEventListener('open', () => {
 				this.connected = true
 				this.requestCounter = 0
@@ -78,21 +65,30 @@ export default class extends EventEmitter{
 					}
 				})
 
-				this.socket.addEventListener('close', async () => {
-					this.whenReady = new Promise(resolve => this.nowReady = resolve)
-					this.emit('disconnected')
-
-					await new Promise(resolve => setTimeout(resolve, 1000))
-					await this.connectRelentlessly()
-				})
+				this.nowReady()
+				this.emit('connected')
 
 				resolve()
 			})
 
-
 			this.socket.addEventListener('error', error => {
 				this.connectionError = error
-				reject(error)
+			})
+
+			this.socket.addEventListener('close', async () => {
+				this.whenReady = new Promise(
+					resolve => this.nowReady = resolve
+				)
+
+				if(this.connected){
+					this.connected = false
+					this.emit('disconnected')
+				}
+
+				if(this.options.stayConnected){
+					await new Promise(resolve => setTimeout(resolve, 1000))
+					await this.createConnection(this.url, this.options)
+				}
 			})
 		})
 	}

@@ -11,6 +11,11 @@
     }
   },
   "packages": [
-    "*"
+    "amount",
+    "book",
+    "currency",
+    "socket",
+    "time",
+    "tx"
   ]
 }

@@ -169,7 +169,11 @@ export default class Book extends EventEmitter{
 		}
 
 		if(cushion){
-			amountGet = amountGet.times(1 - cushion)
+			amountGet = amountGet.times(
+				takerPays
+					? 1 - cushion
+					: 1 + cushion
+			)
 		}
 
 		return {
