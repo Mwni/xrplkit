@@ -1,10 +1,12 @@
 {
     "name": "@xrplworks/socket",
     "type": "module",
-    "version": "1.0.0",
-    "main": "socket.js",
+    "version": "1.1.0",
+    "main": "socket.node.js",
+    "browser": "socket.browser.js",
     "dependencies": {
-        "@mwni/events": "^1.0.0"
+        "@mwni/events": "^1.0.0",
+        "websocket": "^1.0.34"
     },
     "publishConfig": {
         "access": "public"

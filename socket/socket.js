@@ -1,7 +1,7 @@
 import { EventEmitter } from '@mwni/events'
 
 
-export default class extends EventEmitter{
+export default class Socket extends EventEmitter{
 	constructor(url){
 		super()
 		this.whenReady = new Promise(
@@ -36,7 +36,7 @@ export default class extends EventEmitter{
 
 	async createConnection(url){
 		await new Promise(async (resolve, reject) => {
-			this.socket = new WebSocket(url)
+			this.socket = this.createSocket({url})
 			
 			this.socket.addEventListener('open', () => {
 				this.connected = true
@@ -73,16 +73,17 @@ export default class extends EventEmitter{
 
 			this.socket.addEventListener('error', error => {
 				this.connectionError = error
+				this.emit('error', error)
 			})
 
-			this.socket.addEventListener('close', async () => {
+			this.socket.addEventListener('close', async event => {
 				this.whenReady = new Promise(
 					resolve => this.nowReady = resolve
 				)
 
 				if(this.connected){
 					this.connected = false
-					this.emit('disconnected')
+					this.emit('disconnected', event)
 				}
 
 				if(this.options.stayConnected){
