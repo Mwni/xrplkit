@@ -1,0 +1,12 @@
+{
+    "name": "@xrplworks/xls26",
+    "type": "module",
+    "version": "1.0.1",
+    "main": "xls26.js",
+    "dependencies": {
+        "@xrplworks/toml": "1.0.0"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}
