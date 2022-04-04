@@ -81,11 +81,11 @@ export default class Socket extends EventEmitter{
 					resolve => this.nowReady = resolve
 				)
 
-				for(let { reject } of this.requestRegistry){
-					reject(new Error(event.reason))
-				}
-
 				if(this.connected){
+					for(let { reject } of this.requestRegistry){
+						reject(new Error(event.reason))
+					}
+
 					this.connected = false
 					this.emit('disconnected', event)
 				}
