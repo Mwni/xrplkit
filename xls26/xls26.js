@@ -1,4 +1,6 @@
 import { parse as parseToml } from '@xrplworks/toml'
+import { decode as decodeCurrency } from '@xrplworks/currency'
+
 
 const accountFields = [
 	{
@@ -19,7 +21,7 @@ const accountFields = [
 		validate: v => /^https?:\/\/.*$/.test(v)
 	},
 	{
-		key: 'websites',
+		key: 'links',
 		type: 'array',
 		validate: v => Array.isArray(v) && v.every(v => typeof v === 'string'),
 	},
@@ -53,7 +55,7 @@ const currencyFields = [
 		validate: v => /^https?:\/\/.*$/.test(v)
 	},
 	{
-		key: 'websites',
+		key: 'links',
 		type: 'array',
 		validate: v => Array.isArray(v) && v.every(v => typeof v === 'string'),
 	},
