@@ -1,7 +1,7 @@
 {
     "name": "@xrplworks/xls26",
     "type": "module",
-    "version": "1.0.2",
+    "version": "1.0.4",
     "main": "xls26.js",
     "dependencies": {
         "@xrplworks/toml": "1.0.0"
