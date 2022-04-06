@@ -1,5 +1,9 @@
+// The XLS-26 standard adds additional asset metadata fields to the existing xrp-ledger.toml standard,
+// https://github.com/XRPLF/XRPL-Standards/discussions/71
+// This package provides an implementation of a parser according to this standard.
+
+
 import { parse as parseToml } from '@xrplworks/toml'
-import { decode as decodeCurrency } from '@xrplworks/currency'
 
 
 const accountFields = [
