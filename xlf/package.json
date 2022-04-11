@@ -1,0 +1,12 @@
+{
+	"name": "@xrplworks/xlf",
+	"type": "module",
+	"version": "1.0.0",
+	"main": "xlf.js",
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"decimal.js": "^10.3.1"
+	}
+}
