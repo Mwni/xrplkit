@@ -1,8 +1,8 @@
 {
-	"name": "@xrplworks/xlf",
+	"name": "@xrplworks/xfl",
 	"type": "module",
 	"version": "1.0.0",
-	"main": "xlf.js",
+	"main": "xfl.js",
 	"publishConfig": {
 		"access": "public"
 	},
