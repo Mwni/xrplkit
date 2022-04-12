@@ -27,6 +27,9 @@ export default class XFL extends Decimal{
 
 
 	toNative(){
+		if(this.isZero())
+			return 0n
+
 		let exponent = BigInt(this.e)
 		let mantissa = BigInt(0)
 		let negative = this.s < 0
