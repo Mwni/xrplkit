@@ -13,9 +13,12 @@
   "packages": [
     "amount",
     "book",
+    "account",
+    "portfolio",
     "currency",
     "socket",
     "time",
-    "tx"
+    "tx",
+    "examples"
   ]
 }
