@@ -35,7 +35,6 @@ export default class Book extends EventEmitter{
 
 		this.subscribed = true
 
-		await this.load()
 		await this.socket.request({
 			command: 'subscribe',
 			books: [{
