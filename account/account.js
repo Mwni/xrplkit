@@ -45,10 +45,11 @@ export default class Account extends EventEmitter{
 				break
 		}
 
+
 		if(direction === 'inbound'){
-			lines = lines.filter(line => line.limit_peer !== '0')
+			lines = lines.filter(line => /^\-/.test(line.balance) || line.limit_peer !== '0')
 		}else if(direction === 'outbound'){
-			lines = lines.filter(line => line.limit !== '0')
+			lines = lines.filter(line => /^\d/.test(line.balance) || line.limit !== '0')
 		}
 
 		this.lines = lines.map(line => ({
