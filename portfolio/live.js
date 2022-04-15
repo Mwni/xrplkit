@@ -46,7 +46,7 @@ export default class{
 		let networth = new Decimal(this.pf.account.balance)
 		
 		for(let token of Object.values(this.pf.tokens)){
-			networth = networth.plus(token.networth)
+			networth = networth.plus(token.value)
 		}
 		
 		let newNetworth = networth.toString()

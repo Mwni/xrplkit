@@ -23,9 +23,12 @@ export default class{
 	}
 
 	async syncTx(){
-		this.pf.progress = { stage: 'account-tx' }
-
-		await this.pf.account.loadTx()
+		await this.pf.queue([
+			{
+				stage: 'account-tx',
+				function: async () => await this.pf.account.loadTx()
+			}
+		])
 
 		await this.timelineTokens()
 	}
@@ -59,12 +62,14 @@ export default class{
 			Object.values(this.pf.tokens)	
 				.map(token => ({
 					stage: 'balance-valuations',
-					function: async => {
+					function: async () => {
 						let { takerGets } = await token.book.fillLazy({ takerPays: token.balance })
 						token.value = takerGets
 					}
 				}))
 		)
+
+		this.pf.live.updateNetworth()
 	}
 
 	async timelineTokens(){

@@ -91,9 +91,9 @@ export function extractBalanceChanges(tx){
 		party.push({
 			currency,
 			issuer,
-			previous,
-			final,
-			change: Decimal.sub(final, previous)
+			previous: previous.toString(),
+			final: final.toString(),
+			change: Decimal.sub(final, previous).toString()
 		})
 	}
 
