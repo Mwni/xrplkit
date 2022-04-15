@@ -39,4 +39,17 @@ export default class Portfolio extends EventEmitter{
 			this.history.reconstruct()
 		])
 	}
+
+	async queue(tasks){
+		
+	}
+
+	set progress(progress){
+		this._progress = progress
+		this.emit('progress', progress)
+	}
+
+	get progress(){
+		return this._progress
+	}
 }

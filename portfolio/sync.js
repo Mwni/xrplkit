@@ -7,10 +7,16 @@ export default class{
 	}
 	
 	async syncLines(){
-		this.pf.progress = { stage: 'account-lines' }
-
-		await this.pf.account.loadInfo()
-		await this.pf.account.loadLines({ direction: 'outbound' })
+		await this.pf.queue([
+			{
+				stage: 'account-lines',
+				function: async () => await this.pf.account.loadInfo()
+			},
+			{
+				stage: 'account-lines',
+				function: async () => await this.pf.account.loadLines({ direction: 'outbound' })
+			}
+		])
 
 		await this.createTokens()
 		await this.evaluateTokens()
@@ -19,7 +25,8 @@ export default class{
 	async syncTx(){
 		this.pf.progress = { stage: 'account-tx' }
 
-		await this.account.loadTx()
+		await this.pf.account.loadTx()
+
 		await this.timelineTokens()
 	}
 
@@ -48,13 +55,16 @@ export default class{
 	}
 
 	async evaluateTokens(){
-		for(let token of Object.values(this.pf.tokens)){
-			this.pf.progress = { stage: 'balance-valuations', token }
-
-			let { takerGets } = await token.book.fillLazy({ takerPays: token.balance })
-
-			token.value = takerGets
-		}
+		await this.pf.queue(
+			Object.values(this.pf.tokens)	
+				.map(token => ({
+					stage: 'balance-valuations',
+					function: async => {
+						let { takerGets } = await token.book.fillLazy({ takerPays: token.balance })
+						token.value = takerGets
+					}
+				}))
+		)
 	}
 
 	async timelineTokens(){
