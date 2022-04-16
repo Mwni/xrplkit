@@ -1,4 +1,6 @@
+import XFL from '@xrplworks/xfl'
 import { compare as isSameCurrency } from '@xrplworks/currency'
+import { extractBalanceChanges, extractExchanges } from '@xrplworks/tx'
 
 
 export default class Tokens{
@@ -13,27 +15,96 @@ export default class Tokens{
 		this.map = {}
 	}
 
-	create(){
+	derive(){
 		this.map = {}
-		this.map.XRP = {
-			key: 'XRP',
-			currency: 'XRP',
-			balance: this.pf.account.balance,
-			timeline: []
-		}
+		
+		this.deriveFromLines()
+		this.deriveFromTx()
+		this.blacklistObligations()
+		this.reconstructBalances()
+	}
+
+	deriveFromLines(){
+		this.registerEvent({
+			balanceChange: {
+				currency: 'XRP',
+				value: this.pf.account.balance
+			}
+		})
 
 		for(let line of this.pf.account.lines){
-			if(/(^\-)|(^\0$)/.test(line.balance))
+			this.registerEvent({
+				balanceChange: {
+					currency: line.currency,
+					issuer: line.account,
+					value: line.balance
+				}
+			})
+		}
+	}
+
+	deriveFromTx(){
+		for(let transaction of this.pf.account.transactions){
+			let exchanges = extractExchanges(transaction, { collapse: true })
+			let balanceChanges = extractBalanceChanges(transaction)
+				[this.pf.account.address]
+
+			if(!balanceChanges)
 				continue
 
-			let key = Tokens.key({...line, issuer: line.account})
+			for(let exchange of exchanges){
+				this.registerTokenEvent({
+					balanceChange: exchange.takerGot,
+					inExchangeFor: exchange.takerPaid,
+					ledgerIndex: transaction.tx.ledger_index
+				})
 
-			this.map[key] = {
+				this.registerTokenEvent({
+					balanceChange: exchange.takerPaid,
+					inExchangeFor: exchange.takerGot,
+					ledgerIndex: transaction.tx.ledger_index
+				})
+			}
+		}
+	}
+
+	registerEvent({ balanceChange, inExchangeFor, ledgerIndex }){
+		let key = Tokens.key(balanceChange)
+		let token = this.map[key]
+
+		if(!token){
+			token = this.map[key] = {
 				key,
-				currency: line.currency,
-				issuer: line.account,
-				balance: line.balance,
+				currency: balanceChange.currency,
+				issuer: balanceChange.issuer,
 				timeline: []
+			}
+
+			Object.defineProperty(token, 'balance', {
+				get(){
+					return token.timeline[token.timeline.length - 1].balance
+				}
+			})
+		}
+
+		token.timeline.push({
+			balanceChange: balanceChange.value,
+			inExchangeFor,
+			ledgerIndex
+		})
+	}
+
+	blacklistObligations(){
+		
+	}
+
+	reconstructBalances(){
+		for(let token of this.array){
+			let movingBalance = new XFL(0)
+
+			for(let event of token.timeline){
+				movingBalance = movingBalance.plus(event.balanceChange)
+				event.balance = movingBalance.toString()
 			}
 		}
 	}

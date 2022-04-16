@@ -35,7 +35,7 @@ export default class Portfolio extends EventEmitter{
 		})
 
 		await this.queue.wait('account-lines')
-		await this.tokens.create()
+		await this.tokens.derive()
 		await this.live.sync()
 	}
 

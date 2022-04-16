@@ -18,8 +18,6 @@ export default class extends EventEmitter{
 					total: 0
 				}
 			}
-
-			console.log('CREATE', task.stage)
 		}
 
 		branch.progress.total++
