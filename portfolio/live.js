@@ -1,5 +1,5 @@
 import Book from '@xrplworks/book'
-import Decimal from 'decimal.js'
+import XFL from '@xrplworks/xfl'
 
 
 export default class{
@@ -8,45 +8,55 @@ export default class{
 		this.books = {}
 	}
 
-	async subscribe(){
-		for(let token of Object.values(this.pf.tokens)){
-			let book = new Book({
-				socket: this.pf.socket,
-				takerGets: this.pf.quoteCurrency,
-				takerPays: {
-					currency: token.currency,
-					issuer: token.issuer
-				},
+	async sync(){
+		for(let token of this.pf.tokens.array.slice(1)){
+			let book = this.books[token.key]
+
+			if(!book){
+				book = this.books[token.key] = new Book({
+					socket: this.pf.socket,
+					takerGets: this.pf.quoteCurrency,
+					takerPays: {
+						currency: token.currency,
+						issuer: token.issuer
+					},
+				})
+			}
+
+			this.pf.queue.add({
+				stage: 'balance-valuations',
+				do: async () => {
+					let { takerGets } = await book.fillLazy({ takerPays: token.balance })
+					token.value = takerGets
+				}
 			})
-			
-			this.books[`${token.currency}:${token.issuer}`] = book
-
-			book.on('update', () => this.updateTokenValuation(token))
-			
-			await book.subscribe()
-
-			this.updateTokenValuation(token)
 		}
+
+		await this.pf.queue.wait('balance-valuations')
+		this.updateNetworth()
 	}
 
-	updateTokenValuation(token){
-		let book = this.books[`${token.currency}:${token.issuer}`]
+	async subscribe(){
+		for(let token of this.pf.tokens.array.slice(1)){
+			let book = this.books[token.key]
 
-		if(book.offers.length === 0)
-			return
-
-		token.networth = book
-			.fill({ takerPays: token.balance })
-			.takerGets
+			await book.subscribe()
+			book.on('update', () => this.updateNetworth())
+		}
 
 		this.updateNetworth()
 	}
 
 	updateNetworth(){
-		let networth = new Decimal(this.pf.account.balance)
+		let [ xrp, ...tokens ] = this.pf.tokens.array
+		let networth = new XFL(xrp.balance)
 		
-		for(let token of Object.values(this.pf.tokens)){
-			networth = networth.plus(token.value)
+		for(let token of tokens){
+			networth = networth.plus(
+				this.books[token.key]
+					.fill({ takerPays: token.balance })
+					.takerGets
+			)
 		}
 		
 		let newNetworth = networth.toString()

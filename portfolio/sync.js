@@ -18,8 +18,8 @@ export default class{
 			}
 		])
 
-		await this.createTokens()
-		await this.evaluateTokens()
+		await this.tokens.create()
+		await this.tokens.evaluate()
 	}
 
 	async syncTx(){
@@ -30,10 +30,17 @@ export default class{
 			}
 		])
 
+		await this.pf.transactions.evaluate()
 		await this.timelineTokens()
 	}
 
 	async createTokens(){
+		this.pf.tokens.XRP = {
+			currency: 'XRP',
+			balance: this.pf.account.balance,
+			value: this.pf.account.balance
+		}
+
 		for(let line of this.pf.account.lines){
 			if(/(^\-)|(^\0$)/.test(line.balance))
 				continue
@@ -52,14 +59,16 @@ export default class{
 				issuer: line.account,
 				balance: line.balance,
 				value: '0',
-				book
+				book,
+				timeline: []
 			}
 		}
 	}
 
 	async evaluateTokens(){
 		await this.pf.queue(
-			Object.values(this.pf.tokens)	
+			Object.values(this.pf.tokens)
+				.filter(token => !isSameCurrency(token, this.pf.quoteCurrency))
 				.map(token => ({
 					stage: 'balance-valuations',
 					function: async () => {
@@ -73,8 +82,31 @@ export default class{
 	}
 
 	async timelineTokens(){
-		for(let token of Object.values(this.pf.tokens)){
-			token.balanceHistory = [] //todo
+		for(let transaction of this.pf.account.transactions){
+			let exchanges = extractExchanges(transaction, { collapse: true })
+			let balanceChanges = extractBalanceChanges(transaction)
+				[this.pf.account.address]
+
+			if(!balanceChanges)
+				continue
+
+			for(let exchange of exchanges){
+				this.registerTokenEvent({
+					balanceChange: exchange.takerGot,
+					inExchangeFor: exchange.takerPaid,
+					ledgerIndex: transaction.tx.ledger_index
+				})
+
+				this.registerTokenEvent({
+					balanceChange: exchange.takerPaid,
+					inExchangeFor: exchange.takerGot,
+					ledgerIndex: transaction.tx.ledger_index
+				})
+			}
 		}
+	}
+
+	registerTokenEvent({ balanceChange, inExchangeFor, ledgerIndex }){
+		let token = this.pf.tokens
 	}
 }

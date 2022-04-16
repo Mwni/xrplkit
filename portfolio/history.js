@@ -1,5 +1,4 @@
 import Book from '@xrplworks/book'
-import Decimal from 'decimal.js'
 
 
 export default class{
@@ -7,4 +6,16 @@ export default class{
 		this.pf = portfolio
 	}
 	
+	async evaluate({ currency, issuer, units, ledgerIndex }){
+		let book = new Book({
+			socket: this.pf.socket,
+			takerGets: this.pf.quoteCurrency,
+			takerPays: {currency, issuer},
+			ledgerIndex
+		})
+
+		let { takerGets } = await book.fillLazy({ takerPays: units })
+
+		return takerGets
+	}
 }

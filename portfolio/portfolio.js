@@ -1,4 +1,6 @@
 import { EventEmitter } from '@mwni/events'
+import Queue from './queue.js'
+import Tokens from './tokens.js'
 import Sync from './sync.js'
 import Live from './live.js'
 import History from './history.js'
@@ -11,72 +13,39 @@ export default class Portfolio extends EventEmitter{
 		this.account = account
 		this.socket = socket
 		this.quoteCurrency = quoteCurrency || {currency: 'XRP'}
-		this.networth = '0'
-		this.tokens = {}
-		this.queueBranches = {}
 
-		this.sync = new Sync(this)
+		this.queue = new Queue(this)
+		this.tokens = new Tokens(this)
 		this.live = new Live(this)
 		this.transactions = new Transactions(this)
 		this.history = new History(this)
+
+		this.queue.on('change', () => this.emit('progress', this.progress))
 	}
 
-	async load(){
-		await this.sync.syncLines()
-		await this.sync.syncTx()
-		await this.transactions.evaluate()
+	async sync(){
+		this.queue.add({
+			stage: 'account-lines',
+			do: async () => await this.account.loadInfo()
+		})
+
+		this.queue.add({
+			stage: 'account-lines',
+			do: async () => await this.account.loadLines({ direction: 'outbound' })
+		})
+
+		await this.queue.wait('account-lines')
+		await this.tokens.create()
+		await this.live.sync()
 	}
 
 	async subscribe(){
-		await this.sync.syncLines()
+		await this.sync()
 		await this.live.subscribe()
 	}
 
-	async full(){
-		await this.sync.syncLines()
-		await this.sync.syncTx()
-
-		/*await Promise.all([
-			this.transactions.fill(),
-			this.history.reconstruct()
-		])*/
-	}
-
-	async queue(tasks){
-		return new Promise(resolve => {
-			for(let task of tasks){
-				let branch = this.queueBranches[task.stage]
-	
-				if(!branch){
-					branch = this.queueBranches[task.stage] = {
-						chain: Promise.resolve(),
-						progress: { 
-							value: 0,
-							total: 0
-						}
-					}
-				}
-	
-				branch.progress.total++
-				branch.chain = branch.chain
-					.then(() => {
-						this.emit('progress', this.progress)
-						return task.function()
-					})
-					.then(() => {
-						branch.progress.value++
-	
-						if(branch.progress.value === branch.progress.total){
-							this.emit('progress', this.progress)
-							resolve()
-						}
-					})
-			}
-		})
-	}
-
 	get progress(){
-		return Object.entries(this.queueBranches).map(([stage, branch]) => ({
+		return Object.entries(this.queue.branches).map(([stage, branch]) => ({
 			stage,
 			...branch.progress
 		}))
