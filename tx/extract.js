@@ -31,13 +31,17 @@ export function extractExchanges(tx, options={}){
 			taker,
 			sequence,
 			takerPaid: {
-				currency: decodeCurrency(finalTakerPays.currency), 
+				currency: options.decodeCurrency
+					? decodeCurrency(finalTakerPays.currency)
+					: finalTakerPays.currency, 
 				issuer: finalTakerPays.issuer,
 				value: Decimal.sub(previousTakerPays.value, finalTakerPays.value)
 					.toString()
 			},
 			takerGot: {
-				currency: decodeCurrency(finalTakerGets.currency), 
+				currency: options.decodeCurrency
+					? decodeCurrency(finalTakerGets.currency)
+					: finalTakerGets.currency, 
 				issuer: finalTakerGets.issuer,
 				value: Decimal.sub(previousTakerGets.value, finalTakerGets.value)
 					.toString()

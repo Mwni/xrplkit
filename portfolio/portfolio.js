@@ -1,7 +1,6 @@
 import { EventEmitter } from '@mwni/events'
 import Queue from './queue.js'
 import Tokens from './tokens.js'
-import Sync from './sync.js'
 import Live from './live.js'
 import History from './history.js'
 import Transactions from './transactions.js'
@@ -24,19 +23,15 @@ export default class Portfolio extends EventEmitter{
 	}
 
 	async sync(){
-		this.queue.add({
-			stage: 'account-lines',
-			do: async () => await this.account.loadInfo()
+		await this.queue.add({
+			stage: 'account-tx',
+			do: async () => await this.account.loadTx()
 		})
 
-		this.queue.add({
-			stage: 'account-lines',
-			do: async () => await this.account.loadLines({ direction: 'outbound' })
-		})
-
-		await this.queue.wait('account-lines')
 		await this.tokens.derive()
 		await this.live.sync()
+
+		console.log(this.tokens.array[1].timeline)
 	}
 
 	async subscribe(){

@@ -1,6 +1,7 @@
 import XFL from '@xrplworks/xfl'
 import { compare as isSameCurrency } from '@xrplworks/currency'
 import { extractBalanceChanges, extractExchanges } from '@xrplworks/tx'
+import { negate as negateAmount } from '@xrplworks/amount'
 
 
 export default class Tokens{
@@ -18,7 +19,7 @@ export default class Tokens{
 	derive(){
 		this.map = {}
 		
-		this.deriveFromLines()
+		//this.deriveFromLines()
 		this.deriveFromTx()
 		this.blacklistObligations()
 		this.reconstructBalances()
@@ -53,14 +54,14 @@ export default class Tokens{
 				continue
 
 			for(let exchange of exchanges){
-				this.registerTokenEvent({
+				this.registerEvent({
 					balanceChange: exchange.takerGot,
-					inExchangeFor: exchange.takerPaid,
+					inExchangeFor: negateAmount(exchange.takerPaid),
 					ledgerIndex: transaction.tx.ledger_index
 				})
 
-				this.registerTokenEvent({
-					balanceChange: exchange.takerPaid,
+				this.registerEvent({
+					balanceChange: negateAmount(exchange.takerPaid),
 					inExchangeFor: exchange.takerGot,
 					ledgerIndex: transaction.tx.ledger_index
 				})
