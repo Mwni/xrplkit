@@ -31,11 +31,6 @@ export default class{
 
 				if(this.tk.isQuote(token)){
 					event.valueChange = event.balanceChange
-				}else if(event.inExchangeFor && this.tk.isQuote(event.inExchangeFor)){
-					event.valueChange = new XFL(event.inExchangeFor.value)
-						.abs()
-						.times(XFL.sign(event.balanceChange))
-						.toString()
 				}else{
 					requests.push({
 						amount: {

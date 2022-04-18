@@ -28,35 +28,31 @@ export default class Registry{
 		if(!balanceChanges)
 			return
 
-		for(let exchange of exchanges){
-			this.registerEvent({
-				transaction,
-				balanceChange: exchange.takerGot,
-				inExchangeFor: negateAmount(exchange.takerPaid),
-				ledgerIndex: transaction.tx.ledger_index
-			})
-
-			this.registerEvent({
-				transaction,
-				balanceChange: negateAmount(exchange.takerPaid),
-				inExchangeFor: exchange.takerGot,
-				ledgerIndex: transaction.tx.ledger_index
-			})
-
-			for(let balanceChange of balanceChanges){
-				if(isSameCurrency(balanceChange, exchange.takerGot)){
-					balanceChange.change = XFL.sub(balanceChange.change, exchange.takerGot.value).toString()
-				}
-
-				if(isSameCurrency(balanceChange, exchange.takerPaid)){
-					balanceChange.change = XFL.sum(balanceChange.change, exchange.takerPaid.value).toString()
-				}
-			}
-		}
 
 		for(let balanceChange of balanceChanges){
-			if(balanceChange.change === '0')
-				continue
+			let valueChange
+			let exchange = exchanges.find(exchange => {
+				if(isSameCurrency(balanceChange, exchange.takerGot) && this.tk.isQuote(exchange.takerPaid))
+					return true
+				
+				if(isSameCurrency(balanceChange, exchange.takerPaid) && this.tk.isQuote(exchange.takerGot))
+					return true
+			})
+
+			if(exchange){
+				let rate = XFL.div(exchange.takerPaid.value, exchange.takerGot.value)
+
+				if(isSameCurrency(balanceChange, exchange.takerPaid))
+					rate = new XFL(1).div(rate)
+
+				if(balanceChange.issuer === 'rLqUC2eCPohYvJCEBJ77eCCqVL2uEiczjA')
+					console.log(transaction.tx.hash, exchanges, balanceChange, rate.toString())
+
+				valueChange = new XFL(balanceChange.change)
+					.times(rate)
+					.toString()
+			}
+			
 
 			this.registerEvent({
 				transaction,
@@ -65,12 +61,13 @@ export default class Registry{
 					issuer: balanceChange.issuer,
 					value: balanceChange.change
 				},
+				valueChange,
 				ledgerIndex: transaction.tx.ledger_index
 			})
 		}
 	}
 
-	registerEvent({ transaction, balanceChange, inExchangeFor, ledgerIndex }){
+	registerEvent({ transaction, balanceChange, valueChange, ledgerIndex }){
 		let key = Registry.key(balanceChange)
 		let token = this.map[key]
 
@@ -99,7 +96,7 @@ export default class Registry{
 		token.timeline.push({
 			tx: transaction.tx.hash,
 			balanceChange: balanceChange.value,
-			inExchangeFor,
+			valueChange,
 			ledgerIndex
 		})
 	}
