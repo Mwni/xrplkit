@@ -130,9 +130,6 @@ export default class Book extends EventEmitter{
 
 
 	fill({ takerPays, takerGets, cushion }){
-		if(this.offers.length === 0)
-			throw new Error('cannot fill: empty book')
-
 		let incomplete = true
 		let amountPay
 		let amountGet = new Decimal(0)

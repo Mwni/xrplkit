@@ -1,12 +1,11 @@
 import { EventEmitter } from '@mwni/events'
 import Queue from './queue.js'
-import Tokens from './tokens.js'
-import Live from './live.js'
-import History from './history.js'
-import Transactions from './transactions.js'
+import Tokens from './tokens/index.js'
 
 
 export default class Portfolio extends EventEmitter{
+	#tokens
+
 	constructor({ account, socket, quoteCurrency, historyLedgerInterval = 150 }){
 		super()
 		this.account = account
@@ -14,10 +13,7 @@ export default class Portfolio extends EventEmitter{
 		this.quoteCurrency = quoteCurrency || {currency: 'XRP'}
 
 		this.queue = new Queue(this)
-		this.tokens = new Tokens(this)
-		this.live = new Live(this)
-		this.transactions = new Transactions(this)
-		this.history = new History(this)
+		this.#tokens = new Tokens(this)
 
 		this.queue.on('change', () => this.emit('progress', this.progress))
 	}
@@ -28,15 +24,26 @@ export default class Portfolio extends EventEmitter{
 			do: async () => await this.account.loadTx()
 		})
 
-		await this.tokens.derive()
-		await this.live.sync()
+		await this.#tokens.sync()
 
-		console.log(this.tokens.array[1].timeline)
+		console.log(this.#tokens.registry.array[0].timeline)
 	}
 
 	async subscribe(){
 		await this.sync()
 		await this.live.subscribe()
+	}
+
+	get networth(){
+		return this.#tokens.live.networth
+	}
+
+	get performance(){
+		return this.#tokens.live.performance
+	}
+
+	get tokens(){
+		return this.#tokens.represent()
 	}
 
 	get progress(){
