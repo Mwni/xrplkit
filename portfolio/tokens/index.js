@@ -1,7 +1,9 @@
 import Registry from './registry.js'
 import Timelines from './timelines.js'
 import Valuations from './valuations.js'
+import Ledgers from './ledgers.js'
 import Live from './live.js'
+import History from './history.js'
 import { compare as isSameCurrency } from '@xrplworks/currency'
 
 
@@ -11,24 +13,23 @@ export default class Tokens{
 		this.registry = new Registry(this)
 		this.timelines = new Timelines(this)
 		this.valuations = new Valuations(this)
+		this.ledgers = new Ledgers(this)
 		this.live = new Live(this)
+		this.history = new History(this)
 	}
 
 	async sync(){
-		await this.timelines.reconstruct()
+		await this.timelines.derive()
 		await this.timelines.evaluate()
 		await this.live.sync()
 	}
 
-	represent(){
-		return this.registry.array.map(token => ({
-			currency: token.currency,
-			issuer: token.issuer,
-			balance: token.balance,
-			networth: this.live.getTokenNetworth(token),
-			performance: this.live.getTokenPerformance(token),
-			timeline: token.timeline
-		}))
+	async loadHistory({ ledgerIndices }){
+		await this.history.load(ledgerIndices)
+	}
+
+	historical(){
+		return this.history.represent()
 	}
 
 	isQuote(currency){

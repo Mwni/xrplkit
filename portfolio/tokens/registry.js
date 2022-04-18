@@ -45,9 +45,6 @@ export default class Registry{
 				if(isSameCurrency(balanceChange, exchange.takerPaid))
 					rate = new XFL(1).div(rate)
 
-				if(balanceChange.issuer === 'rLqUC2eCPohYvJCEBJ77eCCqVL2uEiczjA')
-					console.log(transaction.tx.hash, exchanges, balanceChange, rate.toString())
-
 				valueChange = new XFL(balanceChange.change)
 					.times(rate)
 					.toString()

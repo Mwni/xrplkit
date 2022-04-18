@@ -6,7 +6,7 @@ export default class{
 		this.tk = tokens
 	}
 
-	async reconstruct(){
+	async derive(){
 		for(let transaction of this.tk.pf.account.transactions){
 			this.tk.registry.derive(transaction)
 		}

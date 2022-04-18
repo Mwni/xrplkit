@@ -6,7 +6,7 @@ import Tokens from './tokens/index.js'
 export default class Portfolio extends EventEmitter{
 	#tokens
 
-	constructor({ account, socket, quoteCurrency, historyLedgerInterval = 150 }){
+	constructor({ account, socket, quoteCurrency }){
 		super()
 		this.account = account
 		this.socket = socket
@@ -19,19 +19,26 @@ export default class Portfolio extends EventEmitter{
 	}
 
 	async sync(){
+		if(this.inSync)
+			return
+
 		await this.queue.add({
 			stage: 'account-tx',
 			do: async () => await this.account.loadTx()
 		})
-
 		await this.#tokens.sync()
-
-		console.log(this.#tokens.registry.array[0].timeline)
 	}
 
 	async subscribe(){
 		await this.sync()
 		await this.live.subscribe()
+
+		this.inSync = true
+	}
+
+	async load({ ledgerIndices }){
+		await this.sync()
+		await this.#tokens.loadHistory({ ledgerIndices })
 	}
 
 	get networth(){
@@ -43,7 +50,11 @@ export default class Portfolio extends EventEmitter{
 	}
 
 	get tokens(){
-		return this.#tokens.represent()
+		return this.#tokens.live.represent()
+	}
+
+	get history(){
+		return this.#tokens.history.represent()
 	}
 
 	get progress(){

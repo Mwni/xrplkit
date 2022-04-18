@@ -64,6 +64,17 @@ export default class{
 		}
 	}
 
+	represent(){
+		return this.tk.registry.array.map(token => ({
+			currency: token.currency,
+			issuer: token.issuer,
+			balance: token.balance,
+			networth: this.getTokenNetworth(token),
+			performance: this.getTokenPerformance(token),
+			timeline: token.timeline
+		}))
+	}
+
 	getTokenNetworth(token){
 		return this.values[token.key]
 	}
@@ -92,8 +103,6 @@ export default class{
 		for(let token of this.tk.registry.array){
 			if(!this.values[token.key])
 				continue
-			
-			console.log(token, this.values[token.key])
 			
 			performance = performance
 				.plus(this.values[token.key])
