@@ -27,6 +27,8 @@ export default class History{
 				if(this.tk.isQuote(token)){
 					values[token.key] = event.balance
 				}else{
+					values[token.key] = null
+
 					valuationRequests.push({
 						amount: {
 							currency: token.currency,
@@ -59,6 +61,9 @@ export default class History{
 		let points = []
 
 		for(let ledgerIndex of Object.keys(this.values)){
+			if(!this.isPointAvailable(ledgerIndex))
+				continue
+
 			points.push(this.representPoint(parseInt(ledgerIndex)))
 		}
 
@@ -94,5 +99,11 @@ export default class History{
 			performance: performance.toString(),
 			tokens
 		}
+	}
+
+	isPointAvailable(ledgerIndex){
+		return this.values[ledgerIndex]
+			? Object.values(this.values[ledgerIndex]).every(value => value !== null)
+			: false
 	}
 }
