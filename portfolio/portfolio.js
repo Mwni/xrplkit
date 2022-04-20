@@ -24,7 +24,7 @@ export default class Portfolio extends EventEmitter{
 
 		await this.queue.add({
 			stage: 'account-tx',
-			do: async () => await this.account.loadTx()
+			execute: async () => await this.account.loadTx()
 		})
 		await this.#tokens.sync()
 	}

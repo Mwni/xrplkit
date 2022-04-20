@@ -37,7 +37,8 @@ export default class{
 
 			this.tk.pf.queue.add({
 				stage: 'token-book-eval',
-				do: async () => {
+				ledgerIndex,
+				execute: async () => {
 					let book = new Book({
 						socket: this.tk.pf.socket,
 						takerGets: this.tk.pf.quoteCurrency,

@@ -7,31 +7,28 @@ export default class extends EventEmitter{
 		this.branches = {}
 	}
 
-	add(task){
-		let branch = this.branches[task.stage]
+	add({ stage, execute, ...meta }){
+		let branch = this.branches[stage]
 
 		if(!branch){
-			branch = this.branches[task.stage] = {
+			branch = this.branches[stage] = {
 				chain: Promise.resolve(),
-				progress: { 
-					value: 0,
-					total: 0
-				}
+				tasks: []
 			}
 		}
 
-		branch.progress.total++
+		branch.tasks.push(meta)
 		
 		return branch.chain = branch.chain
 			.then(() => {
-				this.emit('change', this.progress)
-				return task.do()
+				this.emit('change')
+				return execute()
 			})
 			.then(() => {
-				branch.progress.value++
+				meta.complete = true
 
-				if(branch.progress.value === branch.progress.total){
-					this.emit('change', this.progress)
+				if(branch.tasks.every(task => task.complete)){
+					this.emit('change')
 				}
 			})
 	}

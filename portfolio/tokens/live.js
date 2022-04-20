@@ -34,7 +34,7 @@ export default class{
 
 			this.tk.pf.queue.add({
 				stage: 'token-live-eval',
-				do: async () => {
+				execute: async () => {
 					this.values[token.key] = (await book.fillLazy({ takerPays: token.balance }))
 						.takerGets
 

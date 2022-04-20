@@ -37,7 +37,8 @@ export default class{
 
 			this.tk.pf.queue.add({
 				stage: 'ledger-lookup',
-				do: async () => {
+				ledgerIndex,
+				execute: async () => {
 					let { ledger } = await this.tk.pf.socket.request({
 						command: 'ledger',
 						ledger_index: ledgerIndex
