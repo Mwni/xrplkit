@@ -13,6 +13,9 @@ export default class Socket extends EventEmitter{
 	}
 
 	async connect(url, options = {stayConnected: true}){
+		if(this.url === url)
+			return
+
 		this.url = url
 		this.options = options
 
