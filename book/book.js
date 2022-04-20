@@ -29,11 +29,14 @@ export default class Book extends EventEmitter{
 		this.emit('update')
 	}
 
-	async subscribe(){
+	async subscribe({ load } = {}){
 		if(this.subscribed)
 			return
 
 		this.subscribed = true
+
+		if(load)
+			await this.load()
 
 		await this.socket.request({
 			command: 'subscribe',
