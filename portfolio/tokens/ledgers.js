@@ -13,28 +13,12 @@ export default class{
 			if(batch.length === 0)
 				break
 
-			let results = await request.call(this, batch)
-
-			for(let i=0; i<results.length; i++){
-				if(results[i]){
-					batch[i].resolve(results[i])
-					batch[i] = null
-				}
-			}
-
-			batch = batch.filter(Boolean)
+			batch = await request.call(this, batch)
 		}
 	}
 
 	async fetchFromXRPL(batch){
-		let results = Array(batch.length)
-			.fill(0)
-			.map(() => null)
-
-
-		for(let i=0; i<batch.length; i++){
-			let { ledgerIndex } = batch[i]
-
+		for(let { ledgerIndex, resolve } of batch){
 			this.tk.pf.queue.add({
 				stage: 'ledger-lookup',
 				ledgerIndex,
@@ -44,13 +28,13 @@ export default class{
 						ledger_index: ledgerIndex
 					})
 
-					results[i] = rippleToUnix(ledger.close_time)
+					resolve(rippleToUnix(ledger.close_time))
 				}
 			})
 		}
 
 		await this.tk.pf.queue.wait('ledger-lookup')
 
-		return results
+		return []
 	}
 }

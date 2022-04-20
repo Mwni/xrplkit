@@ -13,28 +13,12 @@ export default class{
 			if(batch.length === 0)
 				break
 
-			let results = await request.call(this, batch)
-
-			for(let i=0; i<results.length; i++){
-				if(results[i]){
-					batch[i].resolve(results[i])
-					batch[i] = null
-				}
-			}
-
-			batch = batch.filter(Boolean)
+			batch = await request.call(this, batch)
 		}
 	}
 
 	async evaluateFromBooks(batch){
-		let results = Array(batch.length)
-			.fill(0)
-			.map(() => null)
-
-
-		for(let i=0; i<batch.length; i++){
-			let { amount, ledgerIndex } = batch[i]
-
+		for(let { amount, ledgerIndex, resolve } of batch){
 			this.tk.pf.queue.add({
 				stage: 'token-book-eval',
 				ledgerIndex,
@@ -49,14 +33,16 @@ export default class{
 						ledgerIndex
 					})
 
-					results[i] = (await book.fillLazy({ takerPays: amount.value }))
-						.takerGets
+					resolve(
+						(await book.fillLazy({ takerPays: amount.value }))
+							.takerGets
+					)
 				}
 			})
 		}
 
 		await this.tk.pf.queue.wait('token-book-eval')
 
-		return results
+		return []
 	}
 }

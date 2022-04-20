@@ -60,7 +60,7 @@ export default class Portfolio extends EventEmitter{
 	get progress(){
 		return Object.entries(this.queue.branches).map(([stage, branch]) => ({
 			stage,
-			...branch.progress
+			tasks: branch.tasks
 		}))
 	}
 }
