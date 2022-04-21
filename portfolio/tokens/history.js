@@ -4,63 +4,49 @@ import XFL from '@xrplworks/xfl'
 export default class History{
 	constructor(tokens){
 		this.tk = tokens
-		this.values = {}
-		this.ledgers = {}
 	}
 
 	async load(ledgerIndices){
-		let valuationRequests = []
-		let ledgerRequests = []
+		let requests = []
 
 		for(let ledgerIndex of ledgerIndices){
-			let values = this.values[ledgerIndex] = {}
-
 			for(let token of this.tk.registry.array){
+				let value = token.valuations[ledgerIndex]
 				let event = token.timeline
 					.slice()
 					.reverse()
 					.find(event => event.ledgerIndex <= ledgerIndex)
 
-				if(!event)
+				if(value || !event)
 					continue
 
 				if(this.tk.isQuote(token)){
-					values[token.key] = event.balance
+					token.valuations[ledgerIndex] = event.balance
 				}else{
-					values[token.key] = null
+					token.valuations[ledgerIndex] = null
 
-					valuationRequests.push({
+					requests.push({
+						ledgerIndex,
 						amount: {
 							currency: token.currency,
 							issuer: token.issuer,
 							value: event.balance
 						},
-						ledgerIndex,
 						resolve: value => {
-							values[token.key] = value
+							token.valuations[ledgerIndex] = value
 						}
 					})
 				}
 			}
-
-			ledgerRequests.push({
-				ledgerIndex,
-				resolve: time => {
-					this.ledgers[ledgerIndex] = time
-				}
-			})
 		}
 
-		await Promise.all([
-			this.tk.valuations.fill(valuationRequests),
-			this.tk.ledgers.fill(ledgerRequests)
-		])
+		await this.tk.valuations.fill(requests)
 	}
 
 	represent(){
 		let points = []
 
-		for(let ledgerIndex of Object.keys(this.values)){
+		for(let ledgerIndex of Object.keys(this.tk.pf.ledgers.times)){
 			if(!this.isPointAvailable(ledgerIndex))
 				continue
 
@@ -71,24 +57,25 @@ export default class History{
 	}
 
 	representPoint(ledgerIndex){
-		let values = this.values[ledgerIndex]
-		let time = this.ledgers[ledgerIndex]
+		let time = this.tk.pf.ledgers.times[ledgerIndex]
 		let networth = new XFL(0)
 		let performance = new XFL(0)
 		let tokens = []
 
 		for(let token of this.tk.registry.array){
+			let value = token.valuations[ledgerIndex]
 			let event = token.timeline
 				.slice()
 				.reverse()
 				.find(event => event.ledgerIndex <= ledgerIndex)
 
-			if(!event)
+			if(!value || !event)
 				continue
 
-			networth = networth.plus(values[token.key])
+
+			networth = networth.plus(value)
 			performance = performance
-				.plus(values[token.key])
+				.plus(value)
 				.minus(event.value)
 		}
 		
@@ -102,8 +89,10 @@ export default class History{
 	}
 
 	isPointAvailable(ledgerIndex){
-		return this.values[ledgerIndex]
-			? Object.values(this.values[ledgerIndex]).every(value => value !== null)
-			: false
+		return (
+			this.tk.pf.ledgers.times[ledgerIndex]
+			&& this.tk.registry.array
+				.every(token => token.valuations[ledgerIndex] !== null)
+		)
 	}
 }

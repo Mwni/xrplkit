@@ -1,5 +1,6 @@
 import { EventEmitter } from '@mwni/events'
 import Queue from './queue.js'
+import Ledgers from './ledgers.js'
 import Tokens from './tokens/index.js'
 
 
@@ -13,15 +14,13 @@ export default class Portfolio extends EventEmitter{
 		this.quoteCurrency = quoteCurrency || {currency: 'XRP'}
 
 		this.queue = new Queue(this)
+		this.ledgers = new Ledgers(this)
 		this.#tokens = new Tokens(this)
 
 		this.queue.on('change', () => this.emit('progress', this.progress))
 	}
 
 	async sync(){
-		if(this.inSync)
-			return
-
 		await this.queue.add({
 			stage: 'account-tx',
 			execute: async () => await this.account.loadTx()
@@ -32,13 +31,14 @@ export default class Portfolio extends EventEmitter{
 	async subscribe(){
 		await this.sync()
 		await this.live.subscribe()
-
-		this.inSync = true
 	}
 
 	async load({ ledgerIndices }){
 		await this.sync()
-		await this.#tokens.loadHistory({ ledgerIndices })
+		await Promise.all([
+			this.ledgers.load({ ledgerIndices }),
+			this.#tokens.loadHistory({ ledgerIndices }),
+		])
 	}
 
 	get networth(){
@@ -62,5 +62,12 @@ export default class Portfolio extends EventEmitter{
 			stage,
 			tasks: branch.tasks
 		}))
+	}
+
+	get data(){
+		return {
+			ledgers: this.ledgers.data,
+			tokens: this.#tokens.data
+		}
 	}
 }
