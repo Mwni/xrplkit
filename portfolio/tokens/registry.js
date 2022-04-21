@@ -1,7 +1,6 @@
 import XFL from '@xrplworks/xfl'
 import { compare as isSameCurrency } from '@xrplworks/currency'
 import { extractBalanceChanges, extractExchanges } from '@xrplworks/tx'
-import { negate as negateAmount } from '@xrplworks/amount'
 
 
 export default class Registry{
@@ -73,7 +72,8 @@ export default class Registry{
 				key,
 				currency: balanceChange.currency,
 				issuer: balanceChange.issuer,
-				timeline: []
+				valuations: {},
+				timeline: [],
 			}
 
 			Object.defineProperties(token, {
