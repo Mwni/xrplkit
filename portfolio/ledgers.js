@@ -49,4 +49,8 @@ export default class{
 	get data(){
 		return this.times
 	}
+
+	set data(data){
+		this.times = data
+	}
 }

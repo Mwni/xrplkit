@@ -18,6 +18,25 @@ export default class Registry{
 	get array(){
 		return Object.values(this.map)
 	}
+	
+	restore(array){
+		for(let token of array){
+			this.map[token.key] = token
+
+			Object.defineProperties(token, {
+				balance: {
+					get(){
+						return token.timeline[token.timeline.length - 1].balance
+					}
+				},
+				value: {
+					get(){
+						return token.timeline[token.timeline.length - 1].value
+					}
+				}
+			})
+		}
+	}
 
 	derive(transaction){
 		let exchanges = extractExchanges(transaction, { collapse: true })

@@ -70,4 +70,9 @@ export default class Portfolio extends EventEmitter{
 			tokens: this.#tokens.data
 		}
 	}
+
+	set data(data){
+		this.ledgers.data = data.ledgers
+		this.#tokens.data = data.tokens
+	}
 }

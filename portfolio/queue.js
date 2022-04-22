@@ -34,6 +34,6 @@ export default class extends EventEmitter{
 	}
 
 	wait(stage){
-		return this.branches[stage]?.chain || Promise.resolve()
+		return this.branches[stage]?.chain || Promise.resolve()
 	}
 }

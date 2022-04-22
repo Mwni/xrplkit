@@ -37,4 +37,8 @@ export default class Tokens{
 	get data(){
 		return this.registry.array.map(token => ({ ...token }))
 	}
+
+	set data(data){
+		this.registry.restore(data)
+	}
 }
