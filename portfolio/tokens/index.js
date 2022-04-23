@@ -22,10 +22,6 @@ export default class Tokens{
 		await this.live.sync()
 	}
 
-	async loadHistory({ ledgerIndices }){
-		await this.history.load(ledgerIndices)
-	}
-
 	historical(){
 		return this.history.represent()
 	}

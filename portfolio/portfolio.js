@@ -33,12 +33,17 @@ export default class Portfolio extends EventEmitter{
 		await this.live.subscribe()
 	}
 
-	async load({ ledgerIndices }){
+	async load({ ledgerIndices, strict }){
 		await this.sync()
 		await Promise.all([
 			this.ledgers.load({ ledgerIndices }),
-			this.#tokens.loadHistory({ ledgerIndices }),
+			this.#tokens.history.load({ ledgerIndices }),
 		])
+
+		if(strict){
+			await this.ledgers.cull({ excludeLedgerIndices: ledgerIndices })
+			await this.#tokens.history.cull({ excludeLedgerIndices: ledgerIndices })
+		}
 	}
 
 	get networth(){

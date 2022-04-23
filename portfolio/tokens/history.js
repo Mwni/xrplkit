@@ -6,7 +6,7 @@ export default class History{
 		this.tk = tokens
 	}
 
-	async load(ledgerIndices){
+	async load({ ledgerIndices }){
 		let requests = []
 
 		for(let ledgerIndex of ledgerIndices){
@@ -41,6 +41,17 @@ export default class History{
 		}
 
 		await this.tk.valuations.fill(requests)
+	}
+
+	async cull({ excludeLedgerIndices }){
+		for(let token of this.tk.registry.array){
+			for(let key of Object.keys(token.valuations)){
+				if(excludeLedgerIndices.includes(parseInt(key)))
+					continue
+
+				delete token.valuations[key]
+			}
+		}
 	}
 
 	represent(){

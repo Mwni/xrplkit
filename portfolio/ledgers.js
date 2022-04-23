@@ -17,6 +17,15 @@ export default class{
 		)
 	}
 
+	async cull({ excludeLedgerIndices }){
+		for(let index of Object.keys(this.times)){
+			if(excludeLedgerIndices.includes(parseInt(index)))
+				continue
+
+			delete this.times[index]
+		}
+	}
+
 	async fill(batch){
 		for(let request of [...this.suppliers, this.fetchFromXRPL]){
 			if(batch.length === 0)
