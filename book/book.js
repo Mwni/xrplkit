@@ -47,73 +47,7 @@ export default class Book extends EventEmitter{
 			}]
 		})
 
-		this.socket.on('transaction', this.txh = tx => {
-			let didChange = false
-
-			if(!tx?.meta?.AffectedNodes)
-				return
-
-			for(let wrap of tx.meta.AffectedNodes){
-				let key = Object.keys(wrap)[0]
-				let node = wrap[key]
-
-				if(node.LedgerEntryType !== 'Offer')
-					continue
-
-				let account = node.FinalFields?.Account || node.NewFields?.Account
-				let sequence = node.FinalFields?.Sequence || node.NewFields?.Sequence
-				let id = `${account}:${sequence}`
-				let newOffer = this.#parseOffer(node.NewFields || node.FinalFields)
-
-				if(!compareCurrency(newOffer.takerPays, this.takerPays))
-					continue
-
-				if(!compareCurrency(newOffer.takerGets, this.takerGets))
-					continue
-
-				
-				if(key === 'CreatedNode'){
-					this.offers = this.offers
-						.concat([newOffer])
-						.map(offer => ({
-							offer, 
-							r: Decimal.div(
-								offer.takerPays.value, 
-								offer.takerGets.value
-							)
-						}))
-						.sort((a, b) => 
-							!a.r.eq(b.r)
-								? a.r.gt(b.r) ? 1 : -1
-								: 0
-						)
-						.map(({ offer }) => offer)
-
-					didChange = true
-					continue
-				}
-
-
-				let offerIndex = this.offers.findIndex(offer => offer.id === id)
-
-				if(offerIndex === -1)
-					continue
-
-				if(key === 'DeletedNode'){
-					this.offers.splice(offerIndex, 1)
-				}else{
-					Object.assign(
-						this.offers[offerIndex], 
-						newOffer
-					)
-				}
-
-				didChange = true
-			}
-
-			if(didChange)
-				this.emit('update')
-		})
+		this.socket.on('transaction', this.txh = tx => this.handleTx(tx))
 	}
 
 	async unsubscribe(){
@@ -129,6 +63,74 @@ export default class Book extends EventEmitter{
 				taker_pays: this.takerPays
 			}]
 		})
+	}
+
+	handleTx(tx){
+		let didChange = false
+
+		if(!tx?.meta?.AffectedNodes)
+			return
+
+		for(let wrap of tx.meta.AffectedNodes){
+			let key = Object.keys(wrap)[0]
+			let node = wrap[key]
+
+			if(node.LedgerEntryType !== 'Offer')
+				continue
+
+			let account = node.FinalFields?.Account || node.NewFields?.Account
+			let sequence = node.FinalFields?.Sequence || node.NewFields?.Sequence
+			let id = `${account}:${sequence}`
+			let newOffer = this.#parseOffer(node.NewFields || node.FinalFields)
+
+			if(!compareCurrency(newOffer.takerPays, this.takerPays))
+				continue
+
+			if(!compareCurrency(newOffer.takerGets, this.takerGets))
+				continue
+
+			
+			if(key === 'CreatedNode'){
+				this.offers = this.offers
+					.concat([newOffer])
+					.map(offer => ({
+						offer, 
+						r: Decimal.div(
+							offer.takerPays.value, 
+							offer.takerGets.value
+						)
+					}))
+					.sort((a, b) => 
+						!a.r.eq(b.r)
+							? a.r.gt(b.r) ? 1 : -1
+							: 0
+					)
+					.map(({ offer }) => offer)
+
+				didChange = true
+				continue
+			}
+
+
+			let offerIndex = this.offers.findIndex(offer => offer.id === id)
+
+			if(offerIndex === -1)
+				continue
+
+			if(key === 'DeletedNode'){
+				this.offers.splice(offerIndex, 1)
+			}else{
+				Object.assign(
+					this.offers[offerIndex], 
+					newOffer
+				)
+			}
+
+			didChange = true
+		}
+
+		if(didChange)
+			this.emit('update')
 	}
 
 
