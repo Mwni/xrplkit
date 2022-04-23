@@ -62,7 +62,6 @@ export default class Account extends EventEmitter{
 
 
 	async loadTx(){
-		let transactions = []
 		let marker
 		let forward = this.transactions.length > 0
 		let from = forward
@@ -80,7 +79,7 @@ export default class Account extends EventEmitter{
 				limit: 100
 			})
 
-			transactions.push(
+			this.transactions.push(
 				...chunk
 					.filter(transaction => {
 						return this.transactions.every(({ tx }) => transaction.tx.hash !== tx.hash)
@@ -93,11 +92,26 @@ export default class Account extends EventEmitter{
 				break
 		}
 
-		this.transactions = transactions.sort((a, b) => {
+		this.transactions = this.transactions.sort((a, b) => {
 			let aRank = a.tx.ledger_index + a.meta.TransactionIndex * 0.000001
 			let bRank = b.tx.ledger_index + b.meta.TransactionIndex * 0.000001
 
 			return aRank - bRank
 		})
+	}
+
+	get data(){
+		return {
+			flags: this.flags,
+			sequence: this.sequence,
+			ownerCount: this.ownerCount,
+			balance: this.balance,
+			lines: this.lines,
+			transactions: this.transactions
+		}
+	}
+
+	set data(data){
+		Object.assign(this, data)
 	}
 }
