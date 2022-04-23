@@ -4,12 +4,6 @@ import { extractBalanceChanges, extractExchanges } from '@xrplworks/tx'
 
 
 export default class Registry{
-	static key({ currency, issuer }){
-		return issuer
-			? `${currency}:${issuer}`
-			: currency
-	}
-
 	constructor(tokens){
 		this.tk = tokens
 		this.map = {}
@@ -21,21 +15,12 @@ export default class Registry{
 	
 	restore(array){
 		for(let token of array){
-			this.map[token.key] = token
+			let entry = new Entry(token)
 
-			Object.defineProperties(token, {
-				balance: {
-					get(){
-						return token.timeline[token.timeline.length - 1].balance
-					}
-				},
-				value: {
-					get(){
-						return token.timeline[token.timeline.length - 1].value
-					}
-				}
-			})
+			this.map[entry.key] = entry
 		}
+
+		this.tk.timelines.fill()
 	}
 
 	derive(transaction){
@@ -83,43 +68,56 @@ export default class Registry{
 	}
 
 	registerEvent({ transaction, balanceChange, valueChange, ledgerIndex }){
-		let key = Registry.key(balanceChange)
+		let key = Entry.key(balanceChange)
 		let token = this.map[key]
 
 		if(!token){
-			token = this.map[key] = {
-				key,
+			token = this.map[key] = new Entry({
 				currency: balanceChange.currency,
-				issuer: balanceChange.issuer,
-				valuations: {},
-				timeline: [],
-			}
-
-			Object.defineProperties(token, {
-				balance: {
-					get(){
-						return token.timeline[token.timeline.length - 1].balance
-					}
-				},
-				value: {
-					get(){
-						return token.timeline[token.timeline.length - 1].value
-					}
-				}
+				issuer: balanceChange.issuer
 			})
+		}else{
+			if(token.timeline.some(event => event.tx === transaction.tx.hash))
+				return
 		}
-
+		
 		token.timeline.push({
 			tx: transaction.tx.hash,
+			ledgerIndex,
 			balanceChange: balanceChange.value,
 			valueChange,
-			ledgerIndex
 		})
 	}
 
 	blacklistObligations(){
 		// todo
 	}
+}
 
-	
+
+class Entry{
+	static key({ currency, issuer }){
+		return issuer
+			? `${currency}:${issuer}`
+			: currency
+	}
+
+
+	constructor(data){
+		this.timeline = []
+		this.valuations = {}
+		Object.assign(this, data)
+	}
+
+	get key(){
+		return Entry.key(this)
+	}
+
+	get balance(){
+		return this.timeline[this.timeline.length - 1].balance
+	}
+
+	get value(){
+		return this.timeline[this.timeline.length - 1].value
+	}
 }

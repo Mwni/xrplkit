@@ -11,14 +11,7 @@ export default class{
 			this.tk.registry.derive(transaction)
 		}
 
-		for(let token of this.tk.registry.array){
-			let movingBalance = new XFL(0)
-
-			for(let event of token.timeline){
-				movingBalance = movingBalance.plus(event.balanceChange)
-				event.balance = movingBalance.toString()
-			}
-		}
+		this.fill()
 	}
 
 	async evaluate(){
@@ -51,12 +44,22 @@ export default class{
 
 		await this.tk.valuations.fill(requests)
 
+		this.fill()
+	}
+
+	fill(){
 		for(let token of this.tk.registry.array){
+			let movingBalance = new XFL(0)
 			let movingValue = new XFL(0)
 
 			for(let event of token.timeline){
-				movingValue = movingValue.plus(event.valueChange)
-				event.value = movingValue.toString()
+				movingBalance = movingBalance.plus(event.balanceChange)
+				event.balance = movingBalance.toString()
+				
+				if(event.valueChange){
+					movingValue = movingValue.plus(event.valueChange)
+					event.value = movingValue.toString()
+				}
 			}
 		}
 	}
