@@ -83,6 +83,14 @@ export default class History{
 			if(!value || !event)
 				continue
 
+			tokens.push({
+				currency: token.currency,
+				issuer: token.issuer,
+				networth: value,
+				performance: new XFL(value)
+					.minus(event.value)
+					.toString()
+			})
 
 			networth = networth.plus(value)
 			performance = performance

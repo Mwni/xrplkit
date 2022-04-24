@@ -5,8 +5,8 @@ import XFL from '@xrplworks/xfl'
 export default class{
 	constructor(tokens){
 		this.tk = tokens
-		this.networth = '0'
-		this.performance = '0'
+		this.networth = undefined
+		this.performance = undefined
 		this.books = {}
 		this.values = {}
 	}
@@ -37,13 +37,12 @@ export default class{
 				execute: async () => {
 					this.values[token.key] = (await book.fillLazy({ takerPays: token.balance }))
 						.takerGets
-
-					this.calculate()
 				}
 			})
 		}
 
 		await this.tk.pf.queue.wait('token-live-eval')
+		this.calculate()
 	}
 
 	async subscribe(){
@@ -64,14 +63,16 @@ export default class{
 	}
 
 	represent(){
-		return this.tk.registry.array.map(token => ({
-			currency: token.currency,
-			issuer: token.issuer,
-			balance: token.balance,
-			networth: this.getTokenNetworth(token),
-			performance: this.getTokenPerformance(token),
-			timeline: token.timeline
-		}))
+		return this.tk.registry.array
+			.filter(token => this.values[token.key])
+			.map(token => ({
+				currency: token.currency,
+				issuer: token.issuer,
+				balance: token.balance,
+				networth: this.getTokenNetworth(token),
+				performance: this.getTokenPerformance(token),
+				timeline: token.timeline
+			}))
 	}
 
 	getTokenNetworth(token){
