@@ -10,10 +10,12 @@ export default class{
 
 	async load({ ledgerIndices }){
 		await this.fill(
-			ledgerIndices.map(index => ({
-				index,
-				resolve: time => this.times[index] = time
-			}))
+			ledgerIndices
+				.filter(index => !this.times[index])
+				.map(index => ({
+					index,
+					resolve: time => this.times[index] = time
+				}))
 		)
 	}
 

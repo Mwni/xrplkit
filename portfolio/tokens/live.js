@@ -38,8 +38,7 @@ export default class{
 					this.values[token.key] = (await book.fillLazy({ takerPays: token.balance }))
 						.takerGets
 
-					this.updateNetworth()
-					this.updatePerformance()
+					this.calculate()
 				}
 			})
 		}
@@ -48,7 +47,7 @@ export default class{
 	}
 
 	async subscribe(){
-		for(let token of this.pf.tokens.array.slice(1)){
+		for(let token of this.tk.registry.array.slice(1)){
 			let book = this.books[token.key]
 
 			await book.subscribe()
@@ -58,8 +57,8 @@ export default class{
 					.fill({ takerPays: token.balance })
 					.takerGets
 
-				this.updateNetworth()
-				this.updatePerformance()
+				if(this.calculate())
+					this.tk.pf.emit('update')
 			})
 		}
 	}
@@ -84,31 +83,28 @@ export default class{
 			.toString()
 	}
 
-	updateNetworth(){
+	calculate(){
 		let networth = new XFL(0)
-		
+		let performance = new XFL(0)
+
 		for(let token of this.tk.registry.array){
 			if(!this.values[token.key])
 				continue
 
 			networth = networth.plus(this.values[token.key])
-		}
-		
-		this.networth = networth.toString()
-	}
-
-	updatePerformance(){
-		let performance = new XFL(0)
-		
-		for(let token of this.tk.registry.array){
-			if(!this.values[token.key])
-				continue
-			
 			performance = performance
 				.plus(this.values[token.key])
 				.minus(token.value)
 		}
-		
-		this.performance = performance.toString()
+
+		networth = networth.toString()
+		performance = performance.toString()
+
+		if(this.networth !== networth || this.performance !== performance){
+			this.networth = networth
+			this.performance = performance
+
+			return true
+		}
 	}
 }

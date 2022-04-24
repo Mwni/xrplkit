@@ -30,11 +30,14 @@ export default class Portfolio extends EventEmitter{
 
 	async subscribe(){
 		await this.sync()
-		await this.live.subscribe()
+		await this.#tokens.live.subscribe()
+		this.subscribed = true
 	}
 
 	async load({ ledgerIndices, strict }){
-		await this.sync()
+		if(!this.subscribed)
+			await this.sync()
+
 		await Promise.all([
 			this.ledgers.load({ ledgerIndices }),
 			this.#tokens.history.load({ ledgerIndices }),
