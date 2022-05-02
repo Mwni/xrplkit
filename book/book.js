@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js'
+import XFL from '@xrplworks/xfl'
 import { EventEmitter } from '@mwni/events'
 import { fromRippled as amountFromRippled } from '@xrplworks/amount'
 import { compare as compareCurrency } from '@xrplworks/currency'
