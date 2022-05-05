@@ -1,77 +1,125 @@
-import Decimal from 'decimal.js'
-
-const minMantissa = 1000000000000000n
-const maxMantissa = 9999999999999999n
-const minExponent = -96
-const maxExponent = 80
+import { XFL as StringXFL } from './wrappers/string.js'
+import { minMantissa, maxMantissa, minExponent, maxExponent } from './constants.js'
 
 
-export default class XFL extends Decimal{
-	constructor(value){
-		if(typeof value === 'bigint'){
-			if (value < 0n)
-				throw new Error(`invalid XFL`)
+export function XFL(input){
+	if(typeof input === 'string')
+		input = fromString(input)
+	if(typeof input === 'number')
+		input = fromString(input.toString())
+	else if(typeof input === 'bigint')
+		input = fromBigInt(input)
+	
+	if(this instanceof XFL){
+		this.mantissa = BigInt(input.mantissa)
+		this.exponent = BigInt(input.exponent)
+		normalize(this)
+	}else{
+		return new XFL(input)
+	}
+}
 
-			if (value == 0n)
-				super(0)
-
-			let mantissa = value - ((value >> 54n)<< 54n)
-			let exponent = ((value >> 54n) & 0xFFn) - 97n
-			let negative = ((value >> 62n) & 1n) == 1n
-			
-			super(`${negative ? '-' : ''}${mantissa}e${exponent}`)
-		}else{
-			super(value)
+Object.defineProperties(XFL.prototype, {
+	toString: {
+		value: function(){
+			return StringXFL(this)
+		}
+	},
+	[Symbol.toStringTag]: {
+		get(){
+			return StringXFL(this)
 		}
 	}
+})
 
 
-	toNative(){
-		if(this.isZero())
-			return 0n
+export function neg(x){
+	x = XFL(x)
+	x.mantissa *= -1n
 
-		let exponent = BigInt(this.e)
-		let mantissa = BigInt(0)
-		let negative = this.s < 0
+	return x
+}
 
-		for(let d of this.d){
-			mantissa += BigInt(d)
-			mantissa *= BigInt(1e7)
-			exponent -= 7n
-		}
+export function sum(a, b){
+	a = XFL(a)
+	b = XFL(b)
 
-		exponent -= BigInt(Math.floor(Math.log10(this.d[0])))
+	if (a.mantissa === 0n)
+		return a
 
-		if (mantissa == 0n)
-			return 0n
+	if(b.mantissa === 0n)
+		return b
 
-		while (mantissa > maxMantissa)
-		{
-			mantissa /= 10n
-			exponent++
-		}
-
-		while (mantissa < minMantissa)
-		{
-			mantissa *= 10n
-			exponent--
-		}
-
-		if (mantissa == 0)
-			return 0n
-
-		if (exponent > maxExponent || exponent < minExponent)
-			throw new Error(`invalid XFL (overflow)`)
-
-		exponent += 97n
-
-		let native = (negative ? 1n : 0n)
-
-		native <<= 8n
-		native |= BigInt(exponent)
-		native <<= 54n
-		native |= BigInt(mantissa)
-
-		return native
+	while (a.exponent < b.exponent){
+		a.mantissa /= 10n
+		a.exponent++
 	}
+
+	while (b.exponent < a.exponent){
+		b.mantissa /= 10n
+		b.exponent++
+	}
+
+	a.mantissa += b.mantissa
+
+	if (a.mantissa >= -10n && a.mantissa <= 10n){
+		return toXFL(0n)
+	}
+
+	return a
+}
+
+export function sub(a, b){
+	return sum(a, neg(b))
+}
+
+
+
+
+function fromString(str){
+	let mantissa
+	let exponent
+	let negative = false
+	let point = str.indexOf('.')
+
+	if(str.charAt(0) === '-'){
+		str = str.slice(1)
+		negative = true
+		point--
+	}
+
+	if(point > 0){
+		mantissa = BigInt(str.slice(0, point) + str.slice(point + 1))
+		exponent = BigInt(point - str.length + 1)
+	}else{
+		mantissa = BigInt(str)
+		exponent = BigInt(0)
+	}
+
+	if(negative)
+		mantissa *= -1
+
+	return XFL({mantissa, exponent})
+}
+
+function fromBigInt(){
+
+}
+
+function normalize(xfl){
+	if(xfl.mantissa === 0n)
+		return
+	
+	while (xfl.mantissa > maxMantissa){
+		xfl.mantissa /= 10n
+		xfl.exponent++
+	}
+
+	while (xfl.mantissa < minMantissa){
+		xfl.mantissa *= 10n
+		xfl.exponent--
+	}
+
+	if (xfl.exponent > maxExponent || xfl.exponent < minExponent)
+		throw new Error(`invalid XFL (overflow)`)
 }
