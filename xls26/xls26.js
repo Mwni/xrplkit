@@ -3,7 +3,7 @@
 // This package provides an implementation of a parser according to this standard.
 
 
-import { parse as parseToml } from '@xrplworks/toml'
+import { parse as parseToml } from '@xrplkit/toml'
 
 
 const accountFields = [

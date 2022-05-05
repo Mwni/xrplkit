@@ -1,9 +1,9 @@
 {
-	"name": "@xrplworks/account",
+	"name": "@xrplkit/account",
 	"type": "module",
 	"version": "1.0.0",
 	"main": "account.js",
-	"author": "xrplworks",
+	"author": "xrplkit",
 	"dependencies": {
 		"@mwni/events": "^1.0.0",
 		"decimal.js": "^10.3.1"

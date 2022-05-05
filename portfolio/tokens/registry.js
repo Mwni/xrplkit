@@ -1,6 +1,6 @@
-import XFL from '@xrplworks/xfl'
-import { compare as isSameCurrency } from '@xrplworks/currency'
-import { extractBalanceChanges, extractExchanges } from '@xrplworks/tx'
+import XFL from '@xrplkit/xfl'
+import { compare as isSameCurrency } from '@xrplkit/currency'
+import { extractBalanceChanges, extractExchanges } from '@xrplkit/tx'
 
 
 export default class Registry{

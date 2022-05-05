@@ -1,17 +1,17 @@
 {
-	"name": "@xrplworks/portfolio",
+	"name": "@xrplkit/portfolio",
 	"type": "module",
 	"version": "1.0.0",
 	"main": "portfolio.js",
-	"author": "xrplworks",
+	"author": "xrplkit",
 	"dependencies": {
 		"@mwni/events": "^1.0.0",
-		"@xrplworks/xfl": "1.0.0",
-		"@xrplworks/tx": "1.1.2",
-		"@xrplworks/book": "1.0.0",
-		"@xrplworks/amount": "1.0.0",
-		"@xrplworks/currency": "1.0.0",
-		"@xrplworks/time": "1.0.0"
+		"@xrplkit/xfl": "1.0.0",
+		"@xrplkit/tx": "1.1.2",
+		"@xrplkit/book": "1.0.0",
+		"@xrplkit/amount": "1.0.0",
+		"@xrplkit/currency": "1.0.0",
+		"@xrplkit/time": "1.0.0"
 	},
 	"private": true
 }

@@ -1,11 +1,11 @@
 {
-    "name": "@xrplworks/tx",
+    "name": "@xrplkit/tx",
     "type": "module",
     "version": "1.1.2",
     "main": "index.js",
     "dependencies": {
-        "@xrplworks/amount": "1.0.0",
-        "@xrplworks/currency": "1.0.0",
+        "@xrplkit/amount": "1.0.0",
+        "@xrplkit/currency": "1.0.0",
         "decimal.js": "^10.3.1"
     },
     "publishConfig": {

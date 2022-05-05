@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js'
-import { decode, encode } from '@xrplworks/currency'
+import { decode, encode } from '@xrplkit/currency'
 
 
 export function fromRippled(amount, decodeCurrency){

@@ -1,7 +1,7 @@
-import XFL from '@xrplworks/xfl'
+import XFL from '@xrplkit/xfl'
 import { EventEmitter } from '@mwni/events'
-import { fromRippled as amountFromRippled } from '@xrplworks/amount'
-import { compare as compareCurrency } from '@xrplworks/currency'
+import { fromRippled as amountFromRippled } from '@xrplkit/amount'
+import { compare as compareCurrency } from '@xrplkit/currency'
 
 
 
@@ -47,7 +47,7 @@ export default class Book extends EventEmitter{
 			}]
 		})
 
-		this.socket.on('transaction', this.txh = tx => this.handleTx(tx))
+		this.socket.on('transaction', this.txh = tx => this.diff(tx))
 	}
 
 	async unsubscribe(){
@@ -65,13 +65,14 @@ export default class Book extends EventEmitter{
 		})
 	}
 
-	handleTx(tx){
+	diff(tx){
 		let didChange = false
+		let meta = tx?.meta || tx.metaData
 
-		if(!tx?.meta?.AffectedNodes)
+		if(!meta?.AffectedNodes)
 			return
 
-		for(let wrap of tx.meta.AffectedNodes){
+		for(let wrap of meta.AffectedNodes){
 			let key = Object.keys(wrap)[0]
 			let node = wrap[key]
 
@@ -95,7 +96,7 @@ export default class Book extends EventEmitter{
 					.concat([newOffer])
 					.map(offer => ({
 						offer, 
-						r: Decimal.div(
+						r: XFL.div(
 							offer.takerPays.value, 
 							offer.takerGets.value
 						)
@@ -137,16 +138,16 @@ export default class Book extends EventEmitter{
 	fill({ takerPays, takerGets, cushion }){
 		let incomplete = true
 		let amountPay
-		let amountGet = new Decimal(0)
+		let amountGet = new XFL(0)
 		let keyPay
 		let keyGet
 
 		if(takerPays){
-			amountPay = new Decimal(takerPays)
+			amountPay = new XFL(takerPays)
 			keyPay = 'takerPays'
 			keyGet = 'takerGets'
 		}else{
-			amountPay = new Decimal(takerGets)
+			amountPay = new XFL(takerGets)
 			keyPay = 'takerGets'
 			keyGet = 'takerPays'
 		}
@@ -159,7 +160,7 @@ export default class Book extends EventEmitter{
 			if(amountPay.lt(payValue)){
 				let fraction = amountPay.div(payValue)
 
-				amountPay = new Decimal(0)
+				amountPay = new XFL(0)
 				amountGet = amountGet.plus(fraction.times(getValue))
 				incomplete = false
 				break
@@ -181,11 +182,11 @@ export default class Book extends EventEmitter{
 			incomplete,
 			partial: amountPay.gt(0),
 			takerPays: takerPays
-				? Decimal.sub(takerPays, amountPay).toString()
+				? XFL.sub(takerPays, amountPay).toString()
 				: amountGet.toString(),
 			takerGets: takerPays
 				? amountGet.toString()
-				: Decimal.sub(takerGets, amountPay).toString()
+				: XFL.sub(takerGets, amountPay).toString()
 		}
 	}
 
@@ -207,6 +208,11 @@ export default class Book extends EventEmitter{
 		}
 	}
 
+	get bestPrice(){
+		return this.offers.length > 0
+			? this.offers[0].price
+			: undefined
+	}
 
 	#parseOffer(offer){
 		let takerGets = amountFromRippled(offer.TakerGets)
@@ -214,9 +220,12 @@ export default class Book extends EventEmitter{
 
 		return {
 			id: `${offer.Account}:${offer.Sequence}`,
+			account: offer.Account,
+			sequence: offer.Sequence,
+			index: offer.index,
 			takerGets,
 			takerPays,
-			price: Decimal.div(
+			price: XFL.div(
 				takerPays.value, 
 				takerGets.value
 			).toString()

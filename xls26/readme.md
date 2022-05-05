@@ -7,7 +7,7 @@ This package exports one single function called `parse` that converts a string o
 Assuming you have a file named `xrp-ledger.toml` in the current working directory. [Example File here](http://xrpl.works/.well-known/xrp-ledger.toml)
 
     import fs from 'fs'
-    import { parse } from '@xrplworks/xls26'
+    import { parse } from '@xrplkit/xls26'
     
     const tomlString = fs.readFileSync('./xrp-ledger.toml', 'utf-8')
     const xls26Data = parse(tomlString)

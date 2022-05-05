@@ -1,12 +1,12 @@
 {
-    "name": "@xrplworks/amount",
+    "name": "@xrplkit/amount",
     "type": "module",
     "version": "1.0.0",
     "main": "index.js",
     "license": "ISC",
-    "author": "xrplworks",
+    "author": "xrplkit",
     "dependencies": {
-        "@xrplworks/currency": "1.0.0",
+        "@xrplkit/currency": "1.0.0",
         "decimal.js": "^10.3.1"
     },
     "publishConfig": {

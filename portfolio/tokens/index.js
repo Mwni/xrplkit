@@ -3,7 +3,7 @@ import Timelines from './timelines.js'
 import Valuations from './valuations.js'
 import Live from './live.js'
 import History from './history.js'
-import { compare as isSameCurrency } from '@xrplworks/currency'
+import { compare as isSameCurrency } from '@xrplkit/currency'
 
 
 export default class Tokens{

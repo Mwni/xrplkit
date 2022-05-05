@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
-import { fromRippled as fromRippledAmount } from '@xrplworks/amount'
-import { decode as decodeCurrency, compare as compareCurrency } from '@xrplworks/currency'
+import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
+import { decode as decodeCurrency, compare as compareCurrency } from '@xrplkit/currency'
 
 
 export function extractExchanges(tx, options={}){

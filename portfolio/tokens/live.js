@@ -1,5 +1,5 @@
-import Book from '@xrplworks/book'
-import XFL from '@xrplworks/xfl'
+import Book from '@xrplkit/book'
+import XFL from '@xrplkit/xfl'
 
 
 export default class{
