@@ -1,32 +1,46 @@
-import { minMantissa, maxMantissa, minExponent, maxExponent } from '../constants.js'
+import * as op from '../operators.js'
+import { toString } from '../conversion.js'
 
 export function XFL(input){
-	if(typeof input === 'object')
-		return toString(input)
-	else if(typeof input === 'bigint')
-		return 'X'
-	else
-		return input
+	return toString(op.XFL(input))
 }
 
-function toString(xfl){
-	let str = xfl.mantissa.toString()
-	let point = Number(xfl.exponent - minExponent - maxExponent)
+export function neg(x){
+	return XFL(op.neg(x))
+}
 
-	if(point <= 0){
-		str = `0.`.padEnd(-point, '0') + str
-	}else if(point >= str.length){
-		str = str.padEnd(point - str.length, '0')
-	}else{
-		str = str.slice(0, point) + '.' + str.slice(point)
-	}
+export function sum(a, b){
+	return XFL(op.sum(a, b))
+}
 
-	let cap = str.length - 1
+export function sub(a, b){
+	return XFL(op.sub(a, b))
+}
 
-	while(cap --> point){
-		if(str.charAt(cap) !== '0')
-			break
-	}
+export function mul(a, b){
+	return XFL(op.mul(a, b))
+}
 
-	return str.slice(0, cap+1)
+export function div(a, b){
+	return XFL(op.div(a, b))
+}
+
+export function eq(a, b){
+	return op.eq(a, b)
+}
+
+export function lt(a, b){
+	return op.lt(a, b)
+}
+
+export function lte(a, b){
+	return op.lte(a, b)
+}
+
+export function gt(a, b){
+	return op.gt(a, b)
+}
+
+export function gte(a, b){
+	return op.gte(a, b)
 }

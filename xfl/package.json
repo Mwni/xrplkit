@@ -3,6 +3,11 @@
 	"type": "module",
 	"version": "1.0.1",
 	"main": "xfl.js",
+	"exports": {
+		".": "./index.js",
+		"./string": "./wrappers/string.js",
+		"./bigint": "./wrappers/bigint.js"
+	},
 	"publishConfig": {
 		"access": "public"
 	},
