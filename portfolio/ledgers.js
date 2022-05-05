@@ -1,4 +1,4 @@
-import { rippleToUnix } from '@xrplworks/time'
+import { rippleToUnix } from '@xrplkit/time'
 
 
 export default class{

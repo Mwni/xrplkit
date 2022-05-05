@@ -1,10 +1,10 @@
 {
-    "name": "@xrplworks/currency",
+    "name": "@xrplkit/currency",
     "type": "module",
     "version": "1.0.1",
     "main": "index.js",
     "license": "ISC",
-    "author": "xrplworks",
+    "author": "xrplkit",
     "publishConfig": {
         "access": "public"
     }

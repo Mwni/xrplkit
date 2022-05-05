@@ -1,9 +1,9 @@
 {
-  "name": "@xrplworks/release",
+  "name": "@xrplkit/release",
   "type": "module",
   "version": "1.0.0",
   "main": "index.js",
-  "author": "xrplworks",
+  "author": "xrplkit",
   "license": "ISC",
   "devDependencies": {
     "typedoc": "^0.22.13"

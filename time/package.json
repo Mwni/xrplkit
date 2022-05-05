@@ -1,10 +1,10 @@
 {
-    "name": "@xrplworks/time",
+    "name": "@xrplkit/time",
     "type": "module",
     "version": "1.0.0",
     "main": "time.js",
     "license": "ISC",
-    "author": "xrplworks",
+    "author": "xrplkit",
     "publishConfig": {
         "access": "public"
     }

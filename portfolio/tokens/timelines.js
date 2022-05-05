@@ -1,4 +1,4 @@
-import XFL from '@xrplworks/xfl'
+import XFL from '@xrplkit/xfl'
 
 
 export default class{

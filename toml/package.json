@@ -1,5 +1,5 @@
 {
-    "name": "@xrplworks/toml",
+    "name": "@xrplkit/toml",
     "type": "module",
     "version": "1.0.0",
     "main": "toml.js",

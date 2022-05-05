@@ -1,4 +1,4 @@
-import Book from '@xrplworks/book'
+import Book from '@xrplkit/book'
 
 
 export default class{
