@@ -7,10 +7,9 @@
 	"dependencies": {
 		"@mwni/events": "^1.0.0",
 		"@xrplkit/xfl": "1.0.0",
-		"@xrplkit/tx": "1.1.2",
+		"@xrplkit/tx": "1.0.0",
 		"@xrplkit/book": "1.0.0",
 		"@xrplkit/amount": "1.0.0",
-		"@xrplkit/currency": "1.0.0",
 		"@xrplkit/time": "1.0.0"
 	},
 	"private": true

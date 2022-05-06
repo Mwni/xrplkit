@@ -1,6 +1,6 @@
 import { XFL as BaseXFL } from '../index.js'
-import * as op from '../operators.js'
 import { toBigInt } from '../conversion.js'
+import * as op from '../operators.js'
 
 export function XFL(input){
 	return toBigInt(BaseXFL(input))

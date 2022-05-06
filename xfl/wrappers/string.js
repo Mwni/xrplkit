@@ -1,8 +1,9 @@
 import * as op from '../operators.js'
+import { XFL as BaseXFL } from '../index.js'
 import { toString } from '../conversion.js'
 
 export function XFL(input){
-	return toString(op.XFL(input))
+	return toString(BaseXFL(input))
 }
 
 export function neg(x){

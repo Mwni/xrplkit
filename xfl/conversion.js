@@ -33,9 +33,9 @@ export function toString(xfl){
 	let point = Number(xfl.exponent - minExponent - maxExponent)
 
 	if(point <= 0){
-		str = `0.`.padEnd(-point, '0') + str
+		str = `0.`.padEnd(2 - point, '0') + str
 	}else if(point >= str.length){
-		str = str.padEnd(point - str.length, '0')
+		str = str.padEnd(point + 1, '0')
 	}else{
 		str = str.slice(0, point) + '.' + str.slice(point)
 	}

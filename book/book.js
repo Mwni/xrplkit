@@ -14,7 +14,6 @@ export default class Book extends EventEmitter{
 		this.offers = []
 	}
 
-
 	async load(limit = 1000){
 		let { offers } = await this.socket.request({
 			command: 'book_offers',

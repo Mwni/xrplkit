@@ -1,0 +1,10 @@
+{
+	"name": "@xrplkit/wallet",
+	"type": "module",
+	"version": "1.0.0",
+	"main": "wallet.js",
+	"author": "xrplkit",
+	"dependencies": {
+		"ripple-keypairs": "^1.1.4"
+	}
+}
