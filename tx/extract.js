@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
-import { decode as decodeCurrency, compare as compareCurrency } from '@xrplkit/currency'
+import { decodeCurrencyCode, isSameCurrency} from '@xrplkit/currency'
 
 
 export function extractExchanges(tx, options={}){
@@ -32,7 +32,7 @@ export function extractExchanges(tx, options={}){
 			sequence,
 			takerPaid: {
 				currency: options.decodeCurrency
-					? decodeCurrency(finalTakerPays.currency)
+					? decodeCurrencyCode(finalTakerPays.currency)
 					: finalTakerPays.currency, 
 				issuer: finalTakerPays.issuer,
 				value: Decimal.sub(previousTakerPays.value, finalTakerPays.value)
@@ -40,7 +40,7 @@ export function extractExchanges(tx, options={}){
 			},
 			takerGot: {
 				currency: options.decodeCurrency
-					? decodeCurrency(finalTakerGets.currency)
+					? decodeCurrencyCode(finalTakerGets.currency)
 					: finalTakerGets.currency, 
 				issuer: finalTakerGets.issuer,
 				value: Decimal.sub(previousTakerGets.value, finalTakerGets.value)
@@ -54,8 +54,8 @@ export function extractExchanges(tx, options={}){
 
 		for(let e of exchanges){
 			let col = collapsed.find(c => 
-				compareCurrency(c.takerPaid, e.takerPaid) 
-				&& compareCurrency(c.takerGot, e.takerGot)
+				isSameCurrency(c.takerPaid, e.takerPaid) 
+				&& isSameCurrency(c.takerGot, e.takerGot)
 			)
 
 			if(!col){
@@ -165,7 +165,7 @@ export function extractCurrenciesInvolved(tx){
 		if(typeof entry === 'string')
 			entry = {currency: 'XRP'}
 
-		if(currencies.every(currency => !compareCurrency(currency, entry))){
+		if(currencies.every(currency => !isSameCurrency(currency, entry))){
 			currencies.push(entry)
 		}
 	}
