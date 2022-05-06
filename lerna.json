@@ -3,7 +3,6 @@
   "npmClient": "npm",
   "command": {
     "publish": {
-      "ignoreChanges": ["ignored-file", "*.md"],
       "access": "public"
     },
     "bootstrap": {
@@ -15,7 +14,6 @@
     "book",
     "account",
     "portfolio",
-    "currency",
     "socket",
     "time",
     "tx",

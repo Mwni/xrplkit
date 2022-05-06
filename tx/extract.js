@@ -1,6 +1,6 @@
-import Decimal from 'decimal.js'
 import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
 import { decodeCurrencyCode, isSameCurrency} from '@xrplkit/currency'
+import { sum, sub, div, mul } from '@xrplkit/xfl'
 
 
 export function extractExchanges(tx, options={}){
@@ -35,16 +35,14 @@ export function extractExchanges(tx, options={}){
 					? decodeCurrencyCode(finalTakerPays.currency)
 					: finalTakerPays.currency, 
 				issuer: finalTakerPays.issuer,
-				value: Decimal.sub(previousTakerPays.value, finalTakerPays.value)
-					.toString()
+				value: sub(previousTakerPays.value, finalTakerPays.value)
 			},
 			takerGot: {
 				currency: options.decodeCurrency
 					? decodeCurrencyCode(finalTakerGets.currency)
 					: finalTakerGets.currency, 
 				issuer: finalTakerGets.issuer,
-				value: Decimal.sub(previousTakerGets.value, finalTakerGets.value)
-					.toString()
+				value: sub(previousTakerGets.value, finalTakerGets.value)
 			}
 		})
 	}
@@ -64,11 +62,8 @@ export function extractExchanges(tx, options={}){
 					takerGot: e.takerGot
 				})
 			}else{
-				col.takerPaid.value = Decimal.sum(col.takerPaid.value, e.takerPaid.value)
-					.toString()
-
-				col.takerGot.value = Decimal.sum(col.takerGot.value, e.takerGot.value)
-					.toString()
+				col.takerPaid.value = sum(col.takerPaid.value, e.takerPaid.value)
+				col.takerGot.value = sum(col.takerGot.value, e.takerGot.value)
 			}
 		}
 
@@ -95,9 +90,9 @@ export function extractBalanceChanges(tx){
 		party.push({
 			currency,
 			issuer,
-			previous: previous.toString(),
-			final: final.toString(),
-			change: Decimal.sub(final, previous).toString()
+			previous,
+			final,
+			change: sub(final, previous)
 		})
 	}
 
@@ -113,19 +108,19 @@ export function extractBalanceChanges(tx){
 				continue
 
 			let currency = finalFields.Balance.currency
-			let final = new Decimal(finalFields?.Balance?.value || '0')
-			let previous = new Decimal(previousFields?.Balance?.value || '0')
+			let final = finalFields?.Balance?.value || '0'
+			let previous = previousFields?.Balance?.value || '0'
 			let issuer
 			let account
 
-			if(previous.gt(0) || final.gt(0)){
+			if(gt(previous, 0) || gt(final, 0)){
 				issuer = finalFields.HighLimit.issuer
 				account = finalFields.LowLimit.issuer
-			}else if(previous.lt(0) || final.lt(0)){
+			}else if(lt(previous, 0) || lt(final, 0)){
 				issuer = finalFields.LowLimit.issuer
 				account = finalFields.HighLimit.issuer
-				final = final.times(-1)
-				previous = previous.times(-1)
+				final = mul(final, -1)
+				previous = mul(previous, -1)
 			}
 
 			bookChange({
@@ -140,10 +135,8 @@ export function extractBalanceChanges(tx){
 				continue
 
 			let account = finalFields.Account
-			let final = new Decimal(finalFields?.Balance || '0')
-				.div('1000000')
-			let previous = new Decimal(previousFields?.Balance || '0')
-				.div('1000000')
+			let final = div(finalFields?.Balance || '0', '1000000')
+			let previous = div(previousFields?.Balance || '0', '1000000')
 
 
 			bookChange({
