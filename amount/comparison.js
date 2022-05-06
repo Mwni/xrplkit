@@ -1,11 +1,11 @@
-import { encode  } from './encoding.js'
+import { encodeCurrencyCode  } from './encoding.js'
 
-export function compare(a, b){
+export function isSameCurrency(a, b){
 	if(typeof a === 'string')
 		a = {currency: 'XRP'}
 	else
 		a = {
-			currency: encode(a.currency), 
+			currency: encodeCurrencyCode(a.currency), 
 			issuer: a.issuer
 		}
 
@@ -13,7 +13,7 @@ export function compare(a, b){
 		b = {currency: 'XRP'}
 	else
 		b = {
-			currency: encode(b.currency), 
+			currency: encodeCurrencyCode(b.currency), 
 			issuer: b.issuer
 		}
 

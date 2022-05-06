@@ -1,4 +1,4 @@
-export function decode(code, representation = 'utf-8'){
+export function decodeCurrencyCode(code, representation = 'utf-8'){
 	if(representation === 'utf-8'){
 		if(code.length === 3 || !/^[A-Z0-9]{40}$/.test(code))
 			return code
@@ -20,7 +20,7 @@ export function decode(code, representation = 'utf-8'){
 }
 
 
-export function encode(code, representation = 'hex'){
+export function encodeCurrencyCode(code, representation = 'hex'){
 	if(representation === 'hex'){
 		if(/^[a-zA-Z0-9\?\!\@\#\$\%\^\&\*\<\>\(\)\{\}\[\]\|\]\{\}]{3}$/.test(code))
 			return code

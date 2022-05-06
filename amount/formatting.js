@@ -1,7 +1,7 @@
-import Decimal from 'decimal.js'
+/*import Decimal from 'decimal.js'
 
 
-export function format(value, options){
+export function formatValue(value, options){
 	let sign = Decimal.sign(value)
 	let compact = options?.compact
 	let decimals = options?.decimals || 2
@@ -64,4 +64,4 @@ export function format(value, options){
 	}
 
 	return prefix + formattedValue + suffix
-}
+}*/
