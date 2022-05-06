@@ -1,7 +1,6 @@
-import XFL from '@xrplkit/xfl'
 import { EventEmitter } from '@mwni/events'
-import { fromRippled as amountFromRippled } from '@xrplkit/amount'
-import { compare as compareCurrency } from '@xrplkit/currency'
+import { fromRippled as amountFromRippled, isSameCurrency } from '@xrplkit/amount'
+import { sum, sub, mul, div } from '@xrplkit/xfl/string'
 
 
 
@@ -84,10 +83,10 @@ export default class Book extends EventEmitter{
 			let id = `${account}:${sequence}`
 			let newOffer = this.#parseOffer(node.NewFields || node.FinalFields)
 
-			if(!compareCurrency(newOffer.takerPays, this.takerPays))
+			if(!isSameCurrency(newOffer.takerPays, this.takerPays))
 				continue
 
-			if(!compareCurrency(newOffer.takerGets, this.takerGets))
+			if(!isSameCurrency(newOffer.takerGets, this.takerGets))
 				continue
 
 			
@@ -96,7 +95,7 @@ export default class Book extends EventEmitter{
 					.concat([newOffer])
 					.map(offer => ({
 						offer, 
-						r: XFL.div(
+						r: div(
 							offer.takerPays.value, 
 							offer.takerGets.value
 						)
@@ -138,16 +137,16 @@ export default class Book extends EventEmitter{
 	fill({ takerPays, takerGets, cushion }){
 		let incomplete = true
 		let amountPay
-		let amountGet = new XFL(0)
+		let amountGet = '0'
 		let keyPay
 		let keyGet
 
 		if(takerPays){
-			amountPay = new XFL(takerPays)
+			amountPay = takerPays
 			keyPay = 'takerPays'
 			keyGet = 'takerGets'
 		}else{
-			amountPay = new XFL(takerGets)
+			amountPay = takerGets
 			keyPay = 'takerGets'
 			keyGet = 'takerPays'
 		}
@@ -158,20 +157,21 @@ export default class Book extends EventEmitter{
 			let getValue = offer[keyGet].value
 
 			if(amountPay.lt(payValue)){
-				let fraction = amountPay.div(payValue)
+				let fraction = div(amountPay, payValue)
 
-				amountPay = new XFL(0)
-				amountGet = amountGet.plus(fraction.times(getValue))
+				amountPay = '0'
+				amountGet = sum(amountGet, mul(fraction, getValue))
 				incomplete = false
 				break
 			}
 
-			amountPay = amountPay.minus(payValue)
-			amountGet = amountGet.plus(getValue)
+			amountPay = sub(amountPay, payValue)
+			amountGet = sum(amountGet, getValue)
 		}
 
 		if(cushion){
-			amountGet = amountGet.times(
+			amountGet = mul(
+				amountGet,
 				takerPays
 					? 1 - cushion
 					: 1 + cushion
@@ -182,11 +182,11 @@ export default class Book extends EventEmitter{
 			incomplete,
 			partial: amountPay.gt(0),
 			takerPays: takerPays
-				? XFL.sub(takerPays, amountPay).toString()
-				: amountGet.toString(),
+				? sub(takerPays, amountPay)
+				: amountGet,
 			takerGets: takerPays
-				? amountGet.toString()
-				: XFL.sub(takerGets, amountPay).toString()
+				? amountGet
+				: sub(takerGets, amountPay)
 		}
 	}
 
@@ -225,10 +225,7 @@ export default class Book extends EventEmitter{
 			index: offer.index,
 			takerGets,
 			takerPays,
-			price: XFL.div(
-				takerPays.value, 
-				takerGets.value
-			).toString()
+			price: div(takerPays.value, takerGets.value)
 		}
 	}
 }
