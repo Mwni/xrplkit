@@ -6,7 +6,7 @@
 	"author": "xrplkit",
 	"dependencies": {
 		"@mwni/events": "^1.0.0",
-		"decimal.js": "^10.3.1"
+		"@xrplkit/account": "1.0.0"
 	},
 	"private": true
 }

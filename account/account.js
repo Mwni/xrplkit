@@ -1,5 +1,5 @@
 import { EventEmitter } from '@mwni/events'
-import Decimal from 'decimal.js'
+import { div } from '@xrplkit/xfl/string'
 
 
 export default class Account extends EventEmitter{
@@ -21,8 +21,7 @@ export default class Account extends EventEmitter{
 		this.flags = account_data.Flags
 		this.sequence = account_data.Sequence
 		this.ownerCount = account_data.OwnerCount
-		this.balance = Decimal.div(account_data.Balance, '1000000')
-				.toString()
+		this.balance = div(account_data.Balance, '1000000')
 	}
 
 
