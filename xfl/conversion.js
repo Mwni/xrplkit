@@ -3,6 +3,9 @@ import { minExponent, maxExponent } from './constants.js'
 
 
 export function fromString(str){
+	if(str === '0')
+		return XFL({mantissa: 0n, exponent: 0n})
+
 	let mantissa
 	let exponent
 	let negative = false
@@ -23,12 +26,15 @@ export function fromString(str){
 	}
 
 	if(negative)
-		mantissa *= -1
+		mantissa *= -1n
 
 	return XFL({mantissa, exponent})
 }
 
 export function toString(xfl){
+	if(xfl.mantissa === 0n)
+		return '0'
+
 	let str = xfl.mantissa.toString()
 	let point = Number(xfl.exponent - minExponent - maxExponent)
 

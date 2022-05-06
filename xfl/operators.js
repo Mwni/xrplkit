@@ -14,10 +14,11 @@ export function sum(a, b){
 	b = XFL(b)
 
 	if (a.mantissa === 0n)
-		return a
+		return b
 
 	if(b.mantissa === 0n)
-		return b
+		return a
+
 
 	while (a.exponent < b.exponent){
 		a.mantissa /= 10n
@@ -32,7 +33,7 @@ export function sum(a, b){
 	a.mantissa += b.mantissa
 
 	if (a.mantissa >= -10n && a.mantissa <= 10n){
-		return toXFL(0n)
+		return XFL(0n)
 	}
 
 	return normalize(a)
@@ -120,20 +121,25 @@ export function gte(a, b){
 
 export function normalize(xfl){
 	if(xfl.mantissa === 0n)
-		return
+		return xfl
+
+	let sign = xfl.mantissa < 0n ? -1n : 1n
+	let mantissa = xfl.mantissa * sign
 	
-	while (xfl.mantissa > maxMantissa){
-		xfl.mantissa /= 10n
+	while (mantissa > maxMantissa){
+		mantissa /= 10n
 		xfl.exponent++
 	}
-
-	while (xfl.mantissa < minMantissa){
-		xfl.mantissa *= 10n
+	
+	while (mantissa < minMantissa){
+		mantissa *= 10n
 		xfl.exponent--
 	}
 
 	if (xfl.exponent > maxExponent || xfl.exponent < minExponent)
 		throw new Error(`invalid XFL (overflow)`)
+
+	xfl.mantissa = mantissa * sign
 
 	return xfl
 }

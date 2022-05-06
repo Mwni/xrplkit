@@ -1,5 +1,7 @@
 import { EventEmitter } from '@mwni/events'
 import { div } from '@xrplkit/xfl/string'
+import { isSameCurrency } from '@xrplkit/amount'
+
 
 
 export default class Account extends EventEmitter{
@@ -97,6 +99,12 @@ export default class Account extends EventEmitter{
 
 			return aRank - bRank
 		})
+	}
+
+	balanceOf(token){
+		return this.lines
+			.find(line => isSameCurrency(line, token))
+			?.balance
 	}
 
 	get data(){
