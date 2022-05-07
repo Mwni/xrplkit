@@ -1,0 +1,11 @@
+{
+    "name": "@xrplkit/testsuite",
+    "type": "module",
+    "version": "1.0.0",
+    "main": "time.js",
+    "license": "ISC",
+    "author": "xrplkit",
+    "publishConfig": {
+        "access": "public"
+    }
+}
