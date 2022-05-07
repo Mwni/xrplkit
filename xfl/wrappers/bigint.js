@@ -26,6 +26,10 @@ export function div(a, b){
 	return XFL(op.div(a, b))
 }
 
+export function floor(x, decimal = 0){
+	return XFL(op.floor(x, decimal))
+}
+
 export function eq(a, b){
 	return op.eq(a, b)
 }
