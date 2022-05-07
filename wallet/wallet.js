@@ -5,3 +5,19 @@ export function deriveAddress({ seed, publicKey }){
 		? rk.deriveAddress(rk.deriveKeypair(seed).publicKey)
 		: rk.deriveAddress(publicKey)
 }
+
+export function derivePublicKey({ seed, privateKey }){
+	return seed
+		? rk.deriveKeypair(seed).publicKey
+		: null
+}
+
+export function sign({ hex, seed, privateKey }){
+	if(!seed && !privateKey)
+		throw new Error('must specify either "seed" or "privateKey" for signing')
+
+	if(!privateKey)
+		privateKey = rk.deriveKeypair(seed).privateKey
+
+	return rk.sign(hex, privateKey)
+}
