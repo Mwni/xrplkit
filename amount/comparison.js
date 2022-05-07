@@ -6,7 +6,7 @@ export function isSameCurrency(a, b){
 	else
 		a = {
 			currency: encodeCurrencyCode(a.currency), 
-			issuer: a.issuer
+			issuer: a.issuer || a.account
 		}
 
 	if(typeof b === 'string')
@@ -14,7 +14,7 @@ export function isSameCurrency(a, b){
 	else
 		b = {
 			currency: encodeCurrencyCode(b.currency), 
-			issuer: b.issuer
+			issuer: b.issuer || a.account
 		}
 
 	return true

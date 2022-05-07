@@ -47,6 +47,9 @@ export function mul(a, b){
 	a = XFL(a)
 	b = XFL(b)
 
+	if(a === 0n || b === 0n)
+		return 0n
+
 	a.mantissa *= b.mantissa
 	a.mantissa /= 100000000000000n
 	a.exponent += b.exponent
@@ -59,12 +62,35 @@ export function div(a, b){
 	a = XFL(a)
 	b = XFL(b)
 
+	if(a.mantissa === 0n)
+		return 0n
+
+	if(b.mantissa === 0n)
+		throw new RangeError('Division by zero')
+
 	a.mantissa *= 100000000000000000n
 	a.mantissa /= b.mantissa
 	a.exponent -= b.exponent
 	a.exponent -= 17n
 
 	return normalize(a)
+}
+
+export function floor(x, decimal = 0){
+	x = XFL(x)
+
+	let shift = -(x.exponent + BigInt(decimal))
+
+	if(shift <= 0n)
+		return x
+	else if(shift > 16n)
+		return 0n
+
+	let factor = 10n ** shift
+
+	x.mantissa = (x.mantissa / factor) * factor
+
+	return x
 }
 
 export function eq(a, b){

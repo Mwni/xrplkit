@@ -10,6 +10,7 @@ export default class Account extends EventEmitter{
 		this.address = address
 		this.socket = socket
 		this.lines = []
+		this.offers = []
 		this.transactions = []
 	}
 
@@ -59,6 +60,30 @@ export default class Account extends EventEmitter{
 			balance: line.balance,
 			limit: line.limit
 		}))
+	}
+
+
+	async loadOffers(){
+		let offers = []
+		let marker
+
+		while(true){
+			let { offers: chunk, marker: continuation } = await this.socket.request({
+				command: 'account_offers',
+				account: this.address,
+				marker
+			})
+
+			offers.push(...chunk)
+
+			if(continuation)
+				marker = continuation
+			else
+				break
+		}
+
+
+		this.offers = offers
 	}
 
 
@@ -114,6 +139,7 @@ export default class Account extends EventEmitter{
 			ownerCount: this.ownerCount,
 			balance: this.balance,
 			lines: this.lines,
+			offers: this.offers,
 			transactions: this.transactions
 		}
 	}

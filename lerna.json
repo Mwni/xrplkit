@@ -12,6 +12,8 @@
   "packages": [
     "amount",
     "book",
+    "wallet",
+    "submit",
     "account",
     "portfolio",
     "socket",

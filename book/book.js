@@ -217,6 +217,14 @@ export default class Book extends EventEmitter{
 		let takerGets = amountFromRippled(offer.TakerGets)
 		let takerPays = amountFromRippled(offer.TakerPays)
 
+		let takerGetsFunded = offer.taker_gets_funded
+			 ? amountFromRippled(offer.taker_gets_funded)
+			 : takerGets
+
+		let takerPaysFunded = offer.taker_pays_funded
+			 ? amountFromRippled(offer.taker_pays_funded)
+			 : takerPays
+
 		return {
 			id: `${offer.Account}:${offer.Sequence}`,
 			account: offer.Account,
@@ -224,7 +232,12 @@ export default class Book extends EventEmitter{
 			index: offer.index,
 			takerGets,
 			takerPays,
-			price: div(takerPays.value, takerGets.value)
+			takerGetsFunded,
+			takerPaysFunded,
+			price: div(takerPays.value, takerGets.value),
+			priceFunded: takerGetsFunded.value !== '0'
+				? div(takerPaysFunded.value, takerGetsFunded.value)
+				: undefined
 		}
 	}
 }
