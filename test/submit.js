@@ -41,6 +41,11 @@ export function summarize(tx){
 
 			return `[OfferCreate: ${takerGets.value} ${takerGets.currency} -> ${takerPays.value} ${takerPays.currency} = ${rate}]`
 
+		case 'Payment':
+			let amount = fromRippled(tx.Amount)
+
+			return `[Payment: ${amount.value} ${amount.currency}]`
+
 		default:
 			return `[${tx.TransactionType}]`
 	}
