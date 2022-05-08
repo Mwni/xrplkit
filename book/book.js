@@ -1,5 +1,5 @@
 import { EventEmitter } from '@mwni/events'
-import { fromRippled as amountFromRippled, isSameCurrency } from '@xrplkit/amount'
+import { fromRippled as amountFromRippled, isSameCurrency, formatCurrency } from '@xrplkit/amount'
 import { sum, sub, mul, div } from '@xrplkit/xfl/string'
 
 
@@ -211,6 +211,10 @@ export default class Book extends EventEmitter{
 		return this.offers.length > 0
 			? this.offers[0].price
 			: undefined
+	}
+
+	toString(){
+		return `Book (${formatCurrency(this.takerGets)} / ${formatCurrency(this.takerPays)})`
 	}
 
 	#parseOffer(offer){

@@ -1,3 +1,14 @@
+import { decodeCurrencyCode } from './encoding.js'
+
+
+export function formatCurrency({ currency, issuer }){
+	if(currency === 'XRP')
+		return currency
+	
+	return `${decodeCurrencyCode(currency)}:${issuer}`
+}
+
+
 /*import Decimal from 'decimal.js'
 
 
