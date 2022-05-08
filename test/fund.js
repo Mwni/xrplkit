@@ -3,7 +3,8 @@ import fetch from 'node-fetch'
 
 
 export default class Fund{
-	constructor({ walletFile, faucet, genesis }){
+	constructor({ walletFile, socket, faucet, genesis }){
+		this.socket = socket
 		this.faucet = faucet
 		this.genesis = genesis
 		this.walletFile = walletFile
@@ -41,6 +42,19 @@ export default class Fund{
 			let wallet = {
 				address: account.address,
 				seed: account.secret
+			}
+
+			while(true){
+				try{
+					await this.socket.request({
+						command: 'account_info',
+						ledger_index: 'validated',
+						account: wallet.address
+					})
+					break
+				}catch{
+					await new Promise(resolve => setTimeout(resolve, 1000))
+				}
 			}
 
 			console.log(`success`)
