@@ -2,47 +2,49 @@ import rb from 'ripple-binary-codec'
 import { sign, derivePublicKey } from '@xrplkit/wallet'
 
 
-export async function submitAndWait({ socket, ...args }){
-	let result
-	
-	await socket.request({
-		command: 'subscribe',
-		streams: ['transactions']
-	})
+const resubmitAfter = 4000
 
-	try{
-		result = await submit({ socket, ...args })
+
+export async function submitAndWait({ socket, ...args }){
+	while(true){
+		let result = await submit({ socket, ...args })
+		let hash = result.tx_json.hash
+		let submissionTime = Date.now()
 
 		if(result.engine_result.startsWith('tec'))
 			return result
 
-		let { transaction, meta } = await new Promise((resolve, reject) => {
-			socket.on('transaction', tx => {
-				if(tx.transaction.hash === result.tx_json.hash){
-					resolve(tx)
-				}
-			})
-		})
+		while(true){
+			await new Promise(resolve => setTimeout(resolve, 500))
 
-		return {
-			engine_result: meta.TransactionResult,
-			accepted: true,
-			applied: true,
-			tx_json: transaction,
-			meta
+			let tx = await socket.request({
+				command: 'tx',
+				transaction: hash
+			})
+
+			if(tx.validated){
+				return {
+					engine_result: tx.meta.TransactionResult,
+					accepted: true,
+					applied: true,
+					tx_json: tx,
+					meta: tx.meta
+				}
+			}else{
+				if(Date.now() - submissionTime > resubmitAfter){
+					break
+				}
+			}
 		}
-	}catch(error){
-		throw error
-	}finally{
-		await socket.request({
-			command: 'unsubscribe',
-			streams: ['transactions']
-		})
 	}
 }
 
 
 export async function submit({ socket, tx, seed, privateKey, autofill: autofillEnabled }){
+	if(!seed && !privateKey){
+		throw new Error(`Missing "seed" or "privateKey"`)
+	}
+
 	tx = autofillEnabled 
 		? await autofill({ socket, tx }) : 
 		{...tx}
@@ -63,6 +65,7 @@ export async function submit({ socket, tx, seed, privateKey, autofill: autofillE
 			privateKey
 		})
 	}
+
 
 	let result = await socket.request({
 		command: 'submit',
