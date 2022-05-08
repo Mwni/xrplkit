@@ -1,0 +1,23 @@
+{
+    "name": "@xrplkit/testsuite",
+    "type": "module",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "ISC",
+    "author": "xrplworks",
+    "exports": {
+        ".": "./index.js",
+        "./prefabs": "./prefabs/index.js"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "dependencies": {
+        "@mwni/log": "1.0.0",
+        "@xrplkit/socket": "1.0.0",
+        "@xrplkit/submit": "1.0.0",
+        "@xrplkit/amount": "1.0.0",
+        "@xrplkit/xfl": "1.0.0",
+        "node-fetch": "^3.2.4"
+    }
+}
