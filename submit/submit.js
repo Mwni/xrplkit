@@ -1,19 +1,36 @@
 import rb from 'ripple-binary-codec'
-import { sign, derivePublicKey } from '@xrplkit/wallet'
+import * as xw from '@xrplkit/wallet'
 
 
-const resubmitAfter = 4000
+const resubmitAfter = 4500
 
 
-export async function submitAndWait({ socket, ...args }){
+export async function submitAndWait({ tx, socket, ...opts }){
+	let blob = rb.encode(await prepare({ tx, socket, ...opts }))
+	let first = true
+
 	while(true){
-		let result = await submit({ socket, ...args })
+		let result = await socket.request({
+			command: 'submit',
+			tx_blob: blob
+		})
+		
+		if(!result.accepted)
+			throw result
+
+		if(first || result.engine_result !== 'tefPAST_SEQ'){
+			if(!result.applied && !result.broadcast && !result.queued)
+				return result
+		}
+		
 		let hash = result.tx_json.hash
 		let submissionTime = Date.now()
-
+		
 		if(result.engine_result.startsWith('tec'))
-			return result
-
+		return result
+		
+		first = false
+		
 		while(true){
 			await new Promise(resolve => setTimeout(resolve, 500))
 
@@ -39,37 +56,10 @@ export async function submitAndWait({ socket, ...args }){
 	}
 }
 
-
-export async function submit({ socket, tx, seed, privateKey, autofill: autofillEnabled }){
-	if(!seed && !privateKey){
-		throw new Error(`Missing "seed" or "privateKey"`)
-	}
-
-	tx = autofillEnabled 
-		? await autofill({ socket, tx }) : 
-		{...tx}
-	
-	tx = {
-		...tx,
-		SigningPubKey: derivePublicKey({ 
-			seed, 
-			privateKey 
-		})
-	}
-
-	tx = {
-		...tx,
-		TxnSignature: sign({
-			hex: rb.encodeForSigning(tx),
-			seed,
-			privateKey
-		})
-	}
-
-
+export async function submit({ tx, socket, ...opts }){
 	let result = await socket.request({
 		command: 'submit',
-		tx_blob: rb.encode(tx)
+		tx_blob: rb.encode(await prepare({ tx, socket, ...opts }))
 	})
 
 	if(result.accepted)
@@ -78,7 +68,14 @@ export async function submit({ socket, tx, seed, privateKey, autofill: autofillE
 		throw result
 }
 
-export async function autofill({ socket, tx }){
+export async function prepare({ tx, socket, seed, privateKey, autofill }){
+	if(autofill)
+		tx = await fill({ tx, socket })
+
+	return sign({ tx, seed, privateKey })
+}
+
+export async function fill({ tx, socket }){
 	let filledTx = {...tx}
 
 	if(!tx.Sequence){
@@ -95,4 +92,27 @@ export async function autofill({ socket, tx }){
 	}
 
 	return filledTx
+}
+
+export async function sign({ tx, seed, privateKey }){
+	if(!seed && !privateKey){
+		throw new Error(`Missing "seed" or "privateKey"`)
+	}
+
+	tx = {
+		...tx,
+		SigningPubKey: xw.derivePublicKey({ 
+			seed, 
+			privateKey 
+		})
+	}
+
+	return {
+		...tx,
+		TxnSignature: xw.sign({
+			hex: rb.encodeForSigning(tx),
+			seed,
+			privateKey
+		})
+	}
 }
