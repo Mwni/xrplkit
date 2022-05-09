@@ -1,5 +1,8 @@
 import fs from 'fs'
 import fetch from 'node-fetch'
+import { submitAndWait } from '@xrplkit/submit'
+import { deriveAddress, generateSeed } from '@xrplkit/wallet'
+import { mul } from '@xrplkit/xfl/string'
 
 
 export default class Fund{
@@ -67,8 +70,34 @@ export default class Fund{
 		}
 	}
 
-	async #fundWalletFromGenesis({ id, balance }){
-		//todo
+	async #fundWalletFromGenesis({ id, balance = '1000' }){
+		process.stdout.write(`funding wallet "${id}" ... `)
+
+		let seed = generateSeed()
+		let address = deriveAddress({ seed })
+		let wallet = { seed, address }
+
+		let result = await submitAndWait({
+			socket: this.socket,
+			tx: {
+				TransactionType: 'Payment',
+				Account: deriveAddress(this.genesis),
+				Destination: address,
+				Amount: mul(balance, '1000000')
+			},
+			...this.genesis,
+			autofill: true
+		})
+
+		if(result.engine_result === 'tesSUCCESS'){
+			console.log(`success`)
+			this.#saveWallet({ id, wallet })
+
+			return wallet
+		}else{
+			console.log(`failure`)
+			throw new Error(`failed to fund wallet from genesis: ${result.engine_result}`)
+		}
 	}
 
 	async #saveWallet({ id, wallet }){

@@ -1,5 +1,9 @@
 import rk from 'ripple-keypairs'
 
+export function generateSeed({ entropy, algorithm } = {}){
+	return rk.generateSeed({ entropy, algorithm })
+}
+
 export function deriveAddress({ seed, publicKey }){
 	return seed
 		? rk.deriveAddress(rk.deriveKeypair(seed).publicKey)
