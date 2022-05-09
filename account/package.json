@@ -1,12 +1,12 @@
 {
 	"name": "@xrplkit/account",
 	"type": "module",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"main": "account.js",
 	"author": "xrplkit",
 	"dependencies": {
 		"@mwni/events": "^1.0.0",
-		"@xrplkit/xfl": "1.0.0",
-		"@xrplkit/amount": "1.0.0"
+		"@xrplkit/xfl": "1.1.0",
+		"@xrplkit/amount": "1.1.0"
 	}
 }

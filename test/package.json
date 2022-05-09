@@ -1,7 +1,7 @@
 {
     "name": "@xrplkit/testsuite",
     "type": "module",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "main": "index.js",
     "license": "ISC",
     "author": "xrplworks",
@@ -14,10 +14,11 @@
     },
     "dependencies": {
         "@mwni/log": "1.0.0",
-        "@xrplkit/socket": "1.0.0",
-        "@xrplkit/submit": "1.0.0",
-        "@xrplkit/amount": "1.0.0",
-        "@xrplkit/xfl": "1.0.0",
+        "@xrplkit/wallet": "1.1.0",
+        "@xrplkit/socket": "1.1.0",
+        "@xrplkit/submit": "1.1.0",
+        "@xrplkit/amount": "1.1.0",
+        "@xrplkit/xfl": "1.1.0",
         "node-fetch": "^3.2.4"
     }
 }
