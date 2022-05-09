@@ -1,5 +1,5 @@
 {
-    "name": "@xrplkit/testsuite",
+    "name": "@xrplkit/test",
     "type": "module",
     "version": "1.1.0",
     "main": "index.js",
