@@ -162,8 +162,16 @@ export function normalize(xfl){
 		xfl.exponent--
 	}
 
-	if (xfl.exponent > maxExponent || xfl.exponent < minExponent)
-		throw new Error(`invalid XFL (overflow)`)
+	if(xfl.exponent < minExponent){
+		xfl.exponent = minExponent
+		mantissa = minMantissa
+	}else if(xfl.exponent > maxExponent){
+		xfl.exponent = maxExponent
+		mantissa = maxMantissa
+	}
+
+	//if (xfl.exponent > maxExponent || xfl.exponent < minExponent)
+	//	throw new Error(`invalid XFL (overflow)`)
 
 	xfl.mantissa = mantissa * sign
 
