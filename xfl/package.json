@@ -6,7 +6,8 @@
 	"exports": {
 		".": "./index.js",
 		"./string": "./wrappers/string.js",
-		"./bigint": "./wrappers/bigint.js"
+		"./bigint": "./wrappers/bigint.js",
+		"./extras": "./extras.js"
 	},
 	"publishConfig": {
 		"access": "public"
