@@ -1,6 +1,15 @@
 import { XFL } from './index.js'
 import { minExponent, maxExponent, maxMantissa, minMantissa } from './constants.js'
 
+export function abs(x){
+	x = XFL(x)
+	
+	if(x.mantissa < 0n)
+		x.mantissa *= -1n
+
+	return x
+}
+
 
 export function neg(x){
 	x = XFL(x)

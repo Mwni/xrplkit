@@ -6,6 +6,10 @@ export function XFL(input){
 	return toBigInt(BaseXFL(input))
 }
 
+export function abs(x){
+	return XFL(op.abs(x))
+}
+
 export function neg(x){
 	return XFL(op.neg(x))
 }
