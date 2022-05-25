@@ -96,6 +96,7 @@ export default class Socket extends EventEmitter{
 				if(this.options.stayConnected){
 					await new Promise(resolve => setTimeout(resolve, 1000))
 					await this.createConnection(this.url, this.options)
+						.catch(error => reject(error))
 				}
 			})
 		})
