@@ -1,6 +1,6 @@
 import { EventEmitter } from '@mwni/events'
 import { fromRippled as amountFromRippled, isSameCurrency, formatCurrency } from '@xrplkit/amount'
-import { sum, sub, mul, div } from '@xrplkit/xfl/string'
+import { sum, sub, mul, div } from '@xrplkit/xfl'
 
 
 

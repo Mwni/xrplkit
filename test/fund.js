@@ -2,7 +2,7 @@ import fs from 'fs'
 import fetch from 'node-fetch'
 import { submitAndWait } from '@xrplkit/submit'
 import { deriveAddress, generateSeed } from '@xrplkit/wallet'
-import { mul } from '@xrplkit/xfl/string'
+import { mul } from '@xrplkit/xfl'
 
 
 export default class Fund{

@@ -1,4 +1,4 @@
-import { div, mul, floor } from '@xrplkit/xfl/string'
+import { div, mul, floor } from '@xrplkit/xfl'
 import { decodeCurrencyCode, encodeCurrencyCode } from './encoding.js'
 
 

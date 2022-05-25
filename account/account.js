@@ -1,5 +1,5 @@
 import { EventEmitter } from '@mwni/events'
-import { div } from '@xrplkit/xfl/string'
+import { div } from '@xrplkit/xfl'
 import { isSameCurrency } from '@xrplkit/amount'
 
 
