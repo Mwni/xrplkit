@@ -1,6 +1,6 @@
-import * as op from '../operators.js'
 import { XFL as BaseXFL } from '../index.js'
-import { toString } from '../conversion.js'
+import { toString, toBigInt as nativeToBigInt } from '../conversion.js'
+import * as op from '../operators.js'
 
 export function XFL(input){
 	return toString(BaseXFL(input))
@@ -52,4 +52,8 @@ export function gt(a, b){
 
 export function gte(a, b){
 	return op.gte(a, b)
+}
+
+export function toBigInt(x){
+	return nativeToBigInt(BaseXFL(x))
 }
