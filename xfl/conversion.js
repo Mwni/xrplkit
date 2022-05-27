@@ -1,40 +1,20 @@
 import { XFL } from './index.js'
 import { minExponent, maxExponent } from './constants.js'
+import { normalize } from './operators.js'
 
 
-export function fromString(str){
-	if(str === '0')
-		return XFL({mantissa: 0n, exponent: 0n})
 
-	let mantissa
-	let exponent = 0n
-	let negative = false
-	let point = str.indexOf('.')
-	let e = str.lastIndexOf('e')
-
-	if(str.charAt(0) === '-'){
-		str = str.slice(1)
-		negative = true
-		point--
-		e--
-	}
-
-	if(e >= 0){
-		exponent += BigInt(str.slice(e + 1))
-		str = str.slice(0, e)
-	}
-
-	if(point > 0){
-		mantissa = BigInt(str.slice(0, point) + str.slice(point + 1))
-		exponent += BigInt(point - str.length + 1)
-	}else{
-		mantissa = BigInt(str)
-	}
-
-	if(negative)
-		mantissa *= -1n
-
-	return XFL({mantissa, exponent})
+export function toNative(input){
+	if(typeof input === 'string')
+		return fromString(input)
+	if(typeof input === 'number')
+		return fromString(input.toString())
+	else if(typeof input === 'bigint')
+		return fromBigInt(input)
+	else if(input instanceof XFL)
+		return input
+	else
+		return XFL(input)
 }
 
 export function toString(xfl){
@@ -71,19 +51,6 @@ export function toString(xfl){
 	return prefix + str.slice(0, cap + 1)
 }
 
-
-
-export function fromBigInt(int){
-	let mantissa = int - ((int >> 54n)<< 54n)
-	let exponent = ((int >> 54n) & 0xFFn) + minExponent - 1n
-	let negative = ((int >> 62n) & 1n) == 1n
-
-	if(negative)
-		mantissa *= -1n
-
-	return XFL({mantissa, exponent})
-}
-
 export function toBigInt(x){
 	if(x.mantissa === 0n)
 		return 0n
@@ -102,4 +69,52 @@ export function toBigInt(x){
 	serialized |= mantissa
 
 	return serialized
+}
+
+
+
+function fromString(str){
+	if(str === '0')
+		return XFL({mantissa: 0n, exponent: 0n})
+
+	let mantissa
+	let exponent = 0n
+	let negative = false
+	let point = str.indexOf('.')
+	let e = str.lastIndexOf('e')
+
+	if(str.charAt(0) === '-'){
+		str = str.slice(1)
+		negative = true
+		point--
+		e--
+	}
+
+	if(e >= 0){
+		exponent += BigInt(str.slice(e + 1))
+		str = str.slice(0, e)
+	}
+
+	if(point > 0){
+		mantissa = BigInt(str.slice(0, point) + str.slice(point + 1))
+		exponent += BigInt(point - str.length + 1)
+	}else{
+		mantissa = BigInt(str)
+	}
+
+	if(negative)
+		mantissa *= -1n
+
+	return XFL(normalize({mantissa, exponent}))
+}
+
+function fromBigInt(int){
+	let mantissa = int - ((int >> 54n)<< 54n)
+	let exponent = ((int >> 54n) & 0xFFn) + minExponent - 1n
+	let negative = ((int >> 62n) & 1n) == 1n
+
+	if(negative)
+		mantissa *= -1n
+
+	return XFL({mantissa, exponent})
 }

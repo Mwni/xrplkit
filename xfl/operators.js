@@ -1,8 +1,10 @@
 import { XFL } from './index.js'
+import { toNative } from './conversion.js'
 import { minExponent, maxExponent, maxMantissa, minMantissa } from './constants.js'
 
+
 export function abs(x){
-	x = XFL(x)
+	x = clone(x)
 	
 	if(x.mantissa < 0n)
 		x.mantissa *= -1n
@@ -10,17 +12,16 @@ export function abs(x){
 	return x
 }
 
-
 export function neg(x){
-	x = XFL(x)
+	x = clone(x)
 	x.mantissa *= -1n
 
 	return x
 }
 
 export function sum(a, b){
-	a = XFL(a)
-	b = XFL(b)
+	a = clone(a)
+	b = clone(b)
 
 	if (a.mantissa === 0n)
 		return b
@@ -53,8 +54,8 @@ export function sub(a, b){
 }
 
 export function mul(a, b){
-	a = XFL(a)
-	b = XFL(b)
+	a = clone(a)
+	b = clone(b)
 
 	if(a === 0n || b === 0n)
 		return 0n
@@ -68,8 +69,8 @@ export function mul(a, b){
 }
 
 export function div(a, b){
-	a = XFL(a)
-	b = XFL(b)
+	a = clone(a)
+	b = clone(b)
 
 	if(a.mantissa === 0n)
 		return 0n
@@ -86,7 +87,7 @@ export function div(a, b){
 }
 
 export function floor(x, decimal = 0){
-	x = XFL(x)
+	x = clone(x)
 
 	let shift = -(x.exponent + BigInt(decimal))
 
@@ -99,20 +100,20 @@ export function floor(x, decimal = 0){
 
 	x.mantissa = (x.mantissa / factor) * factor
 
-	return x
+	return normalize(x)
 }
 
 export function eq(a, b){
-	a = XFL(a)
-	b = XFL(b)
+	a = toNative(a)
+	b = toNative(b)
 
 	return a.mantissa === b.mantissa
 		&& a.exponent === b.exponent
 }
 
 export function lt(a, b){
-	a = XFL(a)
-	b = XFL(b)
+	a = toNative(a)
+	b = toNative(b)
 
 	let aNegative = a.mantissa < 0n
 	let bNegative = b.mantissa < 0n
@@ -171,18 +172,23 @@ export function normalize(xfl){
 		xfl.exponent--
 	}
 
-	if(xfl.exponent < minExponent){
+	/*if(xfl.exponent < minExponent){
 		xfl.exponent = minExponent
 		mantissa = minMantissa
 	}else if(xfl.exponent > maxExponent){
 		xfl.exponent = maxExponent
 		mantissa = maxMantissa
-	}
+	}*/
 
-	//if (xfl.exponent > maxExponent || xfl.exponent < minExponent)
-	//	throw new Error(`invalid XFL (overflow)`)
+	if (xfl.exponent > maxExponent || xfl.exponent < minExponent)
+		throw new Error(`invalid XFL (overflow)`)
 
 	xfl.mantissa = mantissa * sign
 
 	return xfl
+}
+
+
+function clone(x){
+	return XFL(toNative(x))
 }
