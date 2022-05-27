@@ -4,9 +4,8 @@
 	"version": "1.1.1",
 	"main": "xfl.js",
 	"exports": {
-		"./native": "./index.js",
 		".": "./wrappers/string.js",
-		"./bigint": "./wrappers/bigint.js",
+		"./native": "./index.js",
 		"./extras": "./extras.js"
 	},
 	"publishConfig": {
