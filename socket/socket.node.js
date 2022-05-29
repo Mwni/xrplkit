@@ -1,8 +1,8 @@
 import Socket from './socket.js'
-import websocket from 'websocket'
+import WebSocket from 'ws'
 
 export default class NodeSocket extends Socket{
-	createSocket({ url }){
-		return new websocket.w3cwebsocket(url)
+	createSocket({ url, options }){
+		return new WebSocket(url, options)
 	}
 }
