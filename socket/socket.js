@@ -40,15 +40,11 @@ export default class Socket extends EventEmitter{
 	async createConnection(url, options){
 		await new Promise(async (resolve, reject) => {
 			this.socket = this.createSocket({ url, options })
-
-			console.log('created')
 			
 			this.socket.addEventListener('open', () => {
 				this.connected = true
 				this.requestCounter = 0
 				this.requestRegistry = []
-
-				console.log('open')
 
 				this.socket.addEventListener('message', event => {
 					let payload = JSON.parse(event.data)
