@@ -29,6 +29,14 @@ export function div(a, b){
 	return toString(op.div(a, b))
 }
 
+export function min(...xs){
+	return toString(op.min(...xs))
+}
+
+export function max(...xs){
+	return toString(op.max(...xs))
+}
+
 export function floor(x, decimal = 0){
 	return toString(op.floor(x, decimal))
 }

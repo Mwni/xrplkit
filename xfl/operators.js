@@ -103,6 +103,32 @@ export function floor(x, decimal = 0){
 	return normalize(x)
 }
 
+export function min(...xs){
+	xs = xs.map(x => toNative(x))
+
+	let min = xs[0]
+
+	for(let x of xs){
+		if(lt(x, min))
+			min = x
+	}
+
+	return min
+}
+
+export function max(...xs){
+	xs = xs.map(x => toNative(x))
+
+	let max = xs[0]
+
+	for(let x of xs){
+		if(gt(x, max))
+			max = x
+	}
+
+	return max
+}
+
 export function eq(a, b){
 	a = toNative(a)
 	b = toNative(b)

@@ -1,5 +1,5 @@
 import { toString, toBigInt } from './conversion.js'
-import { abs, sum, sub, mul, div, floor, eq, lt, lte, gt, gte } from './operators.js'
+import { abs, sum, sub, mul, div, floor, min, max, eq, lt, lte, gt, gte } from './operators.js'
 
 
 export function XFL(input){
@@ -25,4 +25,4 @@ Object.defineProperties(XFL.prototype, {
 })
 
 
-export { abs, sum, sub, mul, div, floor, eq, lt, lte, gt, gte, toString, toBigInt }
+export { abs, sum, sub, mul, div, floor, min, max, eq, lt, lte, gt, gte, toString, toBigInt }
