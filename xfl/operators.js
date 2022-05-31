@@ -73,7 +73,7 @@ export function div(a, b){
 	b = clone(b)
 
 	if(a.mantissa === 0n)
-		return 0n
+		return a
 
 	if(b.mantissa === 0n)
 		throw new RangeError('Division by zero')
