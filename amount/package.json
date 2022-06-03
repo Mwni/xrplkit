@@ -6,7 +6,7 @@
     "license": "ISC",
     "author": "xrplkit",
     "dependencies": {
-        "@xrplkit/xfl": "1.1.0"
+        "@xrplkit/xfl": "1.1.1"
     },
     "publishConfig": {
         "access": "public"
