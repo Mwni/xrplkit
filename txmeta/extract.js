@@ -1,5 +1,4 @@
-import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
-import { decodeCurrencyCode, isSameCurrency} from '@xrplkit/currency'
+import { fromRippled as fromRippledAmount, isSameCurrency } from '@xrplkit/amount'
 import { sum, sub, div, mul } from '@xrplkit/xfl'
 
 
@@ -31,16 +30,12 @@ export function extractExchanges(tx, options={}){
 			taker,
 			sequence,
 			takerPaid: {
-				currency: options.decodeCurrency
-					? decodeCurrencyCode(finalTakerPays.currency)
-					: finalTakerPays.currency, 
+				currency: finalTakerPays.currency, 
 				issuer: finalTakerPays.issuer,
 				value: sub(previousTakerPays.value, finalTakerPays.value)
 			},
 			takerGot: {
-				currency: options.decodeCurrency
-					? decodeCurrencyCode(finalTakerGets.currency)
-					: finalTakerGets.currency, 
+				currency: finalTakerGets.currency, 
 				issuer: finalTakerGets.issuer,
 				value: sub(previousTakerGets.value, finalTakerGets.value)
 			}
