@@ -42,9 +42,10 @@ export function sum(a, b){
 
 	a.mantissa += b.mantissa
 
-	if (a.mantissa >= -10n && a.mantissa <= 10n){
-		return XFL(0n)
-	}
+	//not sure why this is in the rippled code, but it works without it
+	//if (a.mantissa >= -10n && a.mantissa <= 10n){
+	//	throw new Error(`invalid XFL`)
+	//}
 
 	return normalize(a)
 }
