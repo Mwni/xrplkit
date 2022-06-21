@@ -1,4 +1,4 @@
-import { minExponent, maxExponent, maxMantissa, minMantissa } from '../constants.js'
+import { canonicalize } from '../canonical.js'
 
 
 export function abs(x){
@@ -40,10 +40,10 @@ export function sum(a, b){
 
 	am += bm
 
-	return {
+	return canonicalize({
 		exponent: ae,
 		mantissa: am
-	}
+	})
 }
 
 export function sub(a, b){
@@ -61,7 +61,10 @@ export function mul(a, b){
 	ae += b.exponent
 	ae += 14n
 
-	return { exponent: ae, mantissa: am }
+	return canonicalize({ 
+		exponent: ae, 
+		mantissa: am 
+	})
 }
 
 export function div(a, b){
@@ -78,5 +81,8 @@ export function div(a, b){
 	ae -= b.exponent
 	ae -= 17n
 
-	return { exponent: ae, mantissa: am }
+	return canonicalize({
+		exponent: ae, 
+		mantissa: am
+	})
 }
