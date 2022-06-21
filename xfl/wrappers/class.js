@@ -29,8 +29,10 @@ export function XFL(xfl){
 }
 
 Object.defineProperties(XFL, {
-	fromSortSafeBigInt(bigint){
-		return new XFL(bigi.fromSortSafeBigInt(bigint))
+	fromSortSafeBigInt: {
+		value: function(bigint){
+			return new XFL(bigi.fromSortSafeBigInt(bigint))
+		}
 	}
 })
 
