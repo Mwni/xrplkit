@@ -1,4 +1,4 @@
-import { XFL, eq, lt } from './index.js'
+import { eq, lt } from '../index.js'
 
 export function sort(array, key){
 	if(array){

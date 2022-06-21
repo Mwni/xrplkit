@@ -1,47 +1,78 @@
 import { fromAny } from '../conversion/any.js'
-import { toString as str } from '../conversion/string.js'
 import * as arit from '../operators/arithmetic.js'
 import * as comp from '../operators/comparison.js'
 import * as roun from '../operators/rounding.js'
+import * as stri from '../conversion/string.js'
 import * as bigi from '../conversion/bigint.js'
 
 
 export function XFL(xfl){
-	return str(fromAny(xfl))
+	if(xfl instanceof XFL)
+		return xfl
+
+	if(this instanceof XFL){
+		Object.defineProperties(this, {
+			exponent: {
+				value: xfl.exponent,
+				writable: false,
+				enumerable: true
+			},
+			mantissa: {
+				value: xfl.mantissa,
+				writable: false,
+				enumerable: true
+			}
+		})
+	}else{
+		return new XFL(fromAny(xfl))
+	}
 }
 
 Object.defineProperties(XFL, {
 	fromSortSafeBigInt(bigint){
-		return str(bigi.fromSortSafeBigInt(bigint))
+		return new XFL(bigi.fromSortSafeBigInt(bigint))
+	}
+})
+
+Object.defineProperties(XFL.prototype, {
+	toString: {
+		value: function(){
+			return stri.toString(this)
+		}
+	},
+	[Symbol.toStringTag]: {
+		get(){
+			return stri.toString(this)
+		}
 	}
 })
 
 export function abs(x){
-	return str(arit.abs(fromAny(x)))
+	return new XFL(arit.abs(fromAny(x)))
 }
 
 export function neg(x){
-	return str(arit.neg(fromAny(x)))
+	return new XFL(arit.neg(fromAny(x)))
 }
 
 export function sum(a, b){
-	return str(arit.sum(fromAny(a), fromAny(b)))
+	return new XFL(arit.sum(fromAny(a), fromAny(b)))
 }
 
 export function sub(a, b){
-	return str(arit.sub(fromAny(a), fromAny(b)))
+	return new XFL(arit.sub(fromAny(a), fromAny(b)))
 }
 
 export function mul(a, b){
-	return str(arit.mul(fromAny(a), fromAny(b)))
+	return new XFL(arit.mul(fromAny(a), fromAny(b)))
 }
 
 export function div(a, b){
-	return str(arit.div(fromAny(a), fromAny(b)))
+	return new XFL(arit.div(fromAny(a), fromAny(b)))
 }
 
 export function floor(x, decimal = 0){
-	return str(roun.floor(fromAny(x), decimal))
+	return new XFL(roun.floor(fromAny(x), decimal))
 }
 
 export function eq(a, b){
@@ -65,15 +96,15 @@ export function gte(a, b){
 }
 
 export function min(...xs){
-	return str(comp.min(...xs.map(x => fromAny(x))))
+	return new XFL(comp.min(...xs.map(x => fromAny(x))))
 }
 
 export function max(...xs){
-	return str(comp.max(...xs.map(x => fromAny(x))))
+	return new XFL(comp.max(...xs.map(x => fromAny(x))))
 }
 
 export function toString(x){
-	return str(fromAny(x))
+	return stri.toString(fromAny(x))
 }
 
 export function toBigInt(x){

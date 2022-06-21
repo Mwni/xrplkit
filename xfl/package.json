@@ -1,12 +1,12 @@
 {
 	"name": "@xrplkit/xfl",
 	"type": "module",
-	"version": "1.1.1",
+	"version": "2.0.0",
 	"main": "xfl.js",
 	"exports": {
-		".": "./wrappers/string.js",
-		"./native": "./index.js",
-		"./extras": "./extras.js"
+		".": "./wrappers/class.js",
+		"./str": "./wrappers/string.js",
+		"./extras": "./extras/index.js"
 	},
 	"publishConfig": {
 		"access": "public"
