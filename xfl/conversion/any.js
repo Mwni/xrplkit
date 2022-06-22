@@ -2,7 +2,7 @@ import { fromString } from './string.js'
 import { fromBigInt } from './bigint.js'
 
 export function fromAny(input){
-	if(typeof input === 'object' && input.exponent && input.mantissa)
+	if(typeof input === 'object' && 'exponent' in input && 'mantissa' in input)
 		return input
 
 	if(typeof input === 'undefined')
