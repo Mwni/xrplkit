@@ -65,6 +65,9 @@ export function toSortSafeBigInt(x){
 }
 
 export function fromSortSafeBigInt(int){
+	if(int === 0n)
+		return {mantissa: 0n, exponent: 0n}
+
 	if(((int >> 63n) & 1n) !== 0n)
 		throw new Error(`This BigInt is not a valid XFL: ${int}`)
 
