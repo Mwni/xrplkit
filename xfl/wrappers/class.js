@@ -1,4 +1,5 @@
 import { fromAny } from '../conversion/any.js'
+import { canonicalize } from '../canonical.js'
 import * as arit from '../operators/arithmetic.js'
 import * as comp from '../operators/comparison.js'
 import * as roun from '../operators/rounding.js'
@@ -11,6 +12,8 @@ export function XFL(xfl){
 		return xfl
 
 	if(this instanceof XFL){
+		canonicalize(xfl)
+		
 		Object.defineProperties(this, {
 			exponent: {
 				value: xfl.exponent,
@@ -110,9 +113,9 @@ export function toString(x){
 }
 
 export function toBigInt(x){
-	return bigi.toBigInt(fromAny(x))
+	return bigi.toBigInt(XFL(x))
 }
 
 export function toSortSafeBigInt(x){
-	return bigi.toSortSafeBigInt(fromAny(x))
+	return bigi.toSortSafeBigInt(XFL(x))
 }

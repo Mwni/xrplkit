@@ -1,4 +1,4 @@
-import { minExponent, exponentMask, mantissaMask } from '../constants.js'
+import { exponentMin, exponentMask, mantissaMask } from '../constants.js'
 
 
 
@@ -6,7 +6,7 @@ export function toBigInt(x){
 	if(x.mantissa === 0n)
 		return 0n
 
-	let exponent = x.exponent - minExponent + 1n
+	let exponent = x.exponent - exponentMin + 1n
 	let mantissa = x.mantissa
 	let serialized = 0n
 
@@ -29,7 +29,7 @@ export function fromBigInt(int){
 
 	let negative = ((int >> 62n) & 1n) == 1n
 	let mantissa = int - ((int >> 54n)<< 54n)
-	let exponent = ((int >> 54n) & 0xFFn) + minExponent - 1n
+	let exponent = ((int >> 54n) & 0xFFn) + exponentMin - 1n
 
 	if(negative)
 		mantissa *= -1n
@@ -43,7 +43,7 @@ export function toSortSafeBigInt(x){
 	if(x.mantissa === 0n)
 		return 0n
 
-	let exponent = x.exponent - minExponent + 1n
+	let exponent = x.exponent - exponentMin + 1n
 	let mantissa = x.mantissa
 	let serialized = 0n
 
@@ -80,7 +80,7 @@ export function fromSortSafeBigInt(int){
 		exponent = exponent ^ exponentMask
 	}
 
-	exponent += minExponent - 1n
+	exponent += exponentMin - 1n
 
 	return {mantissa, exponent}
 }

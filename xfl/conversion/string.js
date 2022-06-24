@@ -1,5 +1,4 @@
-import { minExponent, maxExponent } from '../constants.js'
-import { canonicalize } from '../canonical.js'
+import { exponentMin, exponentMax } from '../constants.js'
 
 
 export function toString(xfl){
@@ -8,7 +7,7 @@ export function toString(xfl){
 
 	let prefix = ''
 	let str = xfl.mantissa.toString()
-	let point = Number(xfl.exponent - minExponent - maxExponent)
+	let point = Number(xfl.exponent - exponentMin - exponentMax)
 
 	if(xfl.mantissa < 0n){
 		prefix = '-'
@@ -68,5 +67,5 @@ export function fromString(str){
 	if(negative)
 		mantissa *= -1n
 
-	return canonicalize({mantissa, exponent})
+	return {mantissa, exponent}
 }

@@ -1,6 +1,3 @@
-import { canonicalize } from '../canonical.js'
-
-
 export function abs(x){
 	return {
 		exponent: x.exponent,
@@ -40,10 +37,10 @@ export function sum(a, b){
 
 	am += bm
 
-	return canonicalize({
+	return {
 		exponent: ae,
 		mantissa: am
-	})
+	}
 }
 
 export function sub(a, b){
@@ -61,10 +58,10 @@ export function mul(a, b){
 	ae += b.exponent
 	ae += 14n
 
-	return canonicalize({ 
+	return { 
 		exponent: ae, 
 		mantissa: am 
-	})
+	}
 }
 
 export function div(a, b){
@@ -81,8 +78,8 @@ export function div(a, b){
 	ae -= b.exponent
 	ae -= 17n
 
-	return canonicalize({
+	return {
 		exponent: ae, 
 		mantissa: am
-	})
+	}
 }

@@ -1,4 +1,6 @@
-import { minExponent, maxExponent, minMantissa, maxMantissa } from './constants.js'
+import { exponentMin, exponentMax, mantissaMin, mantissaMax } from './constants.js'
+
+const clamp = true
 
 export function canonicalize(xfl){
 	if(xfl.mantissa === 0n)
@@ -7,20 +9,30 @@ export function canonicalize(xfl){
 	let sign = xfl.mantissa < 0n ? -1n : 1n
 	let mantissa = xfl.mantissa * sign
 	
-	while (mantissa > maxMantissa){
+	while (mantissa > mantissaMax){
 		mantissa /= 10n
 		xfl.exponent++
 	}
 	
-	while (mantissa < minMantissa){
+	while (mantissa < mantissaMin){
 		mantissa *= 10n
 		xfl.exponent--
 	}
 
-	if (xfl.exponent > maxExponent || xfl.exponent < minExponent)
-		throw new Error(`invalid XFL (overflow)`)
-
 	xfl.mantissa = mantissa * sign
+
+	if(clamp){
+		if (xfl.exponent > exponentMax){
+			xfl.exponent = exponentMax
+			xfl.mantissa = mantissaMax
+		}else if(xfl.exponent < exponentMin){
+			xfl.exponent = 0n
+			xfl.mantissa = 0n
+		}
+	}else{
+		if (xfl.exponent > exponentMax || xfl.exponent < exponentMin)
+			throw new Error(`invalid XFL (overflow)`)
+	}
 
 	return xfl
 }
