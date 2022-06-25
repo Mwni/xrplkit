@@ -26,8 +26,8 @@ export function canonicalize(xfl){
 			xfl.exponent = exponentMax
 			xfl.mantissa = mantissaMax
 		}else if(xfl.exponent < exponentMin){
-			xfl.exponent = 0n
-			xfl.mantissa = 0n
+			xfl.exponent = exponentMin
+			xfl.mantissa = mantissaMin
 		}
 	}else{
 		if (xfl.exponent > exponentMax || xfl.exponent < exponentMin)
