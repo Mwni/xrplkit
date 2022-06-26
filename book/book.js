@@ -1,6 +1,6 @@
 import { EventEmitter } from '@mwni/events'
 import { fromRippled as amountFromRippled, isSameCurrency, formatCurrency } from '@xrplkit/amount'
-import { sum, sub, mul, div } from '@xrplkit/xfl'
+import { sum, sub, mul, div, eq, lt } from '@xrplkit/xfl'
 
 
 
@@ -101,7 +101,7 @@ export default class Book extends EventEmitter{
 					}))
 					.sort((a, b) => 
 						!a.r.eq(b.r)
-							? a.r.gt(b.r) ? 1 : -1
+							? gt(a.r, b.r) ? 1 : -1
 							: 0
 					)
 					.map(({ offer }) => offer)
@@ -155,7 +155,7 @@ export default class Book extends EventEmitter{
 			let payValue = offer[keyPay].value
 			let getValue = offer[keyGet].value
 
-			if(amountPay.lt(payValue)){
+			if(lt(amountPay, payValue)){
 				let fraction = div(amountPay, payValue)
 
 				amountPay = '0'
@@ -179,7 +179,7 @@ export default class Book extends EventEmitter{
 
 		return {
 			incomplete,
-			partial: amountPay.gt(0),
+			partial: !eq(amountPay, 0),
 			takerPays: takerPays
 				? sub(takerPays, amountPay)
 				: amountGet,
