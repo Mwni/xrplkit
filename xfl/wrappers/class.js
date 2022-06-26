@@ -53,63 +53,63 @@ Object.defineProperties(XFL.prototype, {
 })
 
 export function abs(x){
-	return new XFL(arit.abs(fromAny(x)))
+	return new XFL(arit.abs(XFL(x)))
 }
 
 export function neg(x){
-	return new XFL(arit.neg(fromAny(x)))
+	return new XFL(arit.neg(XFL(x)))
 }
 
 export function sum(a, b){
-	return new XFL(arit.sum(fromAny(a), fromAny(b)))
+	return new XFL(arit.sum(XFL(a), XFL(b)))
 }
 
 export function sub(a, b){
-	return new XFL(arit.sub(fromAny(a), fromAny(b)))
+	return new XFL(arit.sub(XFL(a), XFL(b)))
 }
 
 export function mul(a, b){
-	return new XFL(arit.mul(fromAny(a), fromAny(b)))
+	return new XFL(arit.mul(XFL(a), XFL(b)))
 }
 
 export function div(a, b){
-	return new XFL(arit.div(fromAny(a), fromAny(b)))
+	return new XFL(arit.div(XFL(a), XFL(b)))
 }
 
 export function floor(x, decimal = 0){
-	return new XFL(roun.floor(fromAny(x), decimal))
+	return new XFL(roun.floor(XFL(x), decimal))
 }
 
 export function eq(a, b){
-	return comp.eq(fromAny(a), fromAny(b))
+	return comp.eq(XFL(a), XFL(b))
 }
 
 export function lt(a, b){
-	return comp.lt(fromAny(a), fromAny(b))
+	return comp.lt(XFL(a), XFL(b))
 }
 
 export function lte(a, b){
-	return comp.lte(fromAny(a), fromAny(b))
+	return comp.lte(XFL(a), XFL(b))
 }
 
 export function gt(a, b){
-	return comp.gt(fromAny(a), fromAny(b))
+	return comp.gt(XFL(a), XFL(b))
 }
 
 export function gte(a, b){
-	return comp.gte(fromAny(a), fromAny(b))
+	return comp.gte(XFL(a), XFL(b))
 }
 
 export function min(...xs){
-	return new XFL(comp.min(...xs.map(x => fromAny(x))))
+	return new XFL(comp.min(...xs.map(x => XFL(x))))
 }
 
 export function max(...xs){
-	return new XFL(comp.max(...xs.map(x => fromAny(x))))
+	return new XFL(comp.max(...xs.map(x => XFL(x))))
 }
 
 export function toString(x){
-	return stri.toString(fromAny(x))
+	return stri.toString(XFL(x))
 }
 
 export function toBigInt(x){
