@@ -1,7 +1,9 @@
-import Socket from './socket.js'
+import createSocket from './socket.js'
 
-export default class BrowserSocket extends Socket{
-	createSocket({ url }){
-		return new WebSocket(url)
-	}
+
+export default function(conf){
+	return createSocket({
+		...conf,
+		socketImpl: ({ url }) => new WebSocket(url)
+	})
 }

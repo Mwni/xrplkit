@@ -1,108 +1,118 @@
 import { EventEmitter } from '@mwni/events'
 
 
-export default class Socket extends EventEmitter{
-	constructor(url, options = {stayConnected: true}){
-		super()
-		this.whenReady = new Promise(
-			resolve => this.nowReady = resolve
-		)
+export default function ({ url, autoReconnect = true, autoRetryRequests = true, socketOptions, socketImpl }){
+	let socket
+	let requestCounter = 0
+	let requestRegistry = []
+	let connected = false
+	let connectionError
+	let events = new EventEmitter()
 
-		if(url)
-			this.connect(url, options)
+	function connect(){
+		socket = socketImpl({ url, options: socketOptions })
+		socket.addEventListener('open', handleOpen)
+		socket.addEventListener('close', handleClose)
+		socket.addEventListener('error', handleError)
+		socket.addEventListener('message', handleMessage)
 	}
 
-	async connect(url, options){
-		if(this.url === url)
+	function handleOpen(event){
+		connected = true
+		events.emit('open', event)
+		pushRequests()
+	}
+
+	function handleClose(event){
+		if(autoReconnect){
+			setTimeout(connect, 1000)
+		}
+
+		if(!connected){
+			return
+		}
+
+		if(autoRetryRequests){
+			for(let request of requestRegistry){
+				request.sent = false
+			}
+		}else{
+			for(let { reject } of requestRegistry){
+				reject(new Error(event.reason))
+			}
+			requestRegistry.length = 0
+		}
+		
+		connected = false
+		events.emit('close', event)
+	}
+
+	function handleError(event){
+		connectionError = event
+		events.emit('error', event)
+	}
+
+	function handleMessage(event){
+		let payload = JSON.parse(event.data)
+
+		if(payload.id){
+			let handlerIndex = requestRegistry.findIndex(({id}) => id === payload.id)
+
+			if(handlerIndex >= 0){
+				let handler = requestRegistry[handlerIndex]
+
+				if(payload.result){
+					handler.resolve(payload.result)
+				}else{
+					handler.reject(payload)
+				}
+
+				requestRegistry.splice(handlerIndex, 1)
+			}
+		}else if(payload.type){
+			events.emit(payload.type, payload)
+		}
+	}
+
+	function pushRequests(){
+		if(!connected)
 			return
 
-		this.url = url
-		this.options = options
+		for(let request of requestRegistry){
+			if(request.sent)
+				return
 
-		await this.createConnection(url, options)
-		
-		return this
+			socket.send(JSON.stringify(request.message))
+			request.sent = true
+		}
 	}
 
+	connect()
 
-	async request(payload){
-		await this.whenReady
+	return Object.assign(
+		events,
+		{
+			status(){
+				return {
+					connected,
+					connectionError,
+					openRequests: requestRegistry.map(
+						request => ({
+							id: request.id,
+							sent: request.sent
+						})
+					)
+				}
+			},
+			request(payload){
+				let id = ++requestCounter
+				let message = {...payload, id}
 
-		let id = ++this.requestCounter
-		let message = {...payload, id}
-
-		return new Promise((resolve, reject) => {
-			this.requestRegistry.push({id, resolve, reject})
-			this.socket.send(JSON.stringify(message))
-		})
-	}
-
-	async createConnection(url, options){
-		await new Promise(async (resolve, reject) => {
-			this.socket = this.createSocket({ url, options })
-			
-			this.socket.addEventListener('open', () => {
-				this.connected = true
-				this.requestCounter = 0
-				this.requestRegistry = []
-
-				this.socket.addEventListener('message', event => {
-					let payload = JSON.parse(event.data)
-
-					if(payload.id){
-						let handlerIndex = this.requestRegistry.findIndex(({id}) => id === payload.id)
-
-						if(handlerIndex >= 0){
-							let handler = this.requestRegistry[handlerIndex]
-
-							if(payload.result){
-								handler.resolve(payload.result)
-							}else{
-								handler.reject(payload)
-							}
-
-							this.requestRegistry.splice(handlerIndex, 1)
-						}
-					}else if(payload.type){
-						this.emit(payload.type, payload)
-					}
+				return new Promise((resolve, reject) => {
+					requestRegistry.push({ id, message, resolve, reject })
+					pushRequests()
 				})
-
-				this.nowReady()
-				this.emit('connected')
-
-				resolve()
-			})
-
-			this.socket.addEventListener('error', error => {
-				this.connectionError = error
-				this.emit('error', error)
-			})
-
-			this.socket.addEventListener('close', async event => {
-				this.whenReady = new Promise(
-					resolve => this.nowReady = resolve
-				)
-
-				if(this.connected){
-					for(let { reject } of this.requestRegistry){
-						reject(new Error(event.reason))
-					}
-
-					this.connected = false
-					this.emit('disconnected', event)
-				}
-
-				if(this.options.stayConnected){
-					await new Promise(resolve => setTimeout(resolve, 1000))
-					await this.createConnection(this.url, this.options)
-						.catch(error => reject(error))
-				}
-			})
-		})
-	}
-
-	isConnected(){
-		return this.socket && this.socket.readyState === 1
-	}
+			}
+		}
+	)
 }
