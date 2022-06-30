@@ -8,8 +8,14 @@ export default class Book extends EventEmitter{
 	constructor({ socket, takerPays, takerGets, ledgerIndex }){
 		super()
 		this.socket = socket
-		this.takerPays = takerPays
-		this.takerGets = takerGets
+		this.takerPays = {
+			currency: takerPays.currency,
+			issuer: takerPays.issuer
+		}
+		this.takerGets = {
+			currency: takerGets.currency,
+			issuer: takerGets.issuer
+		}
 		this.ledgerIndex = ledgerIndex || 'validated'
 		this.offers = []
 	}
@@ -139,6 +145,7 @@ export default class Book extends EventEmitter{
 		let amountGet = '0'
 		let keyPay
 		let keyGet
+		let affectedNodes = []
 
 		if(takerPays){
 			amountPay = takerPays
@@ -157,15 +164,61 @@ export default class Book extends EventEmitter{
 
 			if(lt(amountPay, payValue)){
 				let fraction = div(amountPay, payValue)
+				let getValueConsumed = mul(fraction, getValue)
 
 				amountPay = '0'
-				amountGet = sum(amountGet, mul(fraction, getValue))
+				amountGet = sum(amountGet, getValueConsumed)
 				incomplete = false
+
+				affectedNodes.push({
+					ModifiedNode: {
+						LedgerEntryType: 'Offer',
+						FinalFields: {
+							Account: offer.account,
+							Sequence: offer.sequence,
+							TakerPays: {
+								...this.takerPays,
+								value: mul(offer.takerPays.value, fraction)
+							},
+							TakerGets: {
+								...this.takerGets,
+								value: mul(offer.takerGets.value, fraction)
+							}
+						},
+						PreviousFields: {
+							TakerPays: this.takerPays,
+							TakerGets: this.takerGets
+						}
+					}
+				})
+
 				break
 			}
 
 			amountPay = sub(amountPay, payValue)
 			amountGet = sum(amountGet, getValue)
+
+			affectedNodes.push({
+				DeletedNode: {
+					LedgerEntryType: 'Offer',
+					FinalFields: {
+						Account: offer.account,
+						Sequence: offer.sequence,
+						TakerPays: {
+							...this.takerPays,
+							value: '0'
+						},
+						TakerGets: {
+							...this.takerGets,
+							value: '0'
+						}
+					},
+					PreviousFields: {
+						TakerPays: this.takerPays,
+						TakerGets: this.takerGets
+					}
+				}
+			})
 		}
 
 		if(cushion){
@@ -185,7 +238,8 @@ export default class Book extends EventEmitter{
 				: amountGet,
 			takerGets: takerPays
 				? amountGet
-				: sub(takerGets, amountPay)
+				: sub(takerGets, amountPay),
+			affectedNodes
 		}
 	}
 
