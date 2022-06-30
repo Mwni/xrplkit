@@ -1,313 +1,78 @@
 import { EventEmitter } from '@mwni/events'
-import { fromRippled as amountFromRippled, isSameCurrency, formatCurrency } from '@xrplkit/amount'
-import { sum, sub, mul, div, eq, lt, lte } from '@xrplkit/xfl'
+import { formatCurrency } from '@xrplkit/amount'
+import { fillOffer } from './fill.js'
+import { diffLedger, diffTx } from './diff.js'
 
 
+export default function Book({ socket, takerPays, takerGets }){
+	let book = new EventEmitter()
 
-export default class Book extends EventEmitter{
-	constructor({ socket, takerPays, takerGets, ledgerIndex }){
-		super()
-		this.socket = socket
-		this.takerPays = {
-			currency: takerPays.currency,
-			issuer: takerPays.issuer
-		}
-		this.takerGets = {
-			currency: takerGets.currency,
-			issuer: takerGets.issuer
-		}
-		this.ledgerIndex = ledgerIndex || 'validated'
-		this.offers = []
+	takerPays = {
+		currency: takerPays.currency,
+		issuer: takerPays.issuer
 	}
 
-	async load(limit = 1000){
-		let { offers } = await this.socket.request({
-			command: 'book_offers',
-			ledger_index: this.ledgerIndex,
-			taker_gets: this.takerGets,
-			taker_pays: this.takerPays,
-			limit
-		})
-
-		this.setOffers(offers)
-		this.emit('update')
-	}
-
-	async subscribe({ load } = {}){
-		if(this.subscribed)
-			return
-
-		this.subscribed = true
-
-		if(load)
-			await this.load()
-
-		await this.socket.request({
-			command: 'subscribe',
-			books: [{
-				taker_gets: this.takerGets,
-				taker_pays: this.takerPays,
-				both: true
-			}]
-		})
-
-		this.socket.on('transaction', this.txh = tx => this.diff(tx))
-	}
-
-	async unsubscribe(){
-		if(!this.subscribed)
-			return
-
-		this.subscribed = false
-
-		await this.socket.request({
-			command: 'unsubscribe',
-			books: [{
-				taker_gets: this.takerGets,
-				taker_pays: this.takerPays
-			}]
-		})
-	}
-
-	diff(tx){
-		let didChange = false
-		let meta = tx?.meta || tx.metaData
-
-		if(!meta?.AffectedNodes)
-			return
-
-		for(let wrap of meta.AffectedNodes){
-			let key = Object.keys(wrap)[0]
-			let node = wrap[key]
-
-			if(node.LedgerEntryType !== 'Offer')
-				continue
-
-			let account = node.FinalFields?.Account || node.NewFields?.Account
-			let sequence = node.FinalFields?.Sequence || node.NewFields?.Sequence
-			let id = `${account}:${sequence}`
-			let newOffer = this.#parseOffer(node.NewFields || node.FinalFields)
-
-			if(!isSameCurrency(newOffer.takerPays, this.takerPays))
-				continue
-
-			if(!isSameCurrency(newOffer.takerGets, this.takerGets))
-				continue
-
-			
-			if(key === 'CreatedNode'){
-				this.offers = this.offers
-					.concat([newOffer])
-					.map(offer => ({
-						offer, 
-						r: div(
-							offer.takerPays.value, 
-							offer.takerGets.value
-						)
-					}))
-					.sort((a, b) => 
-						!a.r.eq(b.r)
-							? gt(a.r, b.r) ? 1 : -1
-							: 0
-					)
-					.map(({ offer }) => offer)
-
-				didChange = true
-				continue
-			}
-
-
-			let offerIndex = this.offers.findIndex(offer => offer.id === id)
-
-			if(offerIndex === -1)
-				continue
-
-			if(key === 'DeletedNode'){
-				this.offers.splice(offerIndex, 1)
-			}else{
-				Object.assign(
-					this.offers[offerIndex], 
-					newOffer
-				)
-			}
-
-			didChange = true
-		}
-
-		if(didChange)
-			this.emit('update')
+	takerGets = {
+		currency: takerGets.currency,
+		issuer: takerGets.issuer
 	}
 
 
-	fill({ takerPays, takerGets, tfSell, cushion }){
-		let incomplete = true
-		let amountPay
-		let amountGet = '0'
-		let keyPay
-		let keyGet
-		let affectedNodes = []
-		let offers = this.offers
-
-		if(tfSell || !takerPays){
-			amountPay = takerGets
-			keyPay = 'takerGets'
-			keyGet = 'takerPays'
-		}else{
-			amountPay = takerPays
-			keyPay = 'takerPays'
-			keyGet = 'takerGets'
-		}
-
-		if(takerGets && takerPays){
-			let maxPrice = div(takerPays, takerGets)
-
-			offers = offers.filter(
-				offer => lte(offer.priceFunded, maxPrice)
-			)
-		}
-
-		for(let offer of offers){
-			let payValue = offer[keyPay].value
-			let getValue = offer[keyGet].value
-
-			if(lt(amountPay, payValue)){
-				let fraction = div(amountPay, payValue)
-				let getValueConsumed = mul(fraction, getValue)
-
-				amountPay = '0'
-				amountGet = sum(amountGet, getValueConsumed)
-				incomplete = false
-
-				affectedNodes.push({
-					ModifiedNode: {
-						LedgerEntryType: 'Offer',
-						FinalFields: {
-							Account: offer.account,
-							Sequence: offer.sequence,
-							TakerPays: {
-								...this.takerPays,
-								value: mul(offer.takerPays.value, fraction)
-							},
-							TakerGets: {
-								...this.takerGets,
-								value: mul(offer.takerGets.value, fraction)
-							}
-						},
-						PreviousFields: {
-							TakerPays: this.takerPays,
-							TakerGets: this.takerGets
-						}
-					}
-				})
-
-				break
-			}
-
-			amountPay = sub(amountPay, payValue)
-			amountGet = sum(amountGet, getValue)
-
-			affectedNodes.push({
-				DeletedNode: {
-					LedgerEntryType: 'Offer',
-					FinalFields: {
-						Account: offer.account,
-						Sequence: offer.sequence,
-						TakerPays: {
-							...this.takerPays,
-							value: '0'
-						},
-						TakerGets: {
-							...this.takerGets,
-							value: '0'
-						}
-					},
-					PreviousFields: {
-						TakerPays: this.takerPays,
-						TakerGets: this.takerGets
-					}
-				}
-			})
-		}
-
-		if(cushion){
-			amountGet = mul(
-				amountGet,
-				takerPays
-					? 1 - cushion
-					: 1 + cushion
-			)
-		}
-
-		return {
-			incomplete,
-			partial: !eq(amountPay, 0),
-			takerPays: takerPays
-				? sub(takerPays, amountPay)
-				: amountGet,
-			takerGets: takerPays
-				? amountGet
-				: sub(takerGets, amountPay),
-			affectedNodes
-		}
-	}
-
-	async fillLazy({ initial = 3, stride = 5, ...args }){
-		let limit = initial
-		let steps = 0
-
-		while(true){
-			let offerCount = this.offers.length
-
-			await this.load(limit)
-
-			let res = this.fill(args)
-
-			if(!res.incomplete || this.offers.length <= offerCount)
-				return res
-
-			limit += stride * ++steps
-		}
-	}
-
-	setOffers(offers){
-		this.offers = offers.map(this.#parseOffer)
-	}
-
-	get bestPrice(){
-		return this.offers.length > 0
-			? this.offers[0].price
-			: undefined
-	}
-
-	toString(){
-		return `Book (${formatCurrency(this.takerGets)} / ${formatCurrency(this.takerPays)})`
-	}
-
-	#parseOffer(offer){
-		let takerGets = amountFromRippled(offer.TakerGets)
-		let takerPays = amountFromRippled(offer.TakerPays)
-
-		let takerGetsFunded = offer.taker_gets_funded
-			 ? amountFromRippled(offer.taker_gets_funded)
-			 : takerGets
-
-		let takerPaysFunded = offer.taker_pays_funded
-			 ? amountFromRippled(offer.taker_pays_funded)
-			 : takerPays
-
-		return {
-			id: `${offer.Account}:${offer.Sequence}`,
-			account: offer.Account,
-			sequence: offer.Sequence,
-			index: offer.index,
-			takerGets,
+	return Object.assign(
+		book,
+		{
+			offers: [],
 			takerPays,
-			takerGetsFunded,
-			takerPaysFunded,
-			price: div(takerPays.value, takerGets.value),
-			priceFunded: takerGetsFunded.value !== '0'
-				? div(takerPaysFunded.value, takerGetsFunded.value)
-				: undefined
+			takerGets,
+
+			async load({ limit = 1000, ledgerSequence = 'current' } = {}){
+				let result = await socket.request({
+					command: 'book_offers',
+					ledger_index: ledgerSequence,
+					taker_gets: this.takerGets,
+					taker_pays: this.takerPays,
+					limit
+				})
+		
+				book.offers.length = 0
+				book.offers.push(...result.offers)
+				book.ledgerSequence = result.ledger_current_index
+				events.emit('update')
+			},
+
+			async fillLazy({ initial = 5, stride = 10, ...args }){
+				let limit = initial
+				let steps = 0
+
+				while(true){
+					let offerCount = offers.length
+
+					await book.load(limit)
+
+					let res = fillOffer({ book, ...args })
+
+					if(!res.incomplete || offers.length <= offerCount)
+						return res
+
+					limit += stride * ++steps
+				}
+			},
+
+			fill({ takerGets, takerPays, tfSell = false, cushion = 0 }){
+				return fillOffer({ book, takerPays, takerGets, tfSell, cushion })
+			},
+
+			diffLedger(ledger){
+				diffLedger({ book, ledger })
+			},
+
+			diffTx(tx){
+				diffTx({ book, tx })
+			},
+
+			toString(){
+				return `Book (${formatCurrency(takerGets)} / ${formatCurrency(takerPays)})`
+			}
 		}
-	}
+	)
 }
