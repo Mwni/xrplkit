@@ -1,6 +1,6 @@
 import { EventEmitter } from '@mwni/events'
 import { fromRippled as amountFromRippled, isSameCurrency, formatCurrency } from '@xrplkit/amount'
-import { sum, sub, mul, div, eq, lt } from '@xrplkit/xfl'
+import { sum, sub, mul, div, eq, lt, lte } from '@xrplkit/xfl'
 
 
 
@@ -29,7 +29,7 @@ export default class Book extends EventEmitter{
 			limit
 		})
 
-		this.offers = offers.map(this.#parseOffer)
+		this.setOffers(offers)
 		this.emit('update')
 	}
 
@@ -139,26 +139,34 @@ export default class Book extends EventEmitter{
 	}
 
 
-	fill({ takerPays, takerGets, cushion }){
+	fill({ takerPays, takerGets, tfSell, cushion }){
 		let incomplete = true
 		let amountPay
 		let amountGet = '0'
 		let keyPay
 		let keyGet
 		let affectedNodes = []
+		let offers = this.offers
 
-		if(takerPays){
-			amountPay = takerPays
-			keyPay = 'takerPays'
-			keyGet = 'takerGets'
-		}else{
+		if(tfSell || !takerPays){
 			amountPay = takerGets
 			keyPay = 'takerGets'
 			keyGet = 'takerPays'
+		}else{
+			amountPay = takerPays
+			keyPay = 'takerPays'
+			keyGet = 'takerGets'
 		}
 
+		if(takerGets && takerPays){
+			let maxPrice = div(takerPays, takerGets)
 
-		for(let offer of this.offers){
+			offers = offers.filter(
+				offer => lte(offer.priceFunded, maxPrice)
+			)
+		}
+
+		for(let offer of offers){
 			let payValue = offer[keyPay].value
 			let getValue = offer[keyGet].value
 
@@ -259,6 +267,10 @@ export default class Book extends EventEmitter{
 
 			limit += stride * ++steps
 		}
+	}
+
+	setOffers(offers){
+		this.offers = offers.map(this.#parseOffer)
 	}
 
 	get bestPrice(){
