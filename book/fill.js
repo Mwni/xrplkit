@@ -8,6 +8,12 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 	let affectedNodes = []
 	let partial = true
 	let minQuality
+
+	if(takerGets && eq(takerGets, 0))
+		throw new Error(`Parameter "takerGets" must be greater than zero`)
+	
+	if(takerPays && eq(takerPays, 0))
+		throw new Error(`Parameter "takerGets" must be greater than zero`)
 	
 	if(takerGets && takerPays)
 		minQuality = div(takerPays, takerGets)
