@@ -1,4 +1,5 @@
 import { calcOfferValues } from './offer.js'
+import { isSameCurrency } from '@xrplkit/amount'
 import { gt } from '@xrplkit/xfl'
 
 
@@ -30,22 +31,27 @@ export function diffTx({ book, tx }){
 				if(!isSameCurrency(CreatedNode.NewFields.TakerGets, book.takerGets))
 					continue
 
-				let newValues = calcOfferValues(node.NewFields)
+				let { quality } = calcOfferValues(node.NewFields)
 				let added = false
+				let newOffer = { 
+					...CreatedNode.NewFields,
+					index: CreatedNode.LedgerIndex
+				}
 
 				for(let i=0; i<book.offers.length; i++){
 					let offer = book.offers[i]
-					let values = calcOfferValues(offer)
+					let { quality: otherQuality } = calcOfferValues(offer)
 
-					if(gt(values.quality, newValues.quality)){
-						book.offers.splice(i - 1, 0, CreatedNode.NewFields)
+					if(gt(quality, otherQuality)){
+						book.offers.splice(i, 0, newOffer)
 						added = true
 						break
 					}
 				}
 
 				if(!added)
-					book.offers.push(CreatedNode.NewFields)
+					book.offers.push(newOffer)
+
 			}else if(ModifiedNode){
 				Object.assign(
 					book.offers.find(

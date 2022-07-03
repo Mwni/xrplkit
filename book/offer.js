@@ -13,8 +13,9 @@ export function calcOfferValues(offer){
 		takerGetsRaw: takerGets.value,
 		takerPays: takerPaysFunded.value,
 		takerPaysRaw: takerPays.value,
+		funded: !eq(takerPaysFunded.value, 0),
 		quality: eq(takerPaysFunded.value, 0)
 			? XFL(0)
-			: div(takerGetsFunded.value, takerPaysFunded.value)
+			: div(takerGetsFunded.value, takerPaysFunded.value),
 	}
 }
