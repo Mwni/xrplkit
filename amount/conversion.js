@@ -21,7 +21,7 @@ export function fromRippled(amount, decodeCurrency){
 
 export function toRippled(amount){
 	if(amount.currency === 'XRP')
-		return floor(mul(amount.value, '1000000'))
+		return floor(mul(amount.value, '1000000')).toString()
 		
 	return {
 		currency: encodeCurrencyCode(amount.currency),
