@@ -80,7 +80,7 @@ export default function ({ url, autoReconnect = true, autoRetryRequests = true, 
 
 		for(let request of requestRegistry){
 			if(request.sent)
-				return
+				continue
 
 			socket.send(JSON.stringify(request.message))
 			request.sent = true
