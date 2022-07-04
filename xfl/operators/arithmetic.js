@@ -75,6 +75,7 @@ export function div(a, b){
 
 	am *= 100000000000000000n
 	am /= b.mantissa
+	am += 5n
 	ae -= b.exponent
 	ae -= 17n
 
