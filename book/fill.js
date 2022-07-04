@@ -21,11 +21,13 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 	if(!takerPays)
 		tfSell = true
 
-	
-
+		
 	for(let offer of book.offers){
 		let values = calcOfferValues(offer)
 		let fractionConsume = 1
+
+		if(!values.funded)
+			continue
 
 		if(minQuality && lt(values.quality, minQuality))
 			continue
@@ -37,6 +39,7 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 				fractionConsume = div(spendableRemainder, values.takerPays)
 				partial = false
 			}
+
 		}else{
 			let fillableRemainder = sub(takerPays, filledTakerPays)
 
