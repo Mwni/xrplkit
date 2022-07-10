@@ -1,11 +1,11 @@
 {
     "name": "@xrplkit/txmeta",
     "type": "module",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "main": "index.js",
     "dependencies": {
-        "@xrplkit/xfl": "1.1.1",
-        "@xrplkit/amount": "1.1.0"
+        "@xrplkit/xfl": "2.0.1",
+        "@xrplkit/amount": "1.2.0"
     },
     "publishConfig": {
         "access": "public"
