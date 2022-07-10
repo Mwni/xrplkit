@@ -7,7 +7,7 @@
     "author": "xrplkit",
     "dependencies": {
         "@mwni/events": "^1.0.0",
-        "@xrplkit/amount": "1.2.0",
+        "@xrplkit/amount": "1.2.1",
         "@xrplkit/xfl": "2.0.1"
     },
     "publishConfig": {
