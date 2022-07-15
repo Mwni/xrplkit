@@ -15,13 +15,13 @@
     "wallet",
     "submit",
     "account",
-    "portfolio",
     "socket",
     "time",
     "txmeta",
     "xfl",
     "toml",
     "test",
-    "examples"
+    "examples",
+    "xls26"
   ]
 }
