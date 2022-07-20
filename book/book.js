@@ -39,7 +39,7 @@ export default function Book({ socket, takerPays, takerGets }){
 				book.offers.length = 0
 				book.offers.push(...result.offers)
 				book.ledgerSequence = result.ledger_current_index
-				events.emit('update')
+				book.emit('update')
 			},
 
 			async fillLazy({ initial = 5, stride = 10, ...args }){
