@@ -1,100 +1,235 @@
 // The XLS-26 standard adds additional asset metadata fields to the existing xrp-ledger.toml standard,
 // https://github.com/XRPLF/XRPL-Standards/discussions/71
-// This package provides an implementation of a parser according to this standard.
+// This package provides an implementation for a parser according to this standard.
 
 
 import { parse as parseToml } from '@xrplkit/toml'
 
+const validWeblinkTypes = [
+	'website',
+	'socialmedia',
+	'support',
+	'sourcecode',
+	'whitepaper',
+	'audit',
+	'report'
+]
 
-const accountFields = [
+const issuerFields = [
 	{
 		key: 'address',
-		validate: v => /^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v)
+		essential: true,
+		validate: v => {
+			if(!/^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v))
+				throw 'is not a valid XRPL address'
+		},
 	},
 	{
 		key: 'name',
-		validate: v => typeof v === 'string' && v.length > 0
+		validate: v => {
+			if(typeof v !== 'string' || v.length === 0)
+				throw 'has to be a non empty string'
+		}
 	},
 	{
 		key: 'description',
 		alternativeKeys: ['desc'],
-		validate: v => typeof v === 'string' && v.length > 0
+		validate: v => {
+			if(typeof v !== 'string' || v.length === 0)
+				throw 'has to be a non empty string'
+		}
 	},
 	{
 		key: 'icon',
-		validate: v => /^https?:\/\/.*$/.test(v)
+		alternativeKeys: ['avatar'],
+		validate: v => {
+			if(!/^https?:\/\/.*$/.test(v))
+				throw 'has to be a valid HTTP URL that starts with "http"'
+		}
 	},
 	{
-		key: 'links',
-		type: 'array',
-		validate: v => Array.isArray(v) && v.every(v => typeof v === 'string'),
-	},
-	{
-		key: 'trusted',
-		validate: v => typeof v === 'boolean'
+		key: 'trust_level',
+		validate: v => {
+			if(v !== parseInt(v))
+				throw 'has to be a integer'
+
+			if(v < 0 || v > 3)
+				throw 'has to be between 0 and 3'
+		}
 	}
 ]
 
-
-const currencyFields = [
+const tokenFields = [
 	{
-		key: 'code',
-		validate: v => /^[0-9A-F]{40}$/
+		key: 'currency',
+		essential: true,
+		validate: v => {
+			if(typeof v !== 'string' && v.length < 3)
+				throw 'is not a valid XRPL currency code'
+		}
 	},
 	{
 		key: 'issuer',
-		validate: v => /^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v)
+		essential: true,
+		validate: v => {
+			if(!/^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v))
+				throw 'is not a valid XRPL address'
+		}
 	},
 	{
 		key: 'name',
-		validate: v => typeof v === 'string' && v.length > 0
+		validate: v => {
+			if(typeof v !== 'string' || v.length === 0)
+				throw 'has to be a non empty string'
+		}
 	},
 	{
 		key: 'description',
 		alternativeKeys: ['desc'],
-		validate: v => typeof v === 'string' && v.length > 0
+		validate: v => {
+			if(typeof v !== 'string' || v.length === 0)
+				throw 'has to be a non empty string'
+		}
 	},
 	{
 		key: 'icon',
-		validate: v => /^https?:\/\/.*$/.test(v)
+		alternativeKeys: ['avatar'],
+		validate: v => {
+			if(!/^https?:\/\/.*$/.test(v))
+				throw 'has to be a valid HTTP URL that starts with "http"'
+		}
 	},
 	{
-		key: 'links',
-		type: 'array',
-		validate: v => Array.isArray(v) && v.every(v => typeof v === 'string'),
-	},
-	{
-		key: 'trusted',
-		validate: v => typeof v === 'boolean'
+		key: 'trust_level',
+		validate: v => {
+			if(v !== parseInt(v))
+				throw 'has to be a integer'
+
+			if(v < 0 || v > 3)
+				throw 'has to be between 0 and 3'
+		}
 	}
+]
+
+const weblinkFields = [
+	{
+		key: 'url',
+		essential: true,
+		validate: v => {
+			if(!/^https?:\/\/.*$/.test(v))
+				throw 'has to be a valid HTTP URL that starts with "http"'
+		}
+	},
+	{
+		key: 'type',
+		validate: v => {
+			if(!validWeblinkTypes.includes(v))
+				throw `has to be one of (${validWeblinkTypes.join(', ')})`
+		}
+	},
+	{
+		key: 'title',
+		validate: v => {
+			if(typeof v !== 'string' || v.length === 0)
+				throw 'has to be a non empty string'
+		}
+	},
 ]
 
 
 export function parse(str){
-	let toml = parseToml(str, 'camelCase')
-	let accounts = []
-	let currencies = []
-
-	if(toml.accounts){
-		accounts = toml.accounts
-			.map(account => parseStanza(account, accountFields))
+	try{
+		var toml = parseToml(str, 'camelCase')
+	}catch(error){
+		throw new Error(`Failed to parse .toml: Syntax error at line ${error.line}:${error.column}`)
 	}
 
-	if(toml.currencies){
-		currencies = toml.currencies
-			.map(currency => parseStanza(currency, currencyFields))
+	let issuers = []
+	let tokens = []
+	let issues = []
+
+	if(toml.issuers){
+		for(let stanza of toml.issuers){
+			let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, issuerFields)
+
+			if(valid)
+				issuers.push(issuer)
+
+			issues.push(
+				...issuerIssues.map(
+					issue => `[[ISSUERS]] ${issue}`
+				)
+			)
+
+			if(valid && stanza.weblinks){
+				for(let substanza of stanza.weblinks){
+					let { valid, parsed: weblink, issues: weblinkIssues } = parseStanza(substanza, weblinkFields)
+
+					if(valid){
+						issuer.weblinks = [
+							...(token.weblinks || []),
+							weblink
+						]
+					}
+
+					issues.push(
+						...weblinkIssues.map(
+							issue => `[[WEBLINK]] ${issue}`
+						)
+					)
+				}
+			}
+		}
 	}
+
+	if(toml.tokens){
+		for(let stanza of toml.tokens){
+			let { valid, parsed: token, issues: tokenIssues } = parseStanza(stanza, tokenFields)
+
+			if(valid)
+				tokens.push(token)
+				
+			issues.push(
+				...tokenIssues.map(
+					issue => `[[TOKENS]] ${issue}`
+				)
+			)
+
+			if(valid && stanza.weblinks){
+				for(let substanza of stanza.weblinks){
+					let { valid, parsed: weblink, issues: weblinkIssues } = parseStanza(substanza, weblinkFields)
+
+					if(valid){
+						token.weblinks = [
+							...(token.weblinks || []),
+							weblink
+						]
+					}
+
+					issues.push(
+						...weblinkIssues.map(
+							issue => `[[WEBLINK]] ${issue}`
+						)
+					)
+				}
+			}
+		}
+	}
+
 
 	return {
-		accounts,
-		currencies
+		issuers,
+		tokens,
+		issues
 	}
 }
 
 function parseStanza(stanza, schemas){
 	let parsed = {}
+	let issues = []
+	let valid = true
 
-	for(let { key, alternativeKeys, validate } of schemas){
+	for(let { key, alternativeKeys, essential, validate } of schemas){
 		let keys = [key]
 
 		if(alternativeKeys)
@@ -106,13 +241,24 @@ function parseStanza(stanza, schemas){
 
 			let value = stanza[k]
 
-			if(validate && !validate(value))
-				continue
+			if(validate){
+				try{
+					validate(value)
+				}catch(issue){
+					issues.push(`${key} field: ${issue}`)
+					break
+				}
+			}
 
 			parsed[k] = value
 			break
 		}
+
+		if(essential && !parsed.hasOwnProperty(key)){
+			issues.push(`${key} field missing: skipping stanza`)
+			valid = false
+		}
 	}
 
-	return parsed
+	return { valid, parsed, issues }
 }
