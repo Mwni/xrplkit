@@ -139,7 +139,7 @@ const weblinkFields = [
 
 export function parse(str){
 	try{
-		var toml = parseToml(str, 'camelCase')
+		var toml = parseToml(str)
 	}catch(error){
 		throw new Error(`Failed to parse .toml: Syntax error at line ${error.line}:${error.column}`)
 	}
@@ -148,8 +148,9 @@ export function parse(str){
 	let tokens = []
 	let issues = []
 
-	if(toml.issuers){
-		for(let stanza of toml.issuers){
+
+	if(toml.ISSUERS){
+		for(let stanza of toml.ISSUERS){
 			let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, issuerFields)
 
 			if(valid)
@@ -161,13 +162,13 @@ export function parse(str){
 				)
 			)
 
-			if(valid && stanza.weblinks){
-				for(let substanza of stanza.weblinks){
+			if(valid && stanza.WEBLINKS){
+				for(let substanza of stanza.WEBLINKS){
 					let { valid, parsed: weblink, issues: weblinkIssues } = parseStanza(substanza, weblinkFields)
 
 					if(valid){
 						issuer.weblinks = [
-							...(token.weblinks || []),
+							...(issuer.weblinks || []),
 							weblink
 						]
 					}
@@ -182,8 +183,8 @@ export function parse(str){
 		}
 	}
 
-	if(toml.tokens){
-		for(let stanza of toml.tokens){
+	if(toml.TOKENS){
+		for(let stanza of toml.TOKENS){
 			let { valid, parsed: token, issues: tokenIssues } = parseStanza(stanza, tokenFields)
 
 			if(valid)
@@ -195,8 +196,8 @@ export function parse(str){
 				)
 			)
 
-			if(valid && stanza.weblinks){
-				for(let substanza of stanza.weblinks){
+			if(valid && stanza.WEBLINKS){
+				for(let substanza of stanza.WEBLINKS){
 					let { valid, parsed: weblink, issues: weblinkIssues } = parseStanza(substanza, weblinkFields)
 
 					if(valid){
@@ -236,7 +237,7 @@ function parseStanza(stanza, schemas){
 			keys.push(...alternativeKeys)
 
 		for(let k of keys){
-			if(!stanza.hasOwnProperty(k))
+			if(stanza[k] === undefined)
 				continue
 
 			let value = stanza[k]
@@ -254,7 +255,7 @@ function parseStanza(stanza, schemas){
 			break
 		}
 
-		if(essential && !parsed.hasOwnProperty(key)){
+		if(essential && parsed[key] === undefined){
 			issues.push(`${key} field missing: skipping stanza`)
 			valid = false
 		}
