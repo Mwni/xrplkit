@@ -1,7 +1,7 @@
 {
     "name": "@xrplkit/xls26",
     "type": "module",
-    "version": "2.0.2",
+    "version": "2.1.0",
     "main": "xls26.js",
     "dependencies": {
         "@xrplkit/toml": "1.0.0"

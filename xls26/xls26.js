@@ -40,6 +40,13 @@ const issuerFields = [
 		}
 	},
 	{
+		key: 'domain',
+		validate: v => {
+			if(typeof v !== 'string' || v.length === 0)
+				throw 'has to be a non empty string'
+		}
+	},
+	{
 		key: 'icon',
 		alternativeKeys: ['avatar'],
 		validate: v => {
