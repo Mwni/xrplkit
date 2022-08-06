@@ -1,0 +1,7 @@
+{
+	"type": "module",
+	"dependencies": {
+		"@xrplkit/book": "file:../book",
+		"@xrplkit/xfl": "file:../xfl"
+	}
+}
