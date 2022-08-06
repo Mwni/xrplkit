@@ -24,7 +24,9 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 		
 	for(let offer of book.offers){
 		let values = calcOfferValues(offer)
-		let fractionConsume = 1
+		let fractionFinal = 1
+		let fractionSpendable = 1
+		let fractionAcceptable = 1
 
 		if(!values.funded)
 			continue
@@ -33,22 +35,19 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 			let spendableRemainder = sub(takerGets, filledTakerGets)
 
 			if(lte(spendableRemainder, values.takerPays)){
-				fractionConsume = div(spendableRemainder, values.takerPays)
-				partial = false
+				fractionSpendable = div(spendableRemainder, values.takerPays)
 			}
-
 		}else{
 			let fillableRemainder = sub(takerPays, filledTakerPays)
 
 			if(lte(fillableRemainder, values.takerGets)){
-				fractionConsume = div(fillableRemainder, values.takerGets)
-				partial = false
+				fractionSpendable = div(fillableRemainder, values.takerGets)
 			}
 		}
 
 		if(minQuality && lt(values.quality, minQuality)){
-			fractionConsume = min(
-				fractionConsume,
+			fractionAcceptable = min(
+				1,
 				div(
 					sub(
 						filledTakerPays,
@@ -60,19 +59,26 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 					)
 				)
 			)
-
-			if(eq(fractionConsume, 0))
-				break
 		}
 
-		let consumedTakerGets = mul(values.takerGets, fractionConsume)
-		let consumedTakerPays = mul(values.takerPays, fractionConsume)
+		if(lt(fractionSpendable, fractionAcceptable)){
+			fractionFinal = fractionSpendable
+			partial = false
+		}else{
+			fractionFinal = fractionAcceptable
+		}
+
+		if(eq(fractionFinal, 0))
+			break
+
+		let consumedTakerGets = mul(values.takerGets, fractionFinal)
+		let consumedTakerPays = mul(values.takerPays, fractionFinal)
 
 		filledTakerPays = sum(filledTakerPays, consumedTakerGets)
 		filledTakerGets = sum(filledTakerGets, consumedTakerPays)
 
 		affectedNodes.push({
-			[eq(fractionConsume, 1) ? 'DeletedNode' : 'ModifiedNode']: {
+			[eq(fractionFinal, 1) ? 'DeletedNode' : 'ModifiedNode']: {
 				LedgerEntryType: 'Offer',
 				LedgerIndex: offer.index,
 				FinalFields: {
@@ -109,9 +115,6 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 				}
 			}
 		})
-
-		if(!partial)
-			break
 	}
 
 	if(cushion){
@@ -122,6 +125,6 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 		takerPays: filledTakerPays,
 		takerGets: filledTakerGets,
 		affectedNodes,
-		partial,
+		partial
 	}
 }
