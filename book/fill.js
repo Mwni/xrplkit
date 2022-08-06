@@ -1,4 +1,4 @@
-import { XFL, sum, sub, mul, div, eq, lt, lte } from '@xrplkit/xfl'
+import { XFL, sum, sub, mul, div, eq, lt, lte, min } from '@xrplkit/xfl'
 import { calcOfferValues } from './offer.js'
 
 
@@ -29,9 +29,6 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 		if(!values.funded)
 			continue
 
-		if(minQuality && lt(values.quality, minQuality))
-			continue
-
 		if(tfSell){
 			let spendableRemainder = sub(takerGets, filledTakerGets)
 
@@ -47,6 +44,25 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 				fractionConsume = div(fillableRemainder, values.takerGets)
 				partial = false
 			}
+		}
+
+		if(minQuality && lt(values.quality, minQuality)){
+			fractionConsume = min(
+				fractionConsume,
+				div(
+					sub(
+						filledTakerPays,
+						mul(filledTakerGets, minQuality)
+					),
+					sub(
+						mul(values.takerPays, minQuality),
+						values.takerGets,
+					)
+				)
+			)
+
+			if(eq(fractionConsume, 0))
+				break
 		}
 
 		let consumedTakerGets = mul(values.takerGets, fractionConsume)
