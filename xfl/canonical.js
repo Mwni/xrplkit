@@ -3,8 +3,10 @@ import { exponentMin, exponentMax, mantissaMin, mantissaMax } from './constants.
 const clamp = true
 
 export function canonicalize(xfl){
-	if(xfl.mantissa === 0n)
+	if(xfl.mantissa === 0n){
+		xfl.exponent = 0n
 		return xfl
+	}
 
 	let sign = xfl.mantissa < 0n ? -1n : 1n
 	let mantissa = xfl.mantissa * sign
