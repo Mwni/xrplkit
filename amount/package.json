@@ -1,12 +1,12 @@
 {
     "name": "@xrplkit/amount",
     "type": "module",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "main": "index.js",
     "license": "ISC",
     "author": "xrplkit",
     "dependencies": {
-        "@xrplkit/xfl": "2.0.1"
+        "@xrplkit/xfl": "2.0.2"
     },
     "publishConfig": {
         "access": "public"

@@ -1,14 +1,14 @@
 {
     "name": "@xrplkit/book",
     "type": "module",
-    "version": "2.0.0",
+    "version": "2.0.2",
     "main": "book.js",
     "license": "ISC",
     "author": "xrplkit",
     "dependencies": {
         "@mwni/events": "^1.0.0",
-        "@xrplkit/amount": "1.2.1",
-        "@xrplkit/xfl": "2.0.1"
+        "@xrplkit/amount": "1.2.2",
+        "@xrplkit/xfl": "2.0.2"
     },
     "publishConfig": {
         "access": "public"
