@@ -1,5 +1,5 @@
 import { fromRippled as fromRippledAmount, isSameCurrency } from '@xrplkit/amount'
-import { sum, sub, div, mul } from '@xrplkit/xfl'
+import { sum, sub, div, mul, gt, lt } from '@xrplkit/xfl'
 
 
 export function extractExchanges(tx, options={}){
