@@ -1,4 +1,4 @@
-import { XFL, sum, sub, mul, div, eq, lt, lte, min } from '@xrplkit/xfl'
+import { XFL, sum, sub, mul, div, eq, gt, lt, lte, min } from '@xrplkit/xfl'
 import { calcOfferValues } from './offer.js'
 
 
@@ -46,19 +46,26 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 		}
 
 		if(minQuality && lt(values.quality, minQuality)){
-			fractionAcceptable = min(
-				1,
-				div(
-					sub(
-						filledTakerPays,
-						mul(filledTakerGets, minQuality)
-					),
-					sub(
-						mul(values.takerPays, minQuality),
-						values.takerGets,
+			let divisor = sub(
+				mul(values.takerPays, minQuality),
+				values.takerGets,
+			)
+
+			if(gt(divisor, 0)){
+				fractionAcceptable = min(
+					1,
+					div(
+						sub(
+							filledTakerPays,
+							mul(filledTakerGets, minQuality)
+						),
+						divisor
 					)
 				)
-			)
+			}else{
+				fractionAcceptable = 0
+			}
+			
 		}
 
 		if(lt(fractionSpendable, fractionAcceptable)){
