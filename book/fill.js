@@ -68,7 +68,7 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 			fractionFinal = fractionAcceptable
 		}
 
-		if(eq(fractionFinal, 0))
+		if(lt(fractionFinal, '1e-14'))
 			break
 
 		let consumedTakerGets = mul(values.takerGets, fractionFinal)
