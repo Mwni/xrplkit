@@ -2,18 +2,22 @@ import { XFL, sum, sub, mul, div, eq, gt, lt, lte, min } from '@xrplkit/xfl'
 import { calcOfferValues } from './offer.js'
 
 
+const defaultCushion = XFL('1e-6')
+
+
 export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 	let filledTakerPays = XFL(0)
 	let filledTakerGets = XFL(0)
+	let filledPartially = true
 	let affectedNodes = []
-	let partial = true
 	let minQuality
+	let lastQuality
 
 	if(takerGets && eq(takerGets, 0))
 		throw new Error(`Parameter "takerGets" must be greater than zero`)
 	
 	if(takerPays && eq(takerPays, 0))
-		throw new Error(`Parameter "takerGets" must be greater than zero`)
+		throw new Error(`Parameter "takerPays" must be greater than zero`)
 	
 	if(takerGets && takerPays)
 		minQuality = div(takerPays, takerGets)
@@ -24,68 +28,41 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 		
 	for(let offer of book.offers){
 		let values = calcOfferValues(offer)
-		let fractionFinal = 1
 		let fractionSpendable = 1
-		let fractionAcceptable = 1
 
 		if(!values.funded)
 			continue
+
+		if(minQuality && lt(values.quality, minQuality))
+			break
 
 		if(tfSell){
 			let spendableRemainder = sub(takerGets, filledTakerGets)
 
 			if(lte(spendableRemainder, values.takerPays)){
 				fractionSpendable = div(spendableRemainder, values.takerPays)
+				filledPartially = false
 			}
 		}else{
 			let fillableRemainder = sub(takerPays, filledTakerPays)
 
 			if(lte(fillableRemainder, values.takerGets)){
 				fractionSpendable = div(fillableRemainder, values.takerGets)
+				filledPartially = false
 			}
 		}
 
-		if(minQuality && lt(values.quality, minQuality)){
-			let divisor = sub(
-				mul(values.takerPays, minQuality),
-				values.takerGets,
-			)
 
-			if(gt(divisor, 0)){
-				fractionAcceptable = min(
-					1,
-					div(
-						sub(
-							filledTakerPays,
-							mul(filledTakerGets, minQuality)
-						),
-						divisor
-					)
-				)
-			}else{
-				fractionAcceptable = 0
-			}
-			
-		}
-
-		if(lt(fractionSpendable, fractionAcceptable)){
-			fractionFinal = fractionSpendable
-			partial = false
-		}else{
-			fractionFinal = fractionAcceptable
-		}
-
-		if(lt(fractionFinal, '1e-14'))
-			break
-
-		let consumedTakerGets = mul(values.takerGets, fractionFinal)
-		let consumedTakerPays = mul(values.takerPays, fractionFinal)
+		let fractional = lt(fractionSpendable, 1)
+		let consumedTakerGets = mul(values.takerGets, fractionSpendable)
+		let consumedTakerPays = mul(values.takerPays, fractionSpendable)
 
 		filledTakerPays = sum(filledTakerPays, consumedTakerGets)
 		filledTakerGets = sum(filledTakerGets, consumedTakerPays)
+		lastQuality = values.quality
 
 		affectedNodes.push({
-			[eq(fractionFinal, 1) ? 'DeletedNode' : 'ModifiedNode']: {
+			[fractional ? 'ModifiedNode' : 'DeletedNode']: {
 				LedgerEntryType: 'Offer',
 				LedgerIndex: offer.index,
 				FinalFields: {
@@ -122,16 +99,31 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
 				}
 			}
 		})
+
+		if(fractional)
+			break
 	}
 
-	if(cushion){
-		//todo
+	if(tfSell){
+		takerGets = filledTakerGets
+		takerPays = mul(
+			mul(filledTakerGets, lastQuality),
+			sub(1, cushion || defaultCushion)
+		)
+	}else{
+		takerPays = filledTakerPays
+		takerGets = mul(
+			div(filledTakerPays, lastQuality),
+			sum(1, cushion || defaultCushion)
+		)
 	}
 
 	return {
-		takerPays: filledTakerPays,
-		takerGets: filledTakerGets,
-		affectedNodes,
-		partial
+		takerPays,
+		takerGets,
+		filledTakerPays,
+		filledTakerGets,
+		filledPartially,
+		affectedNodes
 	}
 }
