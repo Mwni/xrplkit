@@ -13,6 +13,14 @@ const validWeblinkTypes = [
 	'certificate'
 ]
 
+const validAdvisoryTypes = [
+	'scam',
+	'spam',
+	'illegal',
+	'offensive',
+	'stolen'
+]
+
 const issuerFields = [
 	{
 		key: 'address',
@@ -141,6 +149,31 @@ const weblinkFields = [
 	},
 ]
 
+const advisoryFields = [
+	{
+		key: 'address',
+		essential: true,
+		validate: v => {
+			if(!/^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v))
+				throw 'is not a valid XRPL address'
+		},
+	},
+	{
+		key: 'type',
+		validate: v => {
+			if(!validAdvisoryTypes.includes(v))
+				throw `has to be one of (${validAdvisoryTypes.join(', ')})`
+		}
+	},
+	{
+		key: 'description',
+		alternativeKeys: ['desc'],
+		validate: v => {
+			if(typeof v !== 'string' || v.length === 0)
+				throw 'has to be a non empty string'
+		}
+	}
+]
 
 export function parse(str){
 	try{
@@ -152,6 +185,7 @@ export function parse(str){
 	let issuers = []
 	let tokens = []
 	let issues = []
+	let advisories = []
 
 
 	if(toml.ISSUERS){
@@ -222,11 +256,27 @@ export function parse(str){
 		}
 	}
 
+	if(toml.ADVISORIES){
+		for(let stanza of toml.ADVISORIES){
+			let { valid, parsed: advisory, issues: advisoryIssues } = parseStanza(stanza, advisoryFields)
+
+			if(valid)
+				advisories.push(advisory)
+				
+			issues.push(
+				...advisoryIssues.map(
+					issue => `[[ADVISORIES]] ${issue}`
+				)
+			)
+		}
+	}
+
 
 	return {
 		issuers,
 		tokens,
-		issues
+		issues,
+		advisories
 	}
 }
 
