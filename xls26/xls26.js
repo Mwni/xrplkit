@@ -6,13 +6,11 @@
 import { parse as parseToml } from '@xrplkit/toml'
 
 const validWeblinkTypes = [
-	'website',
-	'socialmedia',
+	'info',
+	'community',
 	'support',
-	'sourcecode',
 	'whitepaper',
-	'audit',
-	'report'
+	'certificate'
 ]
 
 const issuerFields = [
@@ -253,12 +251,12 @@ function parseStanza(stanza, schemas){
 				try{
 					validate(value)
 				}catch(issue){
-					issues.push(`${key} field: ${issue}`)
+					issues.push(`${k} field: ${issue}`)
 					break
 				}
 			}
 
-			parsed[k] = value
+			parsed[key] = value
 			break
 		}
 
