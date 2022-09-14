@@ -22,24 +22,28 @@ console.log(xls26Data)
 
 ```toml
 [[ISSUERS]]
-address = "rCSCManTZ8ME9EoLrSHHYKW8PPwWMgkwr"
-name = "CasinoCoin"
+address = "rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg"
+name = "Aesthetes"
 
-[[TOKENS]]
-issuer = "rCSCManTZ8ME9EoLrSHHYKW8PPwWMgkwr"
-currency = "CSC"
-name = "CasinoCoin"
-desc = "CasinoCoin (CSC) is a digital currency, developed specifically for the regulated gaming industry."
-icon = "https://static.xrplmeta.org/icons/csc.png"
-
-[[TOKENS.WEBLINKS]]
-url = "https://casinocoin.im"
-type = "website"
+[[ISSUERS.WEBLINKS]]
+url = "https://aesthetes.art"
+type = "info"
 title = "Official Website"
 
-[[TOKENS.WEBLINKS]]
-url = "https://twitter.com/CasinoCoin"
+[[ISSUERS.WEBLINKS]]
+url = "https://twitter.com/aesthetes_art"
 type = "socialmedia"
+
+[[TOKENS]]
+issuer = "rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg"
+currency = "ELS"
+name = "Elysian"
+desc = "The first Token for the Art and NFT Industry running on the XRPL."
+icon = "https://static.xrplmeta.org/icons/els.png"
+
+[[TOKENS.WEBLINKS]]
+url = "https://twitter.com/Elysianers"
+type = "community"
 ```
 
 
@@ -49,26 +53,32 @@ type = "socialmedia"
 {
     issuers: [
         {
-            address: 'rCSCManTZ8ME9EoLrSHHYKW8PPwWMgkwr',
-            name: 'CasinoCoin'
+            address: 'rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg',
+            name: 'Aesthetes',
+            weblinks: [
+                {
+                    url: 'https://aesthetes.art',
+                    type: 'info',
+                    title: 'Official Website'
+                },
+                {
+                    url: 'https://twitter.com/aesthetes_art', 
+                    type: 'socialmedia' 
+                }
+            ]
         }
     ],
     tokens: [
         {
-            currency: 'CSC',
-            issuer: 'rCSCManTZ8ME9EoLrSHHYKW8PPwWMgkwr',
-            name: 'CasinoCoin',
-            desc: 'CasinoCoin (CSC) is a digital currency, developed specifically for the regulated gaming industry.',
-            icon: 'https://static.xrplmeta.org/icons/csc.png',
+            currency: 'ELS',
+            issuer: 'rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg',
+            name: 'Elysian',
+            desc: 'The first Token for the Art and NFT Industry running on the XRPL.',
+            icon: 'https://static.xrplmeta.org/icons/els.png',
             weblinks: [
                 {
-                    url: 'https://casinocoin.im',
-                    type: 'website',
-                    title: 'Official Website'
-                },
-                {
-                    url: 'https://twitter.com/CasinoCoin', 
-                    type: 'socialmedia' 
+                    url: 'https://twitter.com/Elysianers', 
+                    type: 'community' 
                 }
             ]
         }

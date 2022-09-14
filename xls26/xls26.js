@@ -7,6 +7,7 @@ import { parse as parseToml } from '@xrplkit/toml'
 
 const validWeblinkTypes = [
 	'info',
+	'socialmedia',
 	'community',
 	'support',
 	'whitepaper',
@@ -18,7 +19,7 @@ const validAdvisoryTypes = [
 	'spam',
 	'illegal',
 	'offensive',
-	'stolen'
+	'hijacked'
 ]
 
 const issuerFields = [
