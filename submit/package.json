@@ -1,7 +1,7 @@
 {
 	"name": "@xrplkit/submit",
 	"type": "module",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"main": "submit.js",
 	"author": "xrplkit",
 	"dependencies": {

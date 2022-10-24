@@ -34,10 +34,14 @@ export async function submitAndWait({ tx, socket, ...opts }){
 		while(true){
 			await new Promise(resolve => setTimeout(resolve, 500))
 
-			let tx = await socket.request({
-				command: 'tx',
-				transaction: hash
-			})
+			try{
+				var tx = await socket.request({
+					command: 'tx',
+					transaction: hash
+				})
+			}catch{
+				continue
+			}
 
 			if(tx.validated){
 				return {
