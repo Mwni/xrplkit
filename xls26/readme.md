@@ -40,6 +40,7 @@ currency = "ELS"
 name = "Elysian"
 desc = "The first Token for the Art and NFT Industry running on the XRPL."
 icon = "https://static.xrplmeta.org/icons/els.png"
+asset_class = "cryptocurrency"
 
 [[TOKENS.WEBLINKS]]
 url = "https://twitter.com/Elysianers"
@@ -75,6 +76,7 @@ type = "community"
             name: 'Elysian',
             desc: 'The first Token for the Art and NFT Industry running on the XRPL.',
             icon: 'https://static.xrplmeta.org/icons/els.png',
+            asset_class: 'cryptocurrency',
             weblinks: [
                 {
                     url: 'https://twitter.com/Elysianers', 

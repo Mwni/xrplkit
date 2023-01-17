@@ -22,6 +22,13 @@ const validAdvisoryTypes = [
 	'hijacked'
 ]
 
+const validAssetClasses = [
+	'fiat',
+	'commodity',
+	'stocks',
+	'cryptocurrency'
+]
+
 const issuerFields = [
 	{
 		key: 'address',
@@ -121,6 +128,13 @@ const tokenFields = [
 
 			if(v < 0 || v > 3)
 				throw 'has to be between 0 and 3'
+		}
+	},
+	{
+		key: 'asset_class',
+		validate: v => {
+			if(!validAssetClasses.includes(v))
+				throw `needs to be one of the following: ${validAssetClasses.join(', ')}`
 		}
 	}
 ]
