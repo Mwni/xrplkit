@@ -25,7 +25,7 @@ const validAdvisoryTypes = [
 const validAssetClasses = [
 	'fiat',
 	'commodity',
-	'stocks',
+	'equity',
 	'cryptocurrency'
 ]
 
