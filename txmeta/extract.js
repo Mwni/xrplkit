@@ -1,5 +1,5 @@
 import { fromRippled as fromRippledAmount, isSameCurrency } from '@xrplkit/amount'
-import { sum, sub, div, mul, gt, lt } from '@xrplkit/xfl'
+import { sum, sub, div, mul, eq, gt, lt } from '@xrplkit/xfl'
 
 
 export function extractExchanges(tx, options={}){
@@ -68,7 +68,7 @@ export function extractExchanges(tx, options={}){
 	return exchanges
 }
 
-export function extractBalanceChanges(tx){
+export function extractBalanceChanges(tx, options={}){
 	let parties = {}
 	let bookChange = ({currency, issuer, account, previous, final}) => {
 		if(previous === final)
@@ -78,6 +78,9 @@ export function extractBalanceChanges(tx){
 
 		if(!party)
 			party = parties[account] = []
+
+		if(eq(previous, final))
+			return
 
 		if(party.some(e => e.currency === currency && e.issuer === issuer))
 			throw 'no way'
@@ -133,6 +136,14 @@ export function extractBalanceChanges(tx){
 			let final = div(finalFields?.Balance || '0', '1000000')
 			let previous = div(previousFields?.Balance || '0', '1000000')
 
+			if(options.ignoreTxFee)
+				final = sum(
+					final,
+					div(
+						tx.tx?.Fee || tx.Fee,
+						'1000000'
+					)
+				)
 
 			bookChange({
 				currency: 'XRP',
