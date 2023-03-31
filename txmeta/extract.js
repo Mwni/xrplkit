@@ -183,6 +183,42 @@ export function extractCurrenciesInvolved(tx){
 	return currencies
 }
 
+export function extractAffectedNFT(tx){
+	let previousNFTs = []
+	let finalNFTs = []
+	let firstAccount
+
+	for(let { CreatedNode, ModifiedNode, DeletedNode } of (tx.meta || tx.metaData).AffectedNodes){
+		let node = CreatedNode || ModifiedNode || DeletedNode
+
+		if(node.LedgerEntryType !== 'NFTokenPage')
+			continue
+
+		let account = node.LedgerIndex.slice(0, 40)
+
+		if(firstAccount && firstAccount !== account)
+			continue
+
+		firstAccount = account
+
+		if(node.PreviousFields?.NFTokens)
+			previousNFTs.push(...node.PreviousFields.NFTokens.map(({ NFToken }) => NFToken))
+
+		if(node.FinalFields?.NFTokens)
+			finalNFTs.push(...node.FinalFields.NFTokens.map(({ NFToken }) => NFToken))
+	}
+
+	let [a, b] = finalNFTs.length > previousNFTs.length
+		? [finalNFTs, previousNFTs]
+		: [previousNFTs, finalNFTs]
+
+	return a.find(
+		n1 => b.every(
+			n2 => n1.NFTokenID !== n2.NFTokenID
+		)
+	)
+}
+
 // todo improve
 export function extractAffectedAccounts(tx){
 	let accounts = []
