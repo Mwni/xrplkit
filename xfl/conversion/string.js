@@ -1,3 +1,4 @@
+import { canonicalize } from '../canonical.js'
 import { exponentMin, exponentMax } from '../constants.js'
 
 
@@ -67,5 +68,5 @@ export function fromString(str){
 	if(negative)
 		mantissa *= -1n
 
-	return {mantissa, exponent}
+	return canonicalize({mantissa, exponent})
 }
