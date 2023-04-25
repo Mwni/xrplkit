@@ -32,12 +32,12 @@ export function extractExchanges(tx, options={}){
 			takerPaid: {
 				currency: finalTakerPays.currency, 
 				issuer: finalTakerPays.issuer,
-				value: sub(previousTakerPays.value, finalTakerPays.value)
+				value: sub(previousTakerPays.value, finalTakerPays.value).toString()
 			},
 			takerGot: {
 				currency: finalTakerGets.currency, 
 				issuer: finalTakerGets.issuer,
-				value: sub(previousTakerGets.value, finalTakerGets.value)
+				value: sub(previousTakerGets.value, finalTakerGets.value).toString()
 			}
 		})
 	}
@@ -57,8 +57,8 @@ export function extractExchanges(tx, options={}){
 					takerGot: e.takerGot
 				})
 			}else{
-				col.takerPaid.value = sum(col.takerPaid.value, e.takerPaid.value)
-				col.takerGot.value = sum(col.takerGot.value, e.takerGot.value)
+				col.takerPaid.value = sum(col.takerPaid.value, e.takerPaid.value).toString()
+				col.takerGot.value = sum(col.takerGot.value, e.takerGot.value).toString()
 			}
 		}
 
@@ -88,9 +88,9 @@ export function extractBalanceChanges(tx, options={}){
 		party.push({
 			currency,
 			issuer,
-			previous,
-			final,
-			change: sub(final, previous)
+			previous: previous.toString(),
+			final: final.toString(),
+			change: sub(final, previous).toString()
 		})
 	}
 
