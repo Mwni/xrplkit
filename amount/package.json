@@ -1,7 +1,7 @@
 {
     "name": "@xrplkit/amount",
     "type": "module",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "main": "index.js",
     "license": "ISC",
     "author": "xrplkit",
