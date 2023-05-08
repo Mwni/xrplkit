@@ -2,7 +2,7 @@ import { div, mul, floor } from '@xrplkit/xfl'
 import { decodeCurrencyCode, encodeCurrencyCode } from './encoding.js'
 
 
-export function fromRippled(amount, decodeCurrency){
+export function fromRippled(amount, decodeCurrency?){
 	if(typeof amount === 'string')
 		return {
 			currency: 'XRP',

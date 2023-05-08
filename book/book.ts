@@ -47,12 +47,14 @@ export default function Book({ socket, takerPays, takerGets }){
 				let steps = 0
 
 				while(true){
+					// @ts-ignore
 					let offerCount = offers.length
 
 					await book.load(limit)
 
 					let res = fillOffer({ book, ...args })
 
+					// @ts-ignore
 					if(!res.incomplete || offers.length <= offerCount)
 						return res
 

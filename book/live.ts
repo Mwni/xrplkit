@@ -1,3 +1,4 @@
+// @ts-nocheck
 export async function subscribe({ loadBefore = false } = {}){
 	// todo: implement this to respect balance changes as well (oof)
 

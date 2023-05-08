@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": "./",
     "paths": {
+      "@xrplkit/amount": ["../amount"],
       "@xrplkit/xfl": ["../xfl"]
     }
   },

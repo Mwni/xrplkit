@@ -5,7 +5,7 @@ import { calcOfferValues } from './offer.js'
 const defaultCushion = XFL('1e-6')
 
 
-export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }){
+export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }:any){
 	let filledTakerPays = XFL(0)
 	let filledTakerGets = XFL(0)
 	let filledPartially = true
