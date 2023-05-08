@@ -1,16 +1,41 @@
 {
-	"name": "@xrplkit/portfolio",
-	"type": "module",
-	"version": "1.0.0",
-	"main": "portfolio.js",
-	"author": "xrplkit",
-	"dependencies": {
-		"@mwni/events": "^1.0.0",
-		"@xrplkit/xfl": "1.0.0",
-		"@xrplkit/txmeta": "1.0.0",
-		"@xrplkit/book": "1.0.0",
-		"@xrplkit/amount": "1.0.0",
-		"@xrplkit/time": "1.0.0"
-	},
-	"private": true
+  "name": "@xrplkit/portfolio",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "./dist/portfolio.cjs",
+  "module": "./dist/portfolio.js",
+  "types": "./dist/portfolio.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/portfolio.d.ts",
+      "require": "./dist/portfolio.cjs",
+      "import": "./dist/portfolio.js",
+      "default": "./dist/portfolio.js"
+    }
+  },
+  "scripts": {
+    "build:all": "tsup",
+    "build:clean": "rm -rf ./dist",
+    "build": "npm-run-all -s build:clean build:all"
+  },
+  "author": "xrplkit",
+  "dependencies": {
+    "@mwni/events": "^1.0.0",
+    "@xrplkit/xfl": "1.0.0",
+    "@xrplkit/txmeta": "1.0.0",
+    "@xrplkit/book": "1.0.0",
+    "@xrplkit/amount": "1.0.0",
+    "@xrplkit/time": "1.0.0"
+  },
+  "private": true,
+  "tsup": {
+    "entry": [
+      "portfolio.ts"
+    ],
+    "format": [
+      "cjs",
+      "esm"
+    ],
+    "dts": true
+  }
 }

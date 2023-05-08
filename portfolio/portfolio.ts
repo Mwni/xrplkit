@@ -1,3 +1,4 @@
+// @ts-ignore
 import { EventEmitter } from '@mwni/events'
 import Queue from './queue.js'
 import Ledgers from './ledgers.js'
@@ -6,6 +7,12 @@ import Tokens from './tokens/index.js'
 
 export default class Portfolio extends EventEmitter{
 	#tokens
+	account
+	socket
+	quoteCurrency
+	queue
+	ledgers
+	subscribed
 
 	constructor({ account, socket, quoteCurrency }){
 		super()
@@ -17,6 +24,7 @@ export default class Portfolio extends EventEmitter{
 		this.ledgers = new Ledgers(this)
 		this.#tokens = new Tokens(this)
 
+		// @ts-ignore
 		this.queue.on('change', () => this.emit('progress', this.progress))
 	}
 
@@ -66,7 +74,7 @@ export default class Portfolio extends EventEmitter{
 	}
 
 	get progress(){
-		return Object.entries(this.queue.branches).map(([stage, branch]) => ({
+		return Object.entries(this.queue.branches).map(([stage, branch]:any) => ({
 			stage,
 			tasks: branch.tasks
 		}))

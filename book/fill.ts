@@ -28,7 +28,7 @@ export function fillOffer({ book, takerPays, takerGets, tfSell, cushion }:any){
 		
 	for(let offer of book.offers){
 		let values = calcOfferValues(offer)
-		let fractionSpendable = 1
+		let fractionSpendable: number | string = 1
 
 		if(!values.funded)
 			continue

@@ -1,14 +1,17 @@
 import { rippleToUnix } from '@xrplkit/time'
 
 
-export default class{
-	constructor(portfolio){
+export default class {
+	pf
+	suppliers
+	times
+	constructor(portfolio) {
 		this.pf = portfolio
 		this.suppliers = []
 		this.times = {}
 	}
 
-	async load({ ledgerIndices }){
+	async load({ ledgerIndices }) {
 		await this.fill(
 			ledgerIndices
 				.filter(index => !this.times[index])
@@ -19,26 +22,26 @@ export default class{
 		)
 	}
 
-	async cull({ excludeLedgerIndices }){
-		for(let index of Object.keys(this.times)){
-			if(excludeLedgerIndices.includes(parseInt(index)))
+	async cull({ excludeLedgerIndices }) {
+		for (let index of Object.keys(this.times)) {
+			if (excludeLedgerIndices.includes(parseInt(index)))
 				continue
 
 			delete this.times[index]
 		}
 	}
 
-	async fill(batch){
-		for(let request of [...this.suppliers, this.fetchFromXRPL]){
-			if(batch.length === 0)
+	async fill(batch) {
+		for (let request of [...this.suppliers, this.fetchFromXRPL]) {
+			if (batch.length === 0)
 				break
 
 			batch = await request.call(this, batch)
 		}
 	}
 
-	async fetchFromXRPL(batch){
-		for(let { index, resolve } of batch){
+	async fetchFromXRPL(batch) {
+		for (let { index, resolve } of batch) {
 			this.pf.queue.add({
 				stage: 'ledger-lookup',
 				ledgerIndex: index,
@@ -57,11 +60,11 @@ export default class{
 		return []
 	}
 
-	get data(){
+	get data() {
 		return this.times
 	}
 
-	set data(data){
+	set data(data) {
 		this.times = data
 	}
 }

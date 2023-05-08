@@ -16,7 +16,7 @@ export function formatValue(value, options){
 	let separators = options?.separators
 	let absolute = options?.absolute
 	let sign = lt(value, 0) ? -1 : 1
-	let absValue = abs(value)
+	let absValue: any = abs(value)
 	let prettyValue = value
 	let prefix = ''
 	let suffix = ''

@@ -1,7 +1,9 @@
+// @ts-ignore
 import { EventEmitter } from '@mwni/events'
 
 
 export default class extends EventEmitter{
+	branches
 	constructor(portfolio){
 		super()
 		this.branches = {}
@@ -21,6 +23,7 @@ export default class extends EventEmitter{
 		
 		return branch.chain = branch.chain
 			.then(() => {
+				// @ts-ignore
 				this.emit('change')
 				return execute()
 			})
@@ -28,6 +31,7 @@ export default class extends EventEmitter{
 				meta.complete = true
 
 				if(branch.tasks.every(task => task.complete)){
+				// @ts-ignore
 					this.emit('change')
 				}
 			})
