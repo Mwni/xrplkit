@@ -27,6 +27,7 @@ export function XFL(xfl){
 			}
 		})
 	}else{
+		// @ts-ignore
 		return new XFL(fromAny(xfl))
 	}
 }
@@ -34,6 +35,7 @@ export function XFL(xfl){
 Object.defineProperties(XFL, {
 	fromSortSafeBigInt: {
 		value: function(bigint){
+			// @ts-ignore
 			return new XFL(bigi.fromSortSafeBigInt(bigint))
 		}
 	}
@@ -53,30 +55,37 @@ Object.defineProperties(XFL.prototype, {
 })
 
 export function abs(x){
+	// @ts-ignore
 	return new XFL(arit.abs(XFL(x)))
 }
 
 export function neg(x){
+	// @ts-ignore
 	return new XFL(arit.neg(XFL(x)))
 }
 
 export function sum(a, b){
+	// @ts-ignore
 	return new XFL(arit.sum(XFL(a), XFL(b)))
 }
 
 export function sub(a, b){
+	// @ts-ignore
 	return new XFL(arit.sub(XFL(a), XFL(b)))
 }
 
 export function mul(a, b){
+	// @ts-ignore
 	return new XFL(arit.mul(XFL(a), XFL(b)))
 }
 
 export function div(a, b){
+	// @ts-ignore
 	return new XFL(arit.div(XFL(a), XFL(b)))
 }
 
 export function floor(x, decimal = 0){
+	// @ts-ignore
 	return new XFL(roun.floor(XFL(x), decimal))
 }
 
@@ -101,10 +110,12 @@ export function gte(a, b){
 }
 
 export function min(...xs){
+		// @ts-ignore
 	return new XFL(comp.min(...xs.map(x => XFL(x))))
 }
 
 export function max(...xs){
+		// @ts-ignore
 	return new XFL(comp.max(...xs.map(x => XFL(x))))
 }
 

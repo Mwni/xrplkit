@@ -7,6 +7,7 @@ export function floor(x, decimal = 0){
 	else if(shift > 16n)
 		return 0n
 
+	// @ts-ignore
 	let factor = 10n ** shift
 
 	mantissa = (x.mantissa / factor) * factor

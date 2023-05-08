@@ -50,6 +50,7 @@ export function toSortSafeBigInt(x){
 
 	if(x.mantissa < 0n){
 		exponent = exponent ^ exponentMask
+		// @ts-ignore
 		mantissa = -mantissa ^ mantissaMask
 	}else{
 		serialized = 1n

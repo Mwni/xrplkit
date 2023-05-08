@@ -12,6 +12,7 @@ export function XFL(xfl){
 }
 
 Object.defineProperties(XFL, {
+	// @ts-ignore
 	fromSortSafeBigInt(bigint){
 		return XFL(bigi.fromSortSafeBigInt(bigint))
 	}
