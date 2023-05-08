@@ -296,7 +296,7 @@ export function parse(str){
 }
 
 function parseStanza(stanza, schemas){
-	let parsed = {}
+	let parsed: Record<string, any> = {}
 	let issues = []
 	let valid = true
 

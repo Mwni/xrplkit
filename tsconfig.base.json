@@ -2,7 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "declaration": true,
-    "strict": true,
+    "strict": false,
     "noImplicitReturns": true,
     "target": "ESNext",
     "moduleResolution": "node"
