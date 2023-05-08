@@ -2,7 +2,12 @@ import Book from '@xrplkit/book'
 import XFL from '@xrplkit/xfl'
 
 
-export default class{
+export default class {
+	tk
+	networth
+	performance
+	books
+	values
 	constructor(tokens){
 		this.tk = tokens
 		this.networth = undefined
@@ -21,7 +26,8 @@ export default class{
 		for(let token of this.tk.registry.array.slice(1)){
 			let book = this.books[token.key]
 
-			if(!book){
+			if (!book) {
+				// @ts-ignore
 				book = this.books[token.key] = new Book({
 					socket: this.tk.pf.socket,
 					takerGets: this.tk.pf.quoteCurrency,
@@ -84,9 +90,9 @@ export default class{
 			.toString()
 	}
 
-	calculate(){
-		let networth = new XFL(0)
-		let performance = new XFL(0)
+	calculate() {
+		let networth: any = new XFL(0)
+		let performance: any = new XFL(0)
 
 		for(let token of this.tk.registry.array){
 			if(!this.values[token.key])

@@ -1,5 +1,5 @@
 import { EventEmitter } from '@mwni/events'
-import { div } from '@xrplkit/xfl'
+import XFL from '@xrplkit/xfl'
 import { isSameCurrency } from '@xrplkit/amount'
 
 
@@ -32,7 +32,7 @@ export default class Account extends EventEmitter{
 		this.flags = account_data.Flags
 		this.sequence = account_data.Sequence
 		this.ownerCount = account_data.OwnerCount
-		this.balance = div(account_data.Balance, '1000000')
+		this.balance = XFL.div(account_data.Balance, '1000000')
 	}
 
 

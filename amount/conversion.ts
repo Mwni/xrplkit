@@ -1,4 +1,4 @@
-import { div, mul, floor } from '@xrplkit/xfl'
+import XFL from '@xrplkit/xfl'
 import { decodeCurrencyCode, encodeCurrencyCode } from './encoding.js'
 
 
@@ -6,7 +6,7 @@ export function fromRippled(amount, decodeCurrency?){
 	if(typeof amount === 'string')
 		return {
 			currency: 'XRP',
-			value: div(amount, '1000000')
+			value: XFL.div(amount, '1000000')
 		}
 	
 	return {
@@ -21,7 +21,7 @@ export function fromRippled(amount, decodeCurrency?){
 
 export function toRippled(amount){
 	if(amount.currency === 'XRP')
-		return floor(mul(amount.value, '1000000')).toString()
+		return XFL.floor(XFL.mul(amount.value, '1000000')).toString()
 		
 	return {
 		currency: encodeCurrencyCode(amount.currency),

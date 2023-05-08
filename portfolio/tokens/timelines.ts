@@ -2,6 +2,7 @@ import XFL from '@xrplkit/xfl'
 
 
 export default class{
+	tk
 	constructor(tokens){
 		this.tk = tokens
 	}
@@ -33,8 +34,8 @@ export default class{
 						},
 						ledgerIndex: event.ledgerIndex,
 						resolve: value => {
-							event.valueChange = new XFL(value)
-								.times(XFL.sign(event.balanceChange))
+							// @ts-ignore
+							event.valueChange = XFL.mul(new XFL(value, XFL.sign(event.balanceChange)))
 								.toString()
 						}
 					})
@@ -48,16 +49,16 @@ export default class{
 	}
 
 	fill(){
-		for(let token of this.tk.registry.array){
+		for (let token of this.tk.registry.array) {
 			let movingBalance = new XFL(0)
 			let movingValue = new XFL(0)
 
 			for(let event of token.timeline){
-				movingBalance = movingBalance.plus(event.balanceChange)
+				movingBalance = XFL.sum(movingBalance, event.balanceChange)
 				event.balance = movingBalance.toString()
 				
 				if(event.valueChange){
-					movingValue = movingValue.plus(event.valueChange)
+					movingValue = XFL.sum(movingValue,event.valueChange)
 					event.value = movingValue.toString()
 				}
 			}

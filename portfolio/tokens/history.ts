@@ -2,7 +2,7 @@ import XFL from '@xrplkit/xfl'
 
 
 export default class History{
-  tk
+	tk
 	constructor(tokens){
 		this.tk = tokens
 	}
@@ -70,8 +70,8 @@ export default class History{
 
 	representPoint(ledgerIndex){
 		let time = this.tk.pf.ledgers.times[ledgerIndex]
-		let networth = XFL(0)
-		let performance = XFL(0)
+		let networth = new XFL(0)
+		let performance = new XFL(0)
 		let tokens = []
 
 		for(let token of this.tk.registry.array){
@@ -88,15 +88,12 @@ export default class History{
 				currency: token.currency,
 				issuer: token.issuer,
 				networth: value,
-				performance: XFL(value)
-					.minus(event.value)
+				performance: XFL.sub(new XFL(value) ,event.value)
 					.toString()
 			})
 
-			networth = networth.plus(value)
-			performance = performance
-				.plus(value)
-				.minus(event.value)
+			networth = XFL.sum(networth, value)
+			performance = XFL.sub(XFL.sum(performance,value), event.value)
 		}
 		
 		return {

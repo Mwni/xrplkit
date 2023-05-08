@@ -1,6 +1,6 @@
 import { EventEmitter } from '@mwni/events'
 import { formatCurrency } from '@xrplkit/amount'
-import { div } from '@xrplkit/xfl'
+import XFL from '@xrplkit/xfl'
 import { fillOffer } from './fill.js'
 import { diffLedger, diffTx } from './diff.js'
 import { calcOfferValues } from './offer.js'
@@ -79,7 +79,7 @@ export default function Book({ socket, takerPays, takerGets }){
 					let { funded, quality } = calcOfferValues(offer)
 
 					if(funded)
-						return div(1, quality)
+						return XFL.div(1, quality)
 				}
 			},
 

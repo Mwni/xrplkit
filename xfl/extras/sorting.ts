@@ -1,4 +1,4 @@
-import { eq, lt } from '../wrappers/class.js'
+import { XFL } from '../wrappers/class'
 
 export function sort(array, key){
 	if(array){
@@ -15,8 +15,8 @@ export function sort(array, key){
 }
 
 function compare(a, b){
-	if(eq(a, b))
+	if (XFL.eq(a, b))
 		return 0
 
-	return lt(a, b) ? -1 : 1
+	return XFL.lt(a, b) ? -1 : 1
 }

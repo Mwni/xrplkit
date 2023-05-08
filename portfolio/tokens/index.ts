@@ -3,10 +3,16 @@ import Timelines from './timelines.js'
 import Valuations from './valuations.js'
 import Live from './live.js'
 import History from './history.js'
-import { compare as isSameCurrency } from '@xrplkit/currency'
+import { isSameCurrency } from '@xrplkit/amount'
 
 
 export default class Tokens{
+	pf
+	registry
+	timelines
+	valuations
+	live
+	history
 	constructor(portfolio){
 		this.pf = portfolio
 		this.registry = new Registry(this)

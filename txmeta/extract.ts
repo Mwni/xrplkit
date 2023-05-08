@@ -1,5 +1,5 @@
 import { fromRippled as fromRippledAmount, isSameCurrency } from '@xrplkit/amount'
-import { sum, sub, div, mul, eq, gt, lt } from '@xrplkit/xfl'
+import XFL from '@xrplkit/xfl'
 
 
 export function extractExchanges(tx, options:any={}){
@@ -32,12 +32,12 @@ export function extractExchanges(tx, options:any={}){
 			takerPaid: {
 				currency: finalTakerPays.currency, 
 				issuer: finalTakerPays.issuer,
-				value: sub(previousTakerPays.value, finalTakerPays.value).toString()
+				value: XFL.sub(previousTakerPays.value, finalTakerPays.value).toString()
 			},
 			takerGot: {
 				currency: finalTakerGets.currency, 
 				issuer: finalTakerGets.issuer,
-				value: sub(previousTakerGets.value, finalTakerGets.value).toString()
+				value: XFL.sub(previousTakerGets.value, finalTakerGets.value).toString()
 			}
 		})
 	}
@@ -57,8 +57,8 @@ export function extractExchanges(tx, options:any={}){
 					takerGot: e.takerGot
 				})
 			}else{
-				col.takerPaid.value = sum(col.takerPaid.value, e.takerPaid.value).toString()
-				col.takerGot.value = sum(col.takerGot.value, e.takerGot.value).toString()
+				col.takerPaid.value = XFL.sum(col.takerPaid.value, e.takerPaid.value).toString()
+				col.takerGot.value = XFL.sum(col.takerGot.value, e.takerGot.value).toString()
 			}
 		}
 
@@ -79,7 +79,7 @@ export function extractBalanceChanges(tx, options:any={}){
 		if(!party)
 			party = parties[account] = []
 
-		if(eq(previous, final))
+		if (XFL.eq(previous, final))
 			return
 
 		if(party.some(e => e.currency === currency && e.issuer === issuer))
@@ -90,7 +90,7 @@ export function extractBalanceChanges(tx, options:any={}){
 			issuer,
 			previous: previous.toString(),
 			final: final.toString(),
-			change: sub(final, previous).toString()
+			change: XFL.sub(final, previous).toString()
 		})
 	}
 
@@ -111,14 +111,14 @@ export function extractBalanceChanges(tx, options:any={}){
 			let issuer
 			let account
 
-			if(gt(previous, 0) || gt(final, 0)){
+			if(XFL.gt(previous, 0) || XFL.gt(final, 0)){
 				issuer = finalFields.HighLimit.issuer
 				account = finalFields.LowLimit.issuer
-			}else if(lt(previous, 0) || lt(final, 0)){
+			}else if(XFL.lt(previous, 0) || XFL.lt(final, 0)){
 				issuer = finalFields.LowLimit.issuer
 				account = finalFields.HighLimit.issuer
-				final = mul(final, -1)
-				previous = mul(previous, -1)
+				final = XFL.mul(final, -1)
+				previous = XFL.mul(previous, -1)
 			}
 
 			bookChange({
@@ -133,13 +133,13 @@ export function extractBalanceChanges(tx, options:any={}){
 				continue
 
 			let account = finalFields.Account
-			let final = div(finalFields?.Balance || '0', '1000000')
-			let previous = div(previousFields?.Balance || '0', '1000000')
+			let final = XFL.div(finalFields?.Balance || '0', '1000000')
+			let previous = XFL.div(previousFields?.Balance || '0', '1000000')
 
 			if(options.ignoreTxFee)
-				final = sum(
+				final = XFL.sum(
 					final,
-					div(
+					XFL.div(
 						tx.tx?.Fee || tx.Fee,
 						'1000000'
 					)

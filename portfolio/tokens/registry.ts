@@ -1,9 +1,11 @@
 import XFL from '@xrplkit/xfl'
-import { compare as isSameCurrency } from '@xrplkit/currency'
-import { extractBalanceChanges, extractExchanges } from '@xrplkit/tx'
+import { isSameCurrency } from '@xrplkit/amount'
+import { extractBalanceChanges, extractExchanges } from '@xrplkit/txmeta'
 
 
 export default class Registry{
+  tk
+  map
 	constructor(tokens){
 		this.tk = tokens
 		this.map = {}
@@ -46,10 +48,9 @@ export default class Registry{
 				let rate = XFL.div(exchange.takerPaid.value, exchange.takerGot.value)
 
 				if(isSameCurrency(balanceChange, exchange.takerPaid))
-					rate = new XFL(1).div(rate)
+					rate = XFL.div(new XFL(1), rate)
 
-				valueChange = new XFL(balanceChange.change)
-					.times(rate)
+				valueChange = XFL.mul(new XFL(balanceChange.change),rate)
 					.toString()
 			}
 			
@@ -96,6 +97,8 @@ export default class Registry{
 
 
 class Entry{
+  timeline
+  valuations
 	static key({ currency, issuer }){
 		return issuer
 			? `${currency}:${issuer}`
@@ -109,7 +112,8 @@ class Entry{
 		Object.assign(this, data)
 	}
 
-	get key(){
+  get key() {
+    // @ts-ignore
 		return Entry.key(this)
 	}
 
