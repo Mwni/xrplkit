@@ -1,11 +1,36 @@
 {
-    "name": "@xrplkit/time",
-    "type": "module",
-    "version": "1.0.0",
-    "main": "time.js",
-    "license": "ISC",
-    "author": "xrplkit",
-    "publishConfig": {
-        "access": "public"
-    }
+	"name": "@xrplkit/time",
+	"type": "module",
+	"version": "1.0.0",
+	"main": "./dist/time.cjs",
+	"module": "./dist/timejs",
+	"types": "./dist/time.ts",
+	"exports": {
+		".": {
+			"types": "./dist/time.d.ts",
+			"require": "./dist/time.cjs",
+			"import": "./dist/time.js",
+			"default": "./dist/time.js"
+		}
+	},
+	"scripts": {
+		"build:all": "tsup",
+		"build:clean": "rm -rf ./dist",
+		"build": "npm-run-all -s build:clean build:all"
+	},
+	"license": "ISC",
+	"author": "xrplkit",
+	"publishConfig": {
+		"access": "public"
+	},
+	"tsup": {
+		"entry": [
+			"time.ts"
+		],
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"dts": true
+	}
 }

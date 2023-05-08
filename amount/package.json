@@ -1,14 +1,39 @@
 {
-    "name": "@xrplkit/amount",
-    "type": "module",
-    "version": "1.2.3",
-    "main": "index.js",
-    "license": "ISC",
-    "author": "xrplkit",
-    "dependencies": {
-        "@xrplkit/xfl": "2.0.2"
-    },
-    "publishConfig": {
-        "access": "public"
-    }
+	"name": "@xrplkit/amount",
+	"type": "module",
+	"version": "1.2.3",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"require": "./dist/index.cjs",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build:all": "tsup",
+		"build:clean": "rm -rf ./dist",
+		"build": "npm-run-all -s build:clean build:all"
+	},
+	"license": "ISC",
+	"author": "xrplkit",
+	"dependencies": {
+		"@xrplkit/xfl": "2.0.2"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"tsup": {
+		"entry": [
+			"index.ts"
+		],
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"dts": true
+	}
 }

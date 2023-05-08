@@ -2,13 +2,48 @@
 	"name": "@xrplkit/xfl",
 	"type": "module",
 	"version": "2.0.2",
-	"main": "xfl.js",
+	"main": "./dist/xfl.cjs",
+	"module": "./dist/xfl.js",
+	"types": "./dist/xfl.d.ts",
 	"exports": {
-		".": "./wrappers/class.js",
-		"./str": "./wrappers/string.js",
-		"./extras": "./extras/index.js"
+		".": {
+			"types": "./dist/wrappers/class.d.ts",
+			"require": "./dist/wrappers/class.cjs",
+			"import": "./dist/wrappers/class.js",
+			"default": "./dist/wrappers/class.js"
+		},
+		"./str": {
+			"types": "./dist/wrappers/string.d.ts",
+			"require": "./dist/rappers/string.cjs",
+			"import": "./dist/wrappers/string.js",
+			"default": "./dist/wrappers/string.js"
+		},
+		"./extras": {
+			"types": "./dist/extras/index.d.ts",
+			"require": "./dist/extras/index.cjs",
+			"import": "./dist/extras/index.js",
+			"default": "./dist/extras/index.js"
+		}
+	},
+	"scripts": {
+		"build:all": "tsup",
+		"build:clean": "rm -rf ./dist",
+		"build": "npm-run-all -s build:clean build:all"
 	},
 	"publishConfig": {
 		"access": "public"
+	},
+	"tsup": {
+		"entry": [
+			"xfl.ts",
+			"wrappers/class.ts",
+			"wrappers/string.ts",
+			"extras/index.ts"
+		],
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"dts": true
 	}
 }

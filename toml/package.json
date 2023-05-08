@@ -1,12 +1,37 @@
 {
-    "name": "@xrplkit/toml",
-    "type": "module",
-    "version": "1.0.0",
-    "main": "toml.js",
-    "publishConfig": {
-        "access": "public"
-    },
-    "dependencies": {
-        "toml": "^3.0.0"
-    }
+	"name": "@xrplkit/toml",
+	"type": "module",
+	"version": "1.0.0",
+	"main": "./dist/toml.cjs",
+	"module": "./dist/toml.js",
+	"types": "./dist/toml.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/toml.d.ts",
+			"require": "./dist/toml.cjs",
+			"import": "./dist/toml.js",
+			"default": "./dist/toml.js"
+		}
+	},
+	"scripts": {
+		"build:all": "tsup",
+		"build:clean": "rm -rf ./dist",
+		"build": "npm-run-all -s build:clean build:all"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"toml": "^3.0.0"
+	},
+	"tsup": {
+		"entry": [
+			"toml.ts"
+		],
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"dts": true
+	}
 }

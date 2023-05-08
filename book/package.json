@@ -1,16 +1,41 @@
 {
-    "name": "@xrplkit/book",
-    "type": "module",
-    "version": "2.1.0",
-    "main": "book.js",
-    "license": "ISC",
-    "author": "xrplkit",
-    "dependencies": {
-        "@mwni/events": "^1.0.0",
-        "@xrplkit/amount": "1.2.2",
-        "@xrplkit/xfl": "2.0.2"
-    },
-    "publishConfig": {
-        "access": "public"
-    }
+	"name": "@xrplkit/book",
+	"type": "module",
+	"version": "2.1.0",
+	"main": "./dist/book.cjs",
+	"module": "./dist/book.js",
+	"types": "./dist/book.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/book.d.ts",
+			"require": "./dist/book.cjs",
+			"import": "./dist/book.js",
+			"default": "./dist/book.js"
+		}
+	},
+	"scripts": {
+		"build:all": "tsup",
+		"build:clean": "rm -rf ./dist",
+		"build": "npm-run-all -s build:clean build:all"
+	},
+	"license": "ISC",
+	"author": "xrplkit",
+	"dependencies": {
+		"@mwni/events": "^1.0.0",
+		"@xrplkit/amount": "1.2.3",
+		"@xrplkit/xfl": "2.0.2"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"tsup": {
+		"entry": [
+			"book.ts"
+		],
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"dts": true
+	}
 }

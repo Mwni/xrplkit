@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./",
+    "paths": {
+      "@xrplkit/amount": ["../amount"],
+      "@xrplkit/xfl": ["../xfl"]
+    }
+  },
+  "include": ["./*.ts"]
+}

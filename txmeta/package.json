@@ -1,13 +1,38 @@
 {
-    "name": "@xrplkit/txmeta",
-    "type": "module",
-    "version": "1.3.1",
-    "main": "extract.js",
-    "dependencies": {
-        "@xrplkit/xfl": "2.0.2",
-        "@xrplkit/amount": "1.2.3"
-    },
-    "publishConfig": {
-        "access": "public"
-    }
+	"name": "@xrplkit/txmeta",
+	"type": "module",
+	"version": "1.3.1",
+	"main": "./dist/extract.cjs",
+	"module": "./dist/extract.js",
+	"types": "./dist/extract.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/extract.d.ts",
+			"require": "./dist/extract.cjs",
+			"import": "./dist/extract.js",
+			"default": "./dist/extract.js"
+		}
+	},
+	"scripts": {
+		"build:all": "tsup",
+		"build:clean": "rm -rf ./dist",
+		"build": "npm-run-all -s build:clean build:all"
+	},
+	"dependencies": {
+		"@xrplkit/xfl": "2.0.2",
+		"@xrplkit/amount": "1.2.3"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"tsup": {
+		"entry": [
+			"extract.ts"
+		],
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"dts": true
+	}
 }

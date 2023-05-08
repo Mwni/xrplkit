@@ -2,9 +2,34 @@
 	"name": "@xrplkit/wallet",
 	"type": "module",
 	"version": "1.1.0",
-	"main": "wallet.js",
+	"main": "./dist/wallet.cjs",
+	"module": "./dist/wallet.js",
+	"types": "./dist/wallet.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/wallet.d.ts",
+			"require": "./dist/wallet.cjs",
+			"import": "./dist/wallet.js",
+			"default": "./dist/wallet.js"
+		}
+	},
+	"scripts": {
+		"build:all": "tsup",
+		"build:clean": "rm -rf ./dist",
+		"build": "npm-run-all -s build:clean build:all"
+	},
 	"author": "xrplkit",
 	"dependencies": {
 		"ripple-keypairs": "^1.1.4"
+	},
+	"tsup": {
+		"entry": [
+			"wallet.ts"
+		],
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"dts": true
 	}
 }

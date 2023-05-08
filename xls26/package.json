@@ -1,19 +1,44 @@
 {
-    "name": "@xrplkit/xls26",
-    "type": "module",
-    "version": "2.3.1",
-    "main": "xls26.js",
-    "dependencies": {
-        "@xrplkit/toml": "1.0.0"
-    },
-    "publishConfig": {
-        "access": "public"
-    },
-    "keywords": [
-        "xrpl",
-        "xls-26",
-        "parser",
-        "metadata",
-        "tokens"
-    ]
+	"name": "@xrplkit/xls26",
+	"type": "module",
+	"version": "2.3.1",
+	"main": "./dist/xls26.cjs",
+	"module": "./dist/xls26.js",
+	"types": "./dist/xls26.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/xls26.d.ts",
+			"require": "./dist/xls26.cjs",
+			"import": "./dist/xls26.js",
+			"default": "./dist/xls26.js"
+		}
+	},
+	"scripts": {
+		"build:all": "tsup",
+		"build:clean": "rm -rf ./dist",
+		"build": "npm-run-all -s build:clean build:all"
+	},
+	"dependencies": {
+		"@xrplkit/toml": "1.0.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": [
+		"xrpl",
+		"xls-26",
+		"parser",
+		"metadata",
+		"tokens"
+	],
+	"tsup": {
+		"entry": [
+			"xls26.ts"
+		],
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"dts": true
+	}
 }

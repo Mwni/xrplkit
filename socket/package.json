@@ -1,14 +1,41 @@
 {
-    "name": "@xrplkit/socket",
-    "type": "module",
-    "version": "2.0.0",
-    "main": "socket.node.js",
-    "browser": "socket.browser.js",
-    "dependencies": {
-        "@mwni/events": "^1.0.0",
-        "ws": "^8.7.0"
-    },
-    "publishConfig": {
-        "access": "public"
-    }
+	"name": "@xrplkit/socket",
+	"type": "module",
+	"version": "2.0.0",
+	"main": "./dist/socket.node.cjs",
+	"browser": "./dist/socket.browser.js",
+	"module": "./dist/socket.node.js",
+	"types": "./dist/socket.node.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/socket.node.d.ts",
+			"browser": "./dist/socket.browser.cjs",
+			"require": "./dist/socket.node.cjs",
+			"import": "./dist/socket.node.js",
+			"default": "./dist/socket.node.js"
+		}
+	},
+	"scripts": {
+		"build:all": "tsup",
+		"build:clean": "rm -rf ./dist",
+		"build": "npm-run-all -s build:clean build:all"
+	},
+	"dependencies": {
+		"@mwni/events": "^1.0.0",
+		"ws": "^8.7.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"tsup": {
+		"entry": [
+			"socket.browser.ts",
+			"socket.node.ts"
+		],
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"dts": true
+	}
 }
