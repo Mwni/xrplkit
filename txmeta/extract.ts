@@ -2,7 +2,7 @@ import { fromRippled as fromRippledAmount, isSameCurrency } from '@xrplkit/amoun
 import { sum, sub, div, mul, eq, gt, lt } from '@xrplkit/xfl'
 
 
-export function extractExchanges(tx, options={}){
+export function extractExchanges(tx, options:any={}){
 	let hash = tx.hash || tx.transaction?.hash || tx.tx?.hash
 	let taker = tx.Account || tx.transaction?.Account || tx.tx?.Account
 	let exchanges = []
@@ -68,7 +68,7 @@ export function extractExchanges(tx, options={}){
 	return exchanges
 }
 
-export function extractBalanceChanges(tx, options={}){
+export function extractBalanceChanges(tx, options:any={}){
 	let parties = {}
 	let bookChange = ({currency, issuer, account, previous, final}) => {
 		if(previous === final)
