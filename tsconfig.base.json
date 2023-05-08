@@ -1,0 +1,11 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "declaration": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "target": "ESNext",
+    "moduleResolution": "node"
+  },
+  "exclude": ["node_modules", "dist"]
+}
