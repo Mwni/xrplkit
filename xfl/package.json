@@ -2,9 +2,9 @@
 	"name": "@xrplkit/xfl",
 	"type": "module",
 	"version": "2.0.2",
-	"main": "./dist/xfl.cjs",
-	"module": "./dist/xfl.js",
-	"types": "./dist/xfl.d.ts",
+	"main": "./dist/wrappers/class.cjs",
+	"module": "./dist/wrappers/class.js",
+	"types": "./dist/wrappers/class.d.ts",
 	"exports": {
 		".": {
 			"types": "./dist/wrappers/class.d.ts",
