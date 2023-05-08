@@ -2,11 +2,36 @@
 	"name": "@xrplkit/account",
 	"type": "module",
 	"version": "1.1.0",
-	"main": "account.js",
+	"main": "./dist/account.cjs",
+	"module": "./dist/account.js",
+	"types": "./dist/account.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/account.d.ts",
+			"require": "./dist/account.cjs",
+			"import": "./dist/account.js",
+			"default": "./dist/account.js"
+		}
+	},
+	"scripts": {
+		"build:all": "tsup",
+		"build:clean": "rm -rf ./dist",
+		"build": "npm-run-all -s build:clean build:all"
+	},
 	"author": "xrplkit",
 	"dependencies": {
 		"@mwni/events": "^1.0.0",
 		"@xrplkit/xfl": "2.0.2",
 		"@xrplkit/amount": "1.2.1"
+	},
+	"tsup": {
+		"entry": [
+			"account.ts"
+		],
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"dts": true
 	}
 }

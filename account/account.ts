@@ -5,13 +5,21 @@ import { isSameCurrency } from '@xrplkit/amount'
 
 
 export default class Account extends EventEmitter{
+	address
+	socket
+	lines = []
+	offers = []
+	transactions = []
+
+	flags
+	sequence
+	ownerCount
+	balance
+
 	constructor({ address, socket }){
 		super()
 		this.address = address
 		this.socket = socket
-		this.lines = []
-		this.offers = []
-		this.transactions = []
 	}
 
 	
@@ -28,7 +36,7 @@ export default class Account extends EventEmitter{
 	}
 
 
-	async loadLines({ direction } = {}){
+	async loadLines({ direction } = { direction: undefined }){
 		let lines = []
 		let marker
 
