@@ -1,4 +1,4 @@
-import rb from 'ripple-binary-codec'
+import * as rb from 'ripple-binary-codec'
 import * as xw from '@xrplkit/wallet'
 
 
@@ -72,7 +72,7 @@ export async function submit({ tx, socket, ...opts }){
 		throw result
 }
 
-export async function prepare({ tx, socket, seed, privateKey, autofill }){
+export async function prepare({ tx, socket, seed, privateKey, autofill }:any){
 	if(autofill)
 		tx = await fill({ tx, socket })
 
