@@ -1,6 +1,6 @@
-import rk from 'ripple-keypairs'
+import * as rk from 'ripple-keypairs'
 
-export function generateSeed({ entropy, algorithm } = {}){
+export function generateSeed({ entropy, algorithm }: any = {}){
 	return rk.generateSeed({ entropy, algorithm })
 }
 
