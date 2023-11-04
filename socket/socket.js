@@ -112,6 +112,9 @@ export default function ({ url, autoReconnect = true, autoRetryRequests = true, 
 					requestRegistry.push({ id, message, resolve, reject })
 					pushRequests()
 				})
+			},
+			close(){
+				socket.close()
 			}
 		}
 	)
