@@ -1,11 +1,11 @@
 {
 	"name": "@xrplkit/submit",
 	"type": "module",
-	"version": "1.1.1",
+	"version": "1.2.0",
 	"main": "submit.js",
 	"author": "xrplkit",
 	"dependencies": {
 		"@xrplkit/wallet": "1.1.0",
-		"ripple-binary-codec": "^1.4.0"
+		"ripple-binary-codec": "^1.11.0"
 	}
 }
