@@ -1,0 +1,15 @@
+{
+    "name": "@xrplkit/dex",
+    "type": "module",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "ISC",
+    "author": "xrplkit",
+    "dependencies": {
+        "@xrplkit/amount": "1.2.2",
+        "@xrplkit/xfl": "2.0.2"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}
