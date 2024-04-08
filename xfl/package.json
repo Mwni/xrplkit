@@ -1,8 +1,8 @@
 {
 	"name": "@xrplkit/xfl",
 	"type": "module",
-	"version": "2.0.2",
-	"main": "xfl.js",
+	"version": "2.1.0",
+	"main": "./wrappers/class.js",
 	"exports": {
 		".": "./wrappers/class.js",
 		"./str": "./wrappers/string.js",

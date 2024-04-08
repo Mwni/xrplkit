@@ -3,6 +3,7 @@ import { toString as str } from '../conversion/string.js'
 import * as arit from '../operators/arithmetic.js'
 import * as comp from '../operators/comparison.js'
 import * as roun from '../operators/rounding.js'
+import * as alge from '../operators/algebra.js'
 import * as bigi from '../conversion/bigint.js'
 import { canonicalize } from '../canonical.js'
 
@@ -71,6 +72,10 @@ export function min(...xs){
 
 export function max(...xs){
 	return XFL(comp.max(...xs.map(x => fromAny(x))))
+}
+
+export function sqrt(f){
+	return XFL(alge.sqrt(fromAny(f)))
 }
 
 export function toString(x){
