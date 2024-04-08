@@ -1,19 +1,23 @@
-import { XFL, sum, sub, mul, div, eq, gt, gte } from '@xrplkit/xfl'
+import { sum, sub, mul, div, eq, lt, lte, gt, gte, neg, min, max, sqrt } from '@xrplkit/xfl'
 import { loadBook } from './book.js'
 import { isSameToken } from './token.js'
 import { amountFromRippled } from './amount.js'
+import { alignAMM, swapAssetAMM } from './amm.js'
 
 
 export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket }){
-	let takerPaysValue
-	let takerGetsValue
-	let takerPaid = XFL(0)
-	let takerGot = XFL(0)
+	let takerPaysInitial
+	let takerGetsInitial
+	let takerPaysCurrent
+	let takerGetsCurrent
+	let ammInitial
+	let ammCurrent
 	let partial = true
 	let incomplete = true
 	let done = false
-	let affectedNodes = []
-	let maxCrossQuality
+	let affectedOffers = []
+	let affectedAMM = null
+	let minCrossQuality
 
 	if(!book){
 		if(!socket)
@@ -30,109 +34,133 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 		if(!isSameToken(takerPays, book.takerGets))
 			throw new Error(`Parameter "takerPays" is different than in the passed book`)
 		
-		takerPaysValue = takerPays.value
+		takerPaysInitial = takerPays.value
+		takerPaysCurrent = takerPays.value
 	}
 
 	if(takerGets?.currency){
 		if(!isSameToken(takerGets, book.takerPays))
 			throw new Error(`Parameter "takerGets" is different than in the passed book`)
 		
-		takerGetsValue = takerGets.value
+		takerGetsInitial = takerGets.value
+		takerGetsCurrent = takerGets.value
 	}
 	
-	if(takerPaysValue && eq(takerPaysValue, 0))
+	if(takerPaysInitial && eq(takerPaysInitial, 0))
 		throw new Error(`Value of "takerPays" must be greater than zero`)
 
-	if(takerGetsValue && eq(takerGetsValue, 0))
+	if(takerGetsInitial && eq(takerGetsInitial, 0))
 		throw new Error(`Value of "takerGets" must be greater than zero`)
 	
-	if(takerGetsValue && takerPaysValue)
-		maxCrossQuality = div(takerGetsValue, takerPaysValue)
+	if(takerGetsInitial && takerPaysInitial)
+		minCrossQuality = div(takerPaysInitial, takerGetsInitial)
 
-	if(tfSell && !takerGetsValue)
+	if(tfSell && !takerGetsInitial)
 		throw new Error(`Parameter "takerGets" must be set for an offer with tfSell=true`)
-	else if(!takerPaysValue)
+	else if(!takerPaysInitial)
 		tfSell = true
-	
-	let crossingOfferCandidates = book.offers
-		.map(offer => ({ ...offer, aux: createOfferAux(offer) }))
-		.filter(offer => !offer.aux.unfunded)
 
-	for(let i=0; i<crossingOfferCandidates.length; i++){
-		let { aux, ...offer } = crossingOfferCandidates[i]
+	if(book.amm){
+		ammInitial = { ...book.amm }
+		ammCurrent = { ...book.amm }
+	}
 
-		if(maxCrossQuality && gt(aux.quality, maxCrossQuality)){
+	let bookIndex = 0
+	let fundedBookOffers = book.offers
+		.filter(offer => !offer.unfunded)
+
+	while(true){
+		let bookOffer = fundedBookOffers[bookIndex]
+		let ammOffer = ammCurrent
+			? generateSyntheticAMMOffer(
+				ammInitial, 
+				ammCurrent, 
+				{ ...takerGets, value: takerGetsCurrent },
+				{ ...takerPays, value: takerPaysCurrent },
+				bookOffer?.quality
+			)
+			: null
+
+		let offer = gt(ammOffer?.quality || 0, bookOffer?.quality || 0)
+			? ammOffer
+			: bookOffer
+
+		if(!offer){
+			partial = true
+			incomplete = true
+			break
+		}
+
+		if(minCrossQuality && lt(offer.quality, minCrossQuality)){
 			partial = true
 			incomplete = false
 			break
 		}
 
-		let crossingTakerPaysFinal
-		let crossingTakerGetsFinal
-		let takerGetsRemainder = sub(takerGetsValue, takerGot)
-		let takerPaysRemainder = sub(takerPaysValue, takerPaid)
+		let crossingTakerPaysConsumed
+		let crossingTakerGetsConsumed
 		let consumeOfferFully = tfSell
-			? gte(takerGetsRemainder, aux.takerPaysFunded)
-			: gte(takerPaysRemainder, aux.takerGetsFunded)
+			? gte(takerGetsCurrent, offer.takerPaysFunded.value)
+			: gte(takerPaysCurrent, offer.takerGetsFunded.value)
 
 		if(consumeOfferFully){
-			crossingTakerPaysFinal = sub(aux.takerPays, aux.takerPaysFunded)
-			crossingTakerGetsFinal = sub(aux.takerGets, aux.takerGetsFunded)
-			takerPaid = sum(takerPaid, aux.takerGetsFunded)
-			takerGot = sum(takerGot, aux.takerPaysFunded)
+			crossingTakerPaysConsumed = offer.takerPaysFunded.value
+			crossingTakerGetsConsumed = offer.takerGetsFunded.value
+			takerPaysCurrent = sub(takerPaysCurrent, offer.takerGetsFunded.value)
+			takerGetsCurrent = sub(takerGetsCurrent, offer.takerPaysFunded.value)
 		}else{
 			if(tfSell){
-				let consumedTakerPays = div(takerGetsRemainder, aux.quality)
+				let consumedTakerPays = mul(takerGetsCurrent, offer.quality)
 
-				crossingTakerPaysFinal = sub(aux.takerPays, takerGetsRemainder)
-				crossingTakerGetsFinal = sub(aux.takerGets, consumedTakerPays)
-				takerPaid = sum(takerPaid, consumedTakerPays)
-				takerGot = sum(takerGot, takerGetsRemainder)
+				crossingTakerPaysConsumed = takerGetsCurrent.value
+				crossingTakerGetsConsumed = consumedTakerPays.value
+				takerPaysCurrent = sub(takerPaysCurrent, consumedTakerPays)
+				takerGetsCurrent = 0
 			}else{
-				let consumedTakerGets = mul(takerPaysRemainder, aux.quality)
+				let consumedTakerGets = div(takerPaysCurrent, offer.quality)
 
-				crossingTakerPaysFinal = sub(aux.takerPays, consumedTakerGets)
-				crossingTakerGetsFinal = sub(aux.takerGets, takerPaysRemainder)
-				takerPaid = sum(takerPaid, takerPaysRemainder)
-				takerGot = sum(takerGot, consumedTakerGets)
+				crossingTakerPaysConsumed = consumedTakerGets.value
+				crossingTakerGetsConsumed = takerPaysCurrent.value
+				takerPaysCurrent = 0
+				takerGetsCurrent = sub(takerGetsCurrent, consumedTakerGets)
 			}
 
 			done = true
 		}
 
-		affectedNodes.push({
-			[consumeOfferFully ? 'DeletedNode' : 'ModifiedNode']: {
-				LedgerEntryType: 'Offer',
-				LedgerIndex: offer.index,
-				FinalFields: {
-					Account: offer.Account,
-					Sequence: offer.Sequence,
-					TakerPays: {
-						...book.takerPays,
-						value: crossingTakerPaysFinal.toString()
-					},
-					TakerGets: {
-						...book.takerGets,
-						value: crossingTakerGetsFinal.toString()
-					}
-				},
-				PreviousFields: {
-					TakerPays: {
-						...book.takerPays,
-						value: aux.takerPays.toString()
-					},
-					TakerGets: {
-						...book.takerGets,
-						value: aux.takerGets.toString()
-					}
-				}
+		if(offer.syntheticAMM){
+			if(isSameToken(takerPays, ammCurrent.amount1)){
+				ammCurrent.amount1.value = sub(ammCurrent.amount1.value, crossingTakerPaysConsumed)
+				ammCurrent.amount2.value = sum(ammCurrent.amount2.value, crossingTakerGetsConsumed)
+			}else{
+				ammCurrent.amount2.value = sub(ammCurrent.amount2.value, crossingTakerPaysConsumed)
+				ammCurrent.amount1.value = sum(ammCurrent.amount1.value, crossingTakerGetsConsumed)
 			}
-		})
 
+			affectedAMM = {
+				amount1Previous: ammInitial.amount1,
+				amount2Previous: ammInitial.amount2,
+				amount1Final: ammCurrent.amount1,
+				amount2Final: ammCurrent.amount2
+			}
+		}else{
+			bookIndex++
+			affectedOffers.push({
+				index: offer.index,
+				sequence: offer.sequence,
+				account: offer.account,
+				takerPaysPrevious: offer.takerPays.value,
+				takerGetsPrevious: offer.takerGets.value,
+				takerPaysFinal: sub(offer.takerPays.value, crossingTakerPaysConsumed),
+				takerGetsFinal: sub(offer.takerGets.value, crossingTakerGetsConsumed),
+				deleted: consumeOfferFully
+			})
+		}
+		
 		done = done || (
 			tfSell
-				? gte(takerGot, takerGetsValue)
-				: gte(takerPaid, takerPaysValue)
+				? lte(takerGetsCurrent, 0)
+				: lte(takerPaysCurrent, 0)
 		)
 
 		if(done){
@@ -149,28 +177,148 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 		}
 	}
 
+	let takerPaid = sub(takerPaysInitial, takerPaysCurrent)
+	let takerGot = sub(takerGetsInitial, takerGetsCurrent)
+
+	/*if(!eq(book.transferFee, 0)){
+		if(tfSell){
+			takerPaid = mul(takerPaid, sub(1, book.transferFee))
+		}else{
+			takerGot = div(takerGot, sub(1, book.transferFee))
+		}
+	}*/
+
 	return {
 		takerPaid,
 		takerGot,
 		partial,
-		affectedNodes
+		affectedOffers,
+		affectedAMM
 	}
 }
 
-function createOfferAux(offer){
+export function offerFromRippled(offer){
 	let takerGets = amountFromRippled(offer.TakerGets)
 	let takerPays = amountFromRippled(offer.TakerPays)
 	let takerGetsFunded = amountFromRippled(offer.taker_gets_funded || offer.TakerGets)
 	let takerPaysFunded = amountFromRippled(offer.taker_pays_funded || offer.TakerPays)
+	let unfunded = eq(takerPaysFunded.value, 0)
 	
 	return {
-		takerGets: takerGets.value,
-		takerPays: takerPays.value,
-		takerGetsFunded: takerGetsFunded.value,
-		takerPaysFunded: takerPaysFunded.value,
-		unfunded: eq(takerPaysFunded.value, 0),
-		quality: eq(takerPaysFunded.value, 0)
-			? div(takerPays.value, takerGets.value)
-			: div(takerPaysFunded.value, takerGetsFunded.value),
+		index: offer.index,
+		account: offer.Account,
+		sequence: offer.Sequence,
+		takerGets: takerGets,
+		takerPays: takerPays,
+		takerGetsFunded: takerGetsFunded,
+		takerPaysFunded: takerPaysFunded,
+		unfunded,
+		quality: unfunded
+			? div(takerGets.value, takerPays.value)
+			: div(takerGetsFunded.value, takerPaysFunded.value),
+	}
+}
+
+function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, minQuality){
+	if(!minQuality){
+		return {
+			takerPays: poolGets,
+			takerPaysFunded: poolGets,
+			takerGets: amountOut,
+			takerGetsFunded: amountOut,
+			quality: div(amountOut.value, poolGets.value),
+			syntheticAMM: true
+		}
+	}
+
+	let poolAligned = alignAMM(ammCurrent, amountIn)
+	let poolSPQ = div(poolAligned.poolPays.value, poolAligned.poolGets.value)
+
+	if(lte(poolSPQ, minQuality) || withinRelativeDistance(poolSPQ, minQuality, '0.0000001'))
+		return
+
+	let f = sub(1, ammInitial.fee)
+	let b = mul(poolAligned.poolGets.value, sum(1, f))
+	let c = sub(
+		mul(poolAligned.poolGets.value, poolAligned.poolGets.value), 
+		div(mul(poolAligned.poolGets.value, poolAligned.poolPays.value), minQuality)
+	)
+
+	let res = sub(mul(b, b), mul(mul(4, f), c))
+
+	if(lt(res, 0))
+		return
+
+	let nTakerPaysPropose = div(sum(neg(b), sqrt(res)), mul(f, 2))
+
+	if(lte(nTakerPaysPropose, 0))
+		return
+
+	let nTakerPaysConstraint = sub(
+		div(poolAligned.poolPays.value, minQuality), 
+		div(poolAligned.poolGets.value, f)
+	)
+
+	let nTakerPays = min(nTakerPaysPropose, nTakerPaysConstraint)
+
+	if(lte(nTakerPays, 0))
+		return
+
+	let takerPays = {
+		...amountIn,
+		value: min(nTakerPays, amountIn.value)
+	}
+
+	let takerGets = swapAssetAMM(ammCurrent, takerPays)
+	let quality = div(takerGets.value, takerPays.value)
+
+	if(lt(quality, minQuality))
+		throw new Error('Internal AMM calculation failed')
+
+	return {
+		takerPays: takerPays,
+		takerPaysFunded: takerPays,
+		takerGets: takerGets,
+		takerGetsFunded: takerGets,
+		quality,
+		syntheticAMM: true
+	}
+}
+
+function withinRelativeDistance(value1, value2, distance){
+	if(eq(value1, value2))
+		return true
+
+	let valueMin = min(value1, value2)
+	let valueMax = max(value1, value2)
+
+	return lt(div(sub(valueMax, valueMin), valueMax), distance)
+}
+
+
+const fib = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987,
+	1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393,
+	196418, 317811, 514229, 832040]
+
+function generateAMMFibSeqOffer(initial, current, iter, takerGetsAsset){
+	let initialAligned = alignAMM(initial, takerGetsAsset)
+	let takerPays = {
+		...initialAligned.poolGets,
+		value: div(initialAligned.poolGets.value, 40000)
+	}
+	let takerGets = swapAssetAMM(initial, takerPays)
+
+	if(iter > 0){
+		takerGets.value = mul(takerGets.value, fib[iter - 1])
+		takerPays = swapAssetAMM(current, takerGets)
+	}
+
+	return { 
+		takerPays,
+		takerGets,
+		takerPaysFunded: takerPays,
+		takerGetsFunded: takerGets,
+		quality: div(takerGets.value, takerPays.value),
+		syntheticAMM: true
 	}
 }

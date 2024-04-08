@@ -1,3 +1,6 @@
+import { sub, div, mul } from '@xrplkit/xfl'
+import { offerFromRippled } from './offer.js'
+import { ammFromRippled } from './amm.js'
 
 export async function loadBook({ takerPays, takerGets, ledgerSequence='validated', limit=100, socket }){
 	let count = limit
@@ -6,6 +9,17 @@ export async function loadBook({ takerPays, takerGets, ledgerSequence='validated
 		takerGets,
 		ledgerSequence,
 		offers: [],
+		/*transferFee: sub(
+			(await Promise.all(
+				[takerPays, takerGets]
+					.filter(token => token.currency !== 'XRP')
+					.map(async token => (await socket.request({ command: 'account_info', account: token.issuer})).account_data.TransferRate)
+			))
+			.filter(Boolean)
+			.map(transferRate => div(transferRate, 1000000000))
+			.reduce((total, rate) => mul(total, rate), 1),
+			1
+		),*/
 		amm: null,
 		incomplete: true,
 		loadMore: async () => {
@@ -25,7 +39,7 @@ export async function loadBook({ takerPays, takerGets, ledgerSequence='validated
 
 			if(result.offers.length > book.offers.length){
 				book.offers.length = 0
-				book.offers.push(...result.offers)
+				book.offers.push(...result.offers.map(offerFromRippled))
 				book.ledgerSequence = result.ledger_index || result.ledger_current_index
 				count += limit
 			}else{
@@ -34,21 +48,24 @@ export async function loadBook({ takerPays, takerGets, ledgerSequence='validated
 		}
 	}
 
+	
 	await book.loadMore()
 
 	try{
-		book.amm = await xrpl.request({
-			command: 'amm_info',
-			asset: {
-				currency: takerGets.currency,
-				issuer: takerGets.issuer
-			},
-			asset2: {
-				currency: takerPays.currency,
-				issuer: takerPays.issuer
-			},
-			ledger_index: 'validated'
-		}).amm
+		book.amm = ammFromRippled(
+			(await socket.request({
+				command: 'amm_info',
+				asset: {
+					currency: takerGets.currency,
+					issuer: takerGets.issuer
+				},
+				asset2: {
+					currency: takerPays.currency,
+					issuer: takerPays.issuer
+				},
+				ledger_index: ledgerSequence
+			})).amm
+		)
 	}catch{}
 
 	return book
