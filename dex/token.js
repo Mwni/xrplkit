@@ -21,3 +21,10 @@ export function isSameToken(a, b){
 		&& a.currency === b.currency
 		&& a.issuer == b.issuer
 }
+
+export function tokenFromAmount(amount){
+	return {
+		currency: amount.currency,
+		issuer: amount.issuer
+	}
+}

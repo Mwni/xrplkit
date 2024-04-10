@@ -1,6 +1,34 @@
-import { sub, div, mul } from '@xrplkit/xfl'
+import { XFL, div } from '@xrplkit/xfl'
 import { offerFromRippled } from './offer.js'
 import { ammFromRippled } from './amm.js'
+import { tokenFromAmount } from './token.js'
+
+export function bookFromRippled(book){
+	let takerPays
+	let takerGets
+	let offers = []
+	let ownerFunds = {}
+
+	for(let raw of book.offers){
+		let offer = offerFromRippled(raw)
+
+		if(raw.owner_funds){
+			ownerFunds[raw.Account] = offer.takerGets.currency === 'XRP'
+				? div(raw.owner_funds, '1000000')
+				: XFL(raw.owner_funds)
+		}
+
+		offers.push(offer)
+	}
+
+	return {
+		takerPays: offers[0] && tokenFromAmount(offers[0].takerPays),
+		takerGets: offers[0] && tokenFromAmount(offers[0].takerGets),
+		offers,
+		ownerFunds,
+		ledgerSequence: book.ledger_index || book.ledger_current_index
+	}
+}
 
 export async function loadBook({ takerPays, takerGets, ledgerSequence='validated', limit=100, socket }){
 	let count = limit
@@ -38,9 +66,7 @@ export async function loadBook({ takerPays, takerGets, ledgerSequence='validated
 			})
 
 			if(result.offers.length > book.offers.length){
-				book.offers.length = 0
-				book.offers.push(...result.offers.map(offerFromRippled))
-				book.ledgerSequence = result.ledger_index || result.ledger_current_index
+				Object.assign(book, bookFromRippled(result))
 				count += limit
 			}else{
 				book.incomplete = false
