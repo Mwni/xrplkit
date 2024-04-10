@@ -100,10 +100,13 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 
 		let crossingTakerPaysConsumed
 		let crossingTakerGetsConsumed
-		let crossingTakerPaysFunded = offer.takerPaysFunded.value
-		let crossingTakerGetsFunded = offer.takerGetsFunded.value
+		let crossingTakerPaysFunded = offer.takerPays.value
+		let crossingTakerGetsFunded = offer.takerGets.value
 
 		if(offer.account && lt(ownerFunds[offer.account], crossingTakerGetsFunded)){
+			if(lte(ownerFunds[offer.account], 0))
+				continue
+
 			crossingTakerGetsFunded = ownerFunds[offer.account]
 			crossingTakerPaysFunded = div(crossingTakerGetsFunded, offer.quality)
 		}
@@ -155,7 +158,7 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 				takerGetsPrevious: offer.takerGets.value,
 				takerPaysFinal: sub(offer.takerPays.value, crossingTakerPaysConsumed),
 				takerGetsFinal: sub(offer.takerGets.value, crossingTakerGetsConsumed),
-				deleted: consumeOfferFully
+				deleted: consumeOfferFully && gte(crossingTakerGetsConsumed, offer.takerGets.value)
 			})
 		}
 		
@@ -195,7 +198,35 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 		takerGot,
 		partial,
 		affectedOffers,
-		affectedAMM
+		affectedAMM,
+		finalBook: {
+			takerPays: book.takerPays,
+			takerGets: book.takerGets,
+			ownerFunds,
+			amm: ammCurrent,
+			offers: book.offers
+				.filter(offer => !affectedOffers.some(
+					affected => affected.index === offer.index && offer.deleted
+				))
+				.map(offer => {
+					let affected = affectedOffers.find(affected => affected.index === offer.index)
+
+					if(affected)
+						return {
+							...offer,
+							takerPays: {
+								...offer.takerPays,
+								value: affected.takerPaysFinal
+							},
+							takerGets: {
+								...offer.takerGets,
+								value: affected.takerGetsFinal
+							}
+						}
+					else
+						return offer
+				})
+		}
 	}
 }
 
@@ -225,9 +256,7 @@ function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, 
 	if(!minQuality){
 		return {
 			takerPays: poolGets,
-			takerPaysFunded: poolGets,
 			takerGets: amountOut,
-			takerGetsFunded: amountOut,
 			quality: div(amountOut.value, poolGets.value),
 			syntheticAMM: true
 		}
