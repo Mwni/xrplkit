@@ -61,8 +61,8 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 		tfSell = true
 
 	if(book.amm){
-		ammInitial = { ...book.amm }
-		ammCurrent = { ...book.amm }
+		ammInitial = structuredClone(book.amm)
+		ammCurrent = structuredClone(book.amm)
 	}
 
 	let bookIndex = 0
@@ -76,8 +76,8 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 			? generateSyntheticAMMOffer(
 				ammInitial, 
 				ammCurrent, 
-				{ ...takerGets, value: takerGetsCurrent },
-				{ ...takerPays, value: takerPaysCurrent },
+				{ ...book.takerPays, value: takerGetsCurrent },
+				{ ...book.takerGets, value: takerPaysCurrent },
 				bookOffer?.quality
 			)
 			: null
@@ -142,7 +142,7 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 		takerGetsCurrent = sub(takerGetsCurrent, crossingTakerPaysConsumed)
 
 		if(offer.syntheticAMM){
-			if(isSameToken(book.takerPays, ammCurrent.amount2)){
+			if(isSameToken(book.takerGets, ammCurrent.amount2)){
 				ammCurrent.amount1.value = sum(ammCurrent.amount1.value, crossingTakerPaysConsumed)
 				ammCurrent.amount2.value = sub(ammCurrent.amount2.value, crossingTakerGetsConsumed)
 			}else{
@@ -224,7 +224,7 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 			amm: ammCurrent,
 			offers: book.offers
 				.filter(offer => !affectedOffers.some(
-					affected => affected.index === offer.index && offer.deleted
+					affected => affected.index === offer.index && affected.deleted
 				))
 				.map(offer => {
 					let affected = affectedOffers.find(affected => affected.index === offer.index)
@@ -232,11 +232,13 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 					if(affected)
 						return {
 							...offer,
-							takerPays: affected.takerPaysFinal,
-							takerGets: affected.takerGetsFinal
+							takerPays: { ...affected.takerPaysFinal },
+							takerGets: { ...affected.takerGetsFinal },
+							takerGetsFunded: undefined,
+							takerPaysFunded: undefined
 						}
 					else
-						return offer
+						return { ...offer }
 				})
 		}
 	}
@@ -309,7 +311,7 @@ function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, 
 
 	let takerPays = {
 		...amountIn,
-		value: min(nTakerPays, amountIn.value)
+		value: amountIn.value ? min(nTakerPays, amountIn.value) : nTakerPays
 	}
 
 	let takerGets = swapAssetAMM(ammCurrent, takerPays)
