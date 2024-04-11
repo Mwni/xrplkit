@@ -1,4 +1,4 @@
-import { XFL, div } from '@xrplkit/xfl'
+import { XFL, div, mul, sub } from '@xrplkit/xfl'
 import { offerFromRippled } from './offer.js'
 import { ammFromRippled } from './amm.js'
 import { tokenFromAmount } from './token.js'
@@ -37,7 +37,7 @@ export async function loadBook({ takerPays, takerGets, ledgerSequence='validated
 		takerGets,
 		ledgerSequence,
 		offers: [],
-		/*transferFee: sub(
+		transferFee: sub(
 			(await Promise.all(
 				[takerPays, takerGets]
 					.filter(token => token.currency !== 'XRP')
@@ -47,7 +47,7 @@ export async function loadBook({ takerPays, takerGets, ledgerSequence='validated
 			.map(transferRate => div(transferRate, 1000000000))
 			.reduce((total, rate) => mul(total, rate), 1),
 			1
-		),*/
+		),
 		amm: null,
 		incomplete: true,
 		loadMore: async () => {
