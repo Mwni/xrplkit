@@ -102,10 +102,13 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 		let crossingTakerGetsConsumed
 		let crossingTakerPaysFunded = offer.takerPays.value
 		let crossingTakerGetsFunded = offer.takerGets.value
+		let affectedOffer
 
 		if(offer.account && lt(ownerFunds[offer.account], crossingTakerGetsFunded)){
-			if(lte(ownerFunds[offer.account], 0))
+			if(lte(ownerFunds[offer.account], 0)){
+				bookIndex++
 				continue
+			}
 
 			crossingTakerGetsFunded = ownerFunds[offer.account]
 			crossingTakerPaysFunded = div(crossingTakerGetsFunded, offer.quality)
@@ -133,7 +136,7 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 		takerGetsCurrent = sub(takerGetsCurrent, crossingTakerPaysConsumed)
 
 		if(offer.syntheticAMM){
-			if(isSameToken(takerPays, ammCurrent.amount2)){
+			if(isSameToken(book.takerPays, ammCurrent.amount2)){
 				ammCurrent.amount1.value = sum(ammCurrent.amount1.value, crossingTakerPaysConsumed)
 				ammCurrent.amount2.value = sub(ammCurrent.amount2.value, crossingTakerGetsConsumed)
 			}else{
@@ -147,20 +150,34 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 				amount1Final: ammCurrent.amount1,
 				amount2Final: ammCurrent.amount2
 			}
+			affectedOffer = {
+				amm: true,
+				synthetic: true,
+			}
 		}else{
 			bookIndex++
 			ownerFunds[offer.account] = sub(ownerFunds[offer.account], crossingTakerGetsConsumed)
-			affectedOffers.push({
+			affectedOffer = {
 				index: offer.index,
 				sequence: offer.sequence,
 				account: offer.account,
-				takerPaysPrevious: offer.takerPays.value,
-				takerGetsPrevious: offer.takerGets.value,
-				takerPaysFinal: sub(offer.takerPays.value, crossingTakerPaysConsumed),
-				takerGetsFinal: sub(offer.takerGets.value, crossingTakerGetsConsumed),
 				deleted: consumeOfferFully && gte(crossingTakerGetsConsumed, offer.takerGets.value)
-			})
+			}
 		}
+
+		affectedOffers.push({
+			...affectedOffer,
+			takerPaysPrevious: offer.takerPays,
+			takerGetsPrevious: offer.takerGets,
+			takerPaysFinal: {
+				...offer.takerPays,
+				value: sub(offer.takerPays.value, crossingTakerPaysConsumed)
+			},
+			takerGetsFinal: {
+				...offer.takerGets,
+				value: sub(offer.takerGets.value, crossingTakerGetsConsumed)
+			}
+		})
 		
 		done = done || (
 			tfSell
@@ -182,9 +199,6 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 		}
 	}
 
-	let takerPaid = sub(takerPaysInitial, takerPaysCurrent)
-	let takerGot = sub(takerGetsInitial, takerGetsCurrent)
-
 	/*if(!eq(book.transferFee, 0)){
 		if(tfSell){
 			takerPaid = mul(takerPaid, sub(1, book.transferFee))
@@ -194,8 +208,14 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 	}*/
 
 	return {
-		takerPaid,
-		takerGot,
+		takerPaid: {
+			...takerPays,
+			value: sub(takerPaysInitial, takerPaysCurrent)
+		},
+		takerGot: {
+			...takerGets,
+			value: sub(takerGetsInitial, takerGetsCurrent)
+		},
 		partial,
 		affectedOffers,
 		affectedAMM,
@@ -214,14 +234,8 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 					if(affected)
 						return {
 							...offer,
-							takerPays: {
-								...offer.takerPays,
-								value: affected.takerPaysFinal
-							},
-							takerGets: {
-								...offer.takerGets,
-								value: affected.takerGetsFinal
-							}
+							takerPays: affected.takerPaysFinal,
+							takerGets: affected.takerGetsFinal
 						}
 					else
 						return offer
