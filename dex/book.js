@@ -1,6 +1,6 @@
-import { XFL, div, mul, sub } from '@xrplkit/xfl'
+import { XFL, div, max, mul, sub } from '@xrplkit/xfl'
 import { offerFromRippled } from './offer.js'
-import { ammFromRippled } from './amm.js'
+import { alignAMM, ammFromRippled } from './amm.js'
 import { tokenFromAmount } from './token.js'
 
 export function bookFromRippled(book){
@@ -95,4 +95,22 @@ export async function loadBook({ takerPays, takerGets, ledgerSequence='validated
 	}catch{}
 
 	return book
+}
+
+export function getBookSpotPrice(book){
+	if(book.offers.length === 0 && !book.amm)
+		return
+
+	let quality = book.offers[0]?.quality
+	
+	if(book.amm){
+		let ammAligned = alignAMM(book.amm, book.takerPays)
+		let poolQuality = div(ammAligned.poolPays.value, ammAligned.poolGets.value)
+
+		quality = quality
+			? max(quality, poolQuality)
+			: poolQuality
+	}
+
+	return div(1, quality)
 }

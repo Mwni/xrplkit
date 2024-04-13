@@ -1,6 +1,6 @@
 export { amountFromRippled, amountToRippled } from './amount.js'
 export { currencyHexToUTF8, currencyUTF8ToHex, currencyUTF8ToBinary } from './currency.js'
 export { isSameToken } from './token.js'
-export { bookFromRippled, loadBook } from './book.js'
+export { bookFromRippled, loadBook, getBookSpotPrice } from './book.js'
 export { offerFromRippled, simulateOffer } from './offer.js'
 export { ammFromRippled } from './amm.js'
