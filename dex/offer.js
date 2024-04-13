@@ -5,7 +5,7 @@ import { amountFromRippled } from './amount.js'
 import { alignAMM, swapAssetAMM } from './amm.js'
 
 
-export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket }){
+export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, socket }){
 	let takerPaysInitial
 	let takerGetsInitial
 	let takerPaysCurrent
@@ -65,10 +65,15 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 		ammCurrent = structuredClone(book.amm)
 	}
 
+	if(!time){
+		time = Math.floor(Date.now() / 1000) - 946684800
+	}
+
 	let bookIndex = 0
 	let ownerFunds = { ...book.ownerFunds }
 	let fundedBookOffers = book.offers
 		.filter(offer => !offer.unfunded)
+		.filter(offer => !offer.expiration || offer.expiration >= time)
 
 	while(true){
 		let bookOffer = fundedBookOffers[bookIndex]
@@ -118,8 +123,6 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 			}
 		}
 
-		
-
 		let consumeOfferFully = tfSell
 			? gte(takerGetsCurrent, crossingTakerPaysFunded)
 			: gte(takerPaysCurrent, crossingTakerGetsFunded)
@@ -167,7 +170,8 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, book, socket
 				index: offer.index,
 				sequence: offer.sequence,
 				account: offer.account,
-				deleted: consumeOfferFully && gte(crossingTakerGetsConsumed, offer.takerGets.value)
+				deleted: consumeOfferFully && gte(crossingTakerGetsConsumed, offer.takerGets.value),
+				expiration: offer.expiration
 			}
 		}
 
@@ -255,6 +259,7 @@ export function offerFromRippled(offer){
 		index: offer.index,
 		account: offer.Account,
 		sequence: offer.Sequence,
+		expiration: offer.Expiration,
 		takerGets: takerGets,
 		takerPays: takerPays,
 		takerGetsFunded: takerGetsFunded,
@@ -311,7 +316,7 @@ function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, 
 
 	let takerPays = {
 		...amountIn,
-		value: amountIn.value ? min(nTakerPays, amountIn.value) : nTakerPays
+		value: nTakerPays,//amountIn.value ? min(nTakerPays, amountIn.value) : nTakerPays
 	}
 
 	let takerGets = swapAssetAMM(ammCurrent, takerPays)
