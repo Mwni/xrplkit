@@ -3,11 +3,18 @@ import { offerFromRippled } from './offer.js'
 import { alignAMM, ammFromRippled } from './amm.js'
 import { tokenFromAmount } from './token.js'
 
-export function bookFromRippled(book){
+export function bookFromRippled(book, amm){
 	let takerPays
 	let takerGets
 	let offers = []
 	let ownerFunds = {}
+
+	if(book.offers.length === 0 && !amm){
+		throw new Error(`Book is empty and no AMM passed`)
+	}
+
+	if(amm)
+		amm = ammFromRippled(amm)
 
 	for(let raw of book.offers){
 		let offer = offerFromRippled(raw)
@@ -22,10 +29,11 @@ export function bookFromRippled(book){
 	}
 
 	return {
-		takerPays: offers[0] && tokenFromAmount(offers[0].takerPays),
-		takerGets: offers[0] && tokenFromAmount(offers[0].takerGets),
+		takerGets: tokenFromAmount(offers[0] ? offers[0].takerGets : amm.amount1),
+		takerPays: tokenFromAmount(offers[0] ? offers[0].takerPays : amm.amount2),
 		offers,
 		ownerFunds,
+		amm,
 		ledgerSequence: book.ledger_index || book.ledger_current_index
 	}
 }
