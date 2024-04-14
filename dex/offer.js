@@ -82,7 +82,6 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 				ammInitial, 
 				ammCurrent, 
 				{ ...book.takerPays, value: takerGetsCurrent },
-				{ ...book.takerGets, value: takerPaysCurrent },
 				bookOffer?.quality
 			)
 			: null
@@ -271,12 +270,14 @@ export function offerFromRippled(offer){
 	}
 }
 
-function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, minQuality){
+function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, minQuality){
 	if(!minQuality){
+		let takerPays = amountIn
+		let takerGets = swapAssetAMM(ammCurrent, amountIn)
 		return {
-			takerPays: poolGets,
-			takerGets: amountOut,
-			quality: div(amountOut.value, poolGets.value),
+			takerPays,
+			takerGets,
+			quality: div(takerGets.value, takerPays.value),
 			syntheticAMM: true
 		}
 	}
@@ -316,7 +317,7 @@ function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, 
 
 	let takerPays = {
 		...amountIn,
-		value: nTakerPays,//amountIn.value ? min(nTakerPays, amountIn.value) : nTakerPays
+		value: amountIn.value ? min(nTakerPays, amountIn.value) : nTakerPays
 	}
 
 	let takerGets = swapAssetAMM(ammCurrent, takerPays)
@@ -324,9 +325,7 @@ function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, 
 
 	return {
 		takerPays: takerPays,
-		takerPaysFunded: takerPays,
 		takerGets: takerGets,
-		takerGetsFunded: takerGets,
 		quality,
 		syntheticAMM: true
 	}
