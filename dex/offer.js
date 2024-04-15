@@ -2,7 +2,7 @@ import { sum, sub, mul, div, eq, lt, lte, gt, gte, neg, min, max, sqrt } from '@
 import { loadBook } from './book.js'
 import { isSameToken } from './token.js'
 import { amountFromRippled } from './amount.js'
-import { alignAMM, swapAssetAMM } from './amm.js'
+import { ammAlign, ammSwapIn, ammSwapOut } from './amm.js'
 
 
 export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, socket }){
@@ -82,7 +82,9 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 				ammInitial, 
 				ammCurrent, 
 				{ ...book.takerPays, value: takerGetsCurrent },
-				bookOffer?.quality
+				{ ...book.takerGets, value: takerPaysCurrent },
+				bookOffer?.quality,
+				tfSell
 			)
 			: null
 
@@ -270,63 +272,69 @@ export function offerFromRippled(offer){
 	}
 }
 
-function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, minQuality){
-	if(!minQuality){
-		let takerPays = amountIn
-		let takerGets = swapAssetAMM(ammCurrent, amountIn)
-		return {
-			takerPays,
-			takerGets,
-			quality: div(takerGets.value, takerPays.value),
-			syntheticAMM: true
+function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, minQuality, tfSell){
+	if(minQuality){
+		let poolAligned = ammAlign(ammCurrent, amountIn)
+		let poolSPQ = div(poolAligned.poolPays.value, poolAligned.poolGets.value)
+
+		if(lte(poolSPQ, minQuality) || withinRelativeDistance(poolSPQ, minQuality, '0.0000001'))
+			return
+
+		let f = sub(1, ammInitial.fee)
+		let b = mul(poolAligned.poolGets.value, sum(1, f))
+		let c = sub(
+			mul(poolAligned.poolGets.value, poolAligned.poolGets.value), 
+			div(mul(poolAligned.poolGets.value, poolAligned.poolPays.value), minQuality)
+		)
+
+		let res = sub(mul(b, b), mul(mul(4, f), c))
+
+		if(lt(res, 0))
+			return
+
+		let nTakerPaysPropose = div(sum(neg(b), sqrt(res)), mul(f, 2))
+
+		if(lte(nTakerPaysPropose, 0))
+			return
+
+		let nTakerPaysConstraint = sub(
+			div(poolAligned.poolPays.value, minQuality), 
+			div(poolAligned.poolGets.value, f)
+		)
+
+		let nTakerPays = min(nTakerPaysPropose, nTakerPaysConstraint)
+
+		if(lte(nTakerPays, 0))
+			return
+
+		if(lt(nTakerPays, amountIn.value)){
+			let takerPays = {
+				...amountIn,
+				value: nTakerPays
+			}
+	
+			let takerGets = ammSwapIn(ammCurrent, takerPays)
+			let quality = div(takerGets.value, takerPays.value)
+			let buyOfferSizeExceeded = !tfSell && gt(takerGets.value, amountOut.value)
+
+			if(!buyOfferSizeExceeded){
+				return {
+					takerPays: takerPays,
+					takerGets: takerGets,
+					quality,
+					syntheticAMM: true
+				}
+			}
 		}
 	}
 
-	let poolAligned = alignAMM(ammCurrent, amountIn)
-	let poolSPQ = div(poolAligned.poolPays.value, poolAligned.poolGets.value)
-
-	if(lte(poolSPQ, minQuality) || withinRelativeDistance(poolSPQ, minQuality, '0.0000001'))
-		return
-
-	let f = sub(1, ammInitial.fee)
-	let b = mul(poolAligned.poolGets.value, sum(1, f))
-	let c = sub(
-		mul(poolAligned.poolGets.value, poolAligned.poolGets.value), 
-		div(mul(poolAligned.poolGets.value, poolAligned.poolPays.value), minQuality)
-	)
-
-	let res = sub(mul(b, b), mul(mul(4, f), c))
-
-	if(lt(res, 0))
-		return
-
-	let nTakerPaysPropose = div(sum(neg(b), sqrt(res)), mul(f, 2))
-
-	if(lte(nTakerPaysPropose, 0))
-		return
-
-	let nTakerPaysConstraint = sub(
-		div(poolAligned.poolPays.value, minQuality), 
-		div(poolAligned.poolGets.value, f)
-	)
-
-	let nTakerPays = min(nTakerPaysPropose, nTakerPaysConstraint)
-
-	if(lte(nTakerPays, 0))
-		return
-
-	let takerPays = {
-		...amountIn,
-		value: amountIn.value ? min(nTakerPays, amountIn.value) : nTakerPays
-	}
-
-	let takerGets = swapAssetAMM(ammCurrent, takerPays)
-	let quality = div(takerGets.value, takerPays.value)
+	let takerPays = tfSell ? amountIn : ammSwapOut(ammCurrent, amountOut)
+	let takerGets = tfSell ? ammSwapIn(ammCurrent, amountIn) : amountOut
 
 	return {
-		takerPays: takerPays,
-		takerGets: takerGets,
-		quality,
+		takerPays,
+		takerGets,
+		quality: div(takerGets.value, takerPays.value),
 		syntheticAMM: true
 	}
 }
@@ -347,7 +355,7 @@ const fib = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987,
 	196418, 317811, 514229, 832040]
 
 function generateAMMFibSeqOffer(initial, current, iter, takerGetsAsset){
-	let initialAligned = alignAMM(initial, takerGetsAsset)
+	let initialAligned = ammAlign(initial, takerGetsAsset)
 	let takerPays = {
 		...initialAligned.poolGets,
 		value: div(initialAligned.poolGets.value, 40000)
