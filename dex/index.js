@@ -3,4 +3,4 @@ export { currencyHexToUTF8, currencyUTF8ToHex, currencyUTF8ToBinary } from './cu
 export { isSameToken } from './token.js'
 export { bookFromRippled, loadBook, getBookSpotPrice } from './book.js'
 export { offerFromRippled, simulateOffer } from './offer.js'
-export { ammFromRippled } from './amm.js'
+export { ammFromRippled, ammSwapIn, ammSwapOut } from './amm.js'

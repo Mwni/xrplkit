@@ -1,6 +1,6 @@
 import { XFL, div, max, mul, sub } from '@xrplkit/xfl'
 import { offerFromRippled } from './offer.js'
-import { alignAMM, ammFromRippled } from './amm.js'
+import { ammAlign, ammFromRippled } from './amm.js'
 import { tokenFromAmount } from './token.js'
 
 export function bookFromRippled(book, amm){
@@ -112,7 +112,7 @@ export function getBookSpotPrice(book){
 	let quality = book.offers[0]?.quality
 	
 	if(book.amm){
-		let ammAligned = alignAMM(book.amm, book.takerPays)
+		let ammAligned = ammAlign(book.amm, book.takerPays)
 		let poolQuality = div(ammAligned.poolPays.value, ammAligned.poolGets.value)
 
 		quality = quality
