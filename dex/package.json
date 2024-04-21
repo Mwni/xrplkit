@@ -1,7 +1,7 @@
 {
     "name": "@xrplkit/dex",
     "type": "module",
-    "version": "1.0.0",
+    "version": "1.1.1",
     "main": "index.js",
     "license": "ISC",
     "author": "xrplkit",
