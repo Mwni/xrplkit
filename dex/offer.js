@@ -4,6 +4,7 @@ import { isSameToken } from './token.js'
 import { amountFromRippled } from './amount.js'
 import { ammAlign, ammSwapIn, ammSwapOut } from './amm.js'
 
+const epsilon = '0.000000001'
 
 export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, socket }){
 	let takerPaysInitial
@@ -98,7 +99,7 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 			break
 		}
 
-		if(minCrossQuality && lt(offer.quality, minCrossQuality)){
+		if(minCrossQuality && lt(offer.limitQuality || offer.quality, minCrossQuality)){
 			partial = true
 			incomplete = false
 			break
@@ -163,6 +164,7 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 			affectedOffer = {
 				amm: true,
 				synthetic: true,
+				limitQuality: offer.limitQuality,
 			}
 		}else{
 			bookIndex++
@@ -172,12 +174,14 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 				sequence: offer.sequence,
 				account: offer.account,
 				deleted: consumeOfferFully && gte(crossingTakerGetsConsumed, offer.takerGets.value),
-				expiration: offer.expiration
+				expiration: offer.expiration,
+				limitQuality: offer.quality
 			}
 		}
 
 		affectedOffers.push({
 			...affectedOffer,
+			limitQuality: mul(affectedOffer.limitQuality, sub(1, epsilon)),
 			takerPaysPrevious: offer.takerPays,
 			takerGetsPrevious: offer.takerGets,
 			takerPaysFinal: {
@@ -210,16 +214,26 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 		}
 	}
 
+	let takerPaidValue = sub(takerPaysInitial, takerPaysCurrent)
+	let takerGotValue = sub(takerGetsInitial, takerGetsCurrent)
+
+	if(tfSell){
+		takerPaidValue = mul(takerPaidValue, sub(1, epsilon))
+	}else{
+		takerGotValue = mul(takerGotValue, sub(1, epsilon))
+	}
+
 	return {
 		takerPaid: {
 			...takerPays,
-			value: sub(takerPaysInitial, takerPaysCurrent)
+			value: takerPaidValue
 		},
 		takerGot: {
 			...takerGets,
-			value: sub(takerGetsInitial, takerGetsCurrent)
+			value: takerGotValue
 		},
 		partial,
+		limitQuality: affectedOffers[affectedOffers.length - 1]?.limitQuality,
 		affectedOffers,
 		affectedAMM,
 		finalBook: {
@@ -273,6 +287,8 @@ export function offerFromRippled(offer){
 }
 
 function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, minQuality, tfSell){
+	let limitQuality
+
 	if(minQuality){
 		let poolAligned = ammAlign(ammCurrent, amountIn)
 		let poolSPQ = div(poolAligned.poolPays.value, poolAligned.poolGets.value)
@@ -307,34 +323,35 @@ function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, 
 		if(lte(nTakerPays, 0))
 			return
 
-		if(lt(nTakerPays, amountIn.value)){
-			let takerPays = {
-				...amountIn,
-				value: nTakerPays
-			}
-	
-			let takerGets = ammSwapIn(ammCurrent, takerPays)
-			let quality = div(takerGets.value, takerPays.value)
-			let buyOfferSizeExceeded = !tfSell && gt(takerGets.value, amountOut.value)
+		let takerPays = {
+			...amountIn,
+			value: nTakerPays
+		}
 
-			if(!buyOfferSizeExceeded){
-				return {
-					takerPays: takerPays,
-					takerGets: takerGets,
-					quality,
-					syntheticAMM: true
-				}
+		let takerGets = ammSwapIn(ammCurrent, takerPays)
+		let buyOfferSizeExceeded = !tfSell && gt(takerGets.value, amountOut.value)
+		let quality = limitQuality = div(takerGets.value, takerPays.value)
+
+		if(lt(nTakerPays, amountIn.value) && !buyOfferSizeExceeded){
+			return {
+				takerPays: takerPays,
+				takerGets: takerGets,
+				quality,
+				limitQuality,
+				syntheticAMM: true
 			}
 		}
 	}
 
 	let takerPays = tfSell ? amountIn : ammSwapOut(ammCurrent, amountOut)
 	let takerGets = tfSell ? ammSwapIn(ammCurrent, amountIn) : amountOut
+	let quality = div(takerGets.value, takerPays.value)
 
 	return {
 		takerPays,
 		takerGets,
-		quality: div(takerGets.value, takerPays.value),
+		quality,
+		limitQuality: limitQuality || quality,
 		syntheticAMM: true
 	}
 }
