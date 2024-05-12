@@ -1,4 +1,4 @@
-import { fromRippled as fromRippledAmount, isSameCurrency } from '@xrplkit/amount'
+import { amountFromRippled, isSameToken } from '@xrplkit/tokens'
 import { sum, sub, div, mul, eq, gt, lt } from '@xrplkit/xfl'
 
 
@@ -19,10 +19,10 @@ export function extractExchanges(tx, options={}){
 
 		let maker = node.FinalFields.Account
 		let sequence = node.FinalFields.Sequence
-		let previousTakerPays = fromRippledAmount(node.PreviousFields.TakerPays)
-		let previousTakerGets = fromRippledAmount(node.PreviousFields.TakerGets)
-		let finalTakerPays = fromRippledAmount(node.FinalFields.TakerPays)
-		let finalTakerGets = fromRippledAmount(node.FinalFields.TakerGets)
+		let previousTakerPays = amountFromRippled(node.PreviousFields.TakerPays)
+		let previousTakerGets = amountFromRippled(node.PreviousFields.TakerGets)
+		let finalTakerPays = amountFromRippled(node.FinalFields.TakerPays)
+		let finalTakerGets = amountFromRippled(node.FinalFields.TakerGets)
 
 		exchanges.push({
 			hash,
@@ -47,8 +47,8 @@ export function extractExchanges(tx, options={}){
 
 		for(let e of exchanges){
 			let col = collapsed.find(c => 
-				isSameCurrency(c.takerPaid, e.takerPaid) 
-				&& isSameCurrency(c.takerGot, e.takerGot)
+				isSameToken(c.takerPaid, e.takerPaid) 
+				&& isSameToken(c.takerGot, e.takerGot)
 			)
 
 			if(!col){
@@ -164,7 +164,7 @@ export function extractCurrenciesInvolved(tx){
 		if(typeof entry === 'string')
 			entry = {currency: 'XRP'}
 
-		if(currencies.every(currency => !isSameCurrency(currency, entry))){
+		if(currencies.every(currency => !isSameToken(currency, entry))){
 			currencies.push(entry)
 		}
 	}

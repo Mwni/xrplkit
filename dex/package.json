@@ -1,11 +1,12 @@
 {
     "name": "@xrplkit/dex",
     "type": "module",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "main": "index.js",
     "license": "ISC",
     "author": "xrplkit",
     "dependencies": {
+        "@xrplkit/tokens": "1.0.0",
         "@xrplkit/xfl": "2.1.0"
     },
     "publishConfig": {

@@ -1,0 +1,11 @@
+{
+    "name": "@xrplkit/tokens",
+    "type": "module",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "ISC",
+    "author": "xrplkit",
+    "dependencies": {
+        "@xrplkit/xfl": "2.1.0"
+    }
+}

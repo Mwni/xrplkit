@@ -1,7 +1,7 @@
 import { XFL, div, max, mul, sub } from '@xrplkit/xfl'
+import { tokenFromAmount } from '@xrplkit/tokens'
 import { offerFromRippled } from './offer.js'
 import { ammAlign, ammFromRippled } from './amm.js'
-import { tokenFromAmount } from './token.js'
 
 export function bookFromRippled(book, amm){
 	let takerPays

@@ -1,13 +1,4 @@
-import { decodeCurrencyCode } from './encoding.js'
 import { abs, div, lt, gt, gte } from '@xrplkit/xfl'
-
-
-export function formatCurrency({ currency, issuer }){
-	if(currency === 'XRP')
-		return currency
-	
-	return `${decodeCurrencyCode(currency)}:${issuer}`
-}
 
 
 export function formatValue(value, options){

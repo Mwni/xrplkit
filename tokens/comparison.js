@@ -1,4 +1,4 @@
-import { currencyUTF8ToHex  } from './currency.js'
+import { currencyUTF8ToHex } from './currency.js'
 
 export function isSameToken(a, b){
 	if(typeof a === 'string')
@@ -20,11 +20,4 @@ export function isSameToken(a, b){
 	return true
 		&& a.currency === b.currency
 		&& a.issuer == b.issuer
-}
-
-export function tokenFromAmount(amount){
-	return {
-		currency: amount.currency,
-		issuer: amount.issuer
-	}
 }

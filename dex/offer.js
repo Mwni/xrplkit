@@ -1,7 +1,6 @@
 import { sum, sub, mul, div, eq, lt, lte, gt, gte, neg, min, max, sqrt } from '@xrplkit/xfl'
 import { loadBook } from './book.js'
-import { isSameToken } from './token.js'
-import { amountFromRippled } from './amount.js'
+import { isSameToken, amountFromRippled } from '@xrplkit/tokens'
 import { ammAlign, ammSwapIn, ammSwapOut } from './amm.js'
 
 const epsilon = '0.000000001'

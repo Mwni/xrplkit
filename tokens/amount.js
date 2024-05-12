@@ -29,3 +29,10 @@ export function amountToRippled(amount){
 		value: amount.value.toString()
 	}
 }
+
+export function tokenFromAmount(amount){
+	return {
+		currency: amount.currency,
+		issuer: amount.issuer
+	}
+}
