@@ -2,8 +2,8 @@ import { sum, sub, mul, div, min, lte, lt, gt, neg, sqrt } from '@xrplkit/xfl'
 import { amountFromRippled, isSameToken } from '@xrplkit/tokens'
 import { withinRelativeDistance } from './utils.js'
 
-export function ammSwapIn(amm, amountIn){
-	let { poolPays, poolGets, fee } = ammAlign(amm, amountIn)
+export function swapInAMM(amm, amountIn){
+	let { poolPays, poolGets, fee } = alignAMM(amm, amountIn)
 	let amountInWithFee = mul(amountIn.value, sub(1, fee))
 	let poolGetsFinal = sum(poolGets.value, amountInWithFee)
 	let poolPaysFinal = div(mul(poolGets.value, poolPays.value), poolGetsFinal)
@@ -14,8 +14,8 @@ export function ammSwapIn(amm, amountIn){
 	}
 }
 
-export function ammSwapOut(amm, amountOut){
-	let { poolPays: poolGets, poolGets: poolPays, fee } = ammAlign(amm, amountOut)
+export function swapOutAMM(amm, amountOut){
+	let { poolPays: poolGets, poolGets: poolPays, fee } = alignAMM(amm, amountOut)
 	let poolPaysFinal = sub(poolPays.value, amountOut.value)
 	let poolGetsFindal = div(mul(poolGets.value, poolPays.value), poolPaysFinal)
 	
@@ -33,7 +33,7 @@ export function ammFromRippled(amm){
 	}
 }
 
-export function ammAlign(amm, assetIn){
+export function alignAMM(amm, assetIn){
 	let amounts = [amm.amount1, amm.amount2]
 
 	if(isSameToken(assetIn, amounts[1]))
@@ -46,7 +46,7 @@ export function ammAlign(amm, assetIn){
 	}
 }
 
-export function ammGenerateSyntheticOffer(ammInitial, ammCurrent, amountIn, amountOut, minQuality, tfSell){
+export function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, minQuality, tfSell){
 	let limitQuality
 
 	if(minQuality){
@@ -120,17 +120,17 @@ const fib = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987,
 	1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393,
 	196418, 317811, 514229, 832040]
 
-export function ammGenerateFibSeqOffer(initial, current, iter, takerGetsAsset){
-	let initialAligned = ammAlign(initial, takerGetsAsset)
+export function generateFibSeqAMMOffer(initial, current, iter, takerGetsAsset){
+	let initialAligned = alignAMM(initial, takerGetsAsset)
 	let takerPays = {
 		...initialAligned.poolGets,
 		value: div(initialAligned.poolGets.value, 40000)
 	}
-	let takerGets = ammSwapIn(initial, takerPays)
+	let takerGets = swapInAMM(initial, takerPays)
 
 	if(iter > 0){
 		takerGets.value = mul(takerGets.value, fib[iter - 1])
-		takerPays = ammSwapOut(current, takerGets)
+		takerPays = swapOutAMM(current, takerGets)
 	}
 
 	return { 
