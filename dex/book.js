@@ -1,11 +1,9 @@
-import { XFL, div, max, mul, sub } from '@xrplkit/xfl'
+import { XFL, div, gt, max, mul, sub } from '@xrplkit/xfl'
 import { tokenFromAmount } from '@xrplkit/tokens'
 import { offerFromRippled } from './offer.js'
-import { ammAlign, ammFromRippled } from './amm.js'
+import { ammFromRippled, alignAMM } from './amm.js'
 
 export function bookFromRippled(book, amm){
-	let takerPays
-	let takerGets
 	let offers = []
 	let ownerFunds = {}
 
@@ -39,73 +37,77 @@ export function bookFromRippled(book, amm){
 }
 
 export async function loadBook({ takerPays, takerGets, ledgerSequence='validated', limit=100, socket }){
-	let count = limit
+	let promises = []
 	let book = {
 		takerPays,
 		takerGets,
 		ledgerSequence,
 		offers: [],
-		transferFee: sub(
-			(await Promise.all(
-				[takerPays, takerGets]
-					.filter(token => token.currency !== 'XRP')
-					.map(async token => (await socket.request({ command: 'account_info', account: token.issuer})).account_data.TransferRate)
-			))
-			.filter(Boolean)
-			.map(transferRate => div(transferRate, 1000000000))
-			.reduce((total, rate) => mul(total, rate), 1),
-			1
-		),
+		transferRateIn: 1,
+		transferRateOut: 1,
 		amm: null,
 		incomplete: true,
-		loadMore: async () => {
-			let result = await socket.request({
-				command: 'book_offers',
-				ledger_index: ledgerSequence,
-				taker_gets: {
-					currency: takerGets.currency,
-					issuer: takerGets.issuer
-				},
-				taker_pays: {
-					currency: takerPays.currency,
-					issuer: takerPays.issuer
-				},
-				limit: count
-			})
-
-			if(result.offers.length > book.offers.length){
-				Object.assign(book, bookFromRippled(result))
-				count += limit
-			}else{
-				book.incomplete = false
-			}
-		}
 	}
 
-	
-	await book.loadMore()
+	for(let token of [takerPays, takerGets]){
+		if(token.currency === 'XRP')
+			continue
 
-	try{
-		book.amm = ammFromRippled(
-			(await socket.request({
-				command: 'amm_info',
-				asset: {
-					currency: takerGets.currency,
-					issuer: takerGets.issuer
-				},
-				asset2: {
-					currency: takerPays.currency,
-					issuer: takerPays.issuer
-				},
-				ledger_index: ledgerSequence
-			})).amm
+		promises.push(
+			socket.request({ command: 'account_info', account: token.issuer})
+				.then(info => info.account_data.TransferRate || 1000000000)
+				.then(rate => rate / 1000000000)
+				.then(fee => book[token === takerPays ? 'transferRateIn' : 'transferRateOut'] = fee)
 		)
-	}catch{}
+	}
+
+	promises.push(loadMoreBookOffers({ book, limit, socket }))
+	promises.push(
+		socket.request({
+			command: 'amm_info',
+			asset: {
+				currency: takerGets.currency,
+				issuer: takerGets.issuer
+			},
+			asset2: {
+				currency: takerPays.currency,
+				issuer: takerPays.issuer
+			},
+			ledger_index: ledgerSequence
+		})
+			.then(info => ammFromRippled(info.amm))
+			.then(amm => book.amm = amm)
+			.catch(e => void e)
+	)
+
+	await Promise.all(promises)
 
 	return book
 }
 
-export function getBookSpotPrice(book){
+async function loadMoreBookOffers({ book, limit=100, socket }){
+	let offerCount = (book.requestedOfferCount || 0) + limit
+	let result = await socket.request({
+		command: 'book_offers',
+		ledger_index: book.ledgerSequence,
+		taker_gets: {
+			currency: book.takerGets.currency,
+			issuer: book.takerGets.issuer
+		},
+		taker_pays: {
+			currency: book.takerPays.currency,
+			issuer: book.takerPays.issuer
+		},
+		limit: offerCount
+	})
+
+	if(result.offers.length > book.offers.length){
+		Object.assign(book, bookFromRippled(result))
+		book.requestedOfferCount = offerCount
+	}else{
+		book.incomplete = false
+	}
+}
 	if(book.offers.length === 0 && !book.amm)
 		return
 
