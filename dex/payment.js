@@ -1,0 +1,90 @@
+import { mul, div, eq, sub, lt } from '@xrplkit/xfl'
+import { cloneBook, getBookSignature, loadBook } from './book.js'
+import { amountFromRippled, isSameToken } from '@xrplkit/tokens'
+import { flow } from './flow.js'
+
+const epsilon = '0.00000000001'
+const oneMinusEpsilon = sub('1', epsilon)
+
+export async function simulatePayment({ deliverMax, deliverMin, sendMax, tfPartialPayment, tfLimitQuality, time, book, socket }){
+	if(!book){
+		if(!socket)
+			throw new Error(`Either "book" or "socket" is required`)
+
+		book = await loadBook({ 
+			takerPays: sendMax, 
+			takerGets: deliverMax, 
+			socket 
+		})
+	}
+
+	if(!sendMax)
+		throw new Error(`Parameter "sendMax" is required`)
+
+	if(!deliverMax)
+		throw new Error(`Parameter "deliverMax" is required`)
+
+	if(tfPartialPayment && !deliverMin)
+		throw new Error(`Parameter "deliverMin" must be set for an offer with tfPartialPayment=true`)
+
+	if(deliverMin){
+		if(tfPartialPayment === false)
+			throw new Error(`"tfPartialPayment" cannot be false for a payment with "deliverMin"`)
+
+		tfPartialPayment = true
+	}
+
+	let { actualIn, actualOut, actualAffected, finalStrands } = await flow({
+		deliver: deliverMax,
+		sendMax: sendMax,
+		strands: [[{ book, payment: true }]],
+		limitQuality: tfLimitQuality
+			? div(deliverMax.value, sendMax.value)
+			: undefined,
+		time
+	})
+
+	let partial = lt(actualOut.value, mul(deliverMax.value, oneMinusEpsilon))
+
+	if(eq(actualOut.value, 0) || (partial && !tfPartialPayment)){
+		return {
+			pathDry: true,
+			delivered: actualOut,
+			sent: actualIn,
+			partial,
+			affectedOffers: [],
+			finalBook: cloneBook(book)
+		}
+	}
+
+	return {
+		sent: actualIn,
+		delivered: actualOut,
+		partial,
+		affectedOffers: actualAffected[getBookSignature(book)],
+		finalBook: finalStrands[0][0]
+	}
+}
+
+export function offerFromRippled(offer){
+	let takerGets = amountFromRippled(offer.TakerGets)
+	let takerPays = amountFromRippled(offer.TakerPays)
+	let takerGetsFunded = amountFromRippled(offer.taker_gets_funded || offer.TakerGets)
+	let takerPaysFunded = amountFromRippled(offer.taker_pays_funded || offer.TakerPays)
+	let unfunded = eq(takerPaysFunded.value, 0)
+	
+	return {
+		index: offer.index,
+		account: offer.Account,
+		sequence: offer.Sequence,
+		expiration: offer.Expiration,
+		takerGets: takerGets,
+		takerPays: takerPays,
+		takerGetsFunded: takerGetsFunded,
+		takerPaysFunded: takerPaysFunded,
+		unfunded,
+		quality: unfunded
+			? div(takerGets.value, takerPays.value)
+			: div(takerGetsFunded.value, takerPaysFunded.value),
+	}
+}
