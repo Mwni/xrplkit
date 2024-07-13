@@ -1,24 +1,12 @@
-import { sum, sub, mul, div, eq, lt, lte, gt, gte, neg, min, max, sqrt } from '@xrplkit/xfl'
-import { loadBook } from './book.js'
-import { isSameToken, amountFromRippled } from '@xrplkit/tokens'
-import { ammAlign, ammSwapIn, ammSwapOut } from './amm.js'
+import { div, eq, sub, mul, lt } from '@xrplkit/xfl'
+import { getBookSignature, loadBook } from './book.js'
+import { amountFromRippled, isSameToken } from '@xrplkit/tokens'
+import { flow } from './flow.js'
 
-const epsilon = '0.000000001'
+const epsilon = '0.00000000001'
+const oneMinusEpsilon = sub('1', epsilon)
 
 export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, socket }){
-	let takerPaysInitial
-	let takerGetsInitial
-	let takerPaysCurrent
-	let takerGetsCurrent
-	let ammInitial
-	let ammCurrent
-	let partial = true
-	let incomplete = true
-	let done = false
-	let affectedOffers = []
-	let affectedAMM = null
-	let minCrossQuality
-
 	if(!book){
 		if(!socket)
 			throw new Error(`Either "book" or "socket" is required`)
@@ -33,232 +21,69 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 	if(takerPays?.currency){
 		if(!isSameToken(takerPays, book.takerGets))
 			throw new Error(`Parameter "takerPays" is different than in the passed book`)
-		
-		takerPaysInitial = takerPays.value
-		takerPaysCurrent = takerPays.value
 	}
 
 	if(takerGets?.currency){
 		if(!isSameToken(takerGets, book.takerPays))
 			throw new Error(`Parameter "takerGets" is different than in the passed book`)
-		
-		takerGetsInitial = takerGets.value
-		takerGetsCurrent = takerGets.value
 	}
 	
-	if(takerPaysInitial && eq(takerPaysInitial, 0))
+	if(takerPays && eq(takerPays.value, 0))
 		throw new Error(`Value of "takerPays" must be greater than zero`)
 
-	if(takerGetsInitial && eq(takerGetsInitial, 0))
+	if(takerGets && eq(takerGets.value, 0))
 		throw new Error(`Value of "takerGets" must be greater than zero`)
 	
-	if(takerGetsInitial && takerPaysInitial)
-		minCrossQuality = div(takerPaysInitial, takerGetsInitial)
-
-	if(tfSell && !takerGetsInitial)
+	if(tfSell && !takerGets)
 		throw new Error(`Parameter "takerGets" must be set for an offer with tfSell=true`)
-	else if(!takerPaysInitial)
+	else if(!takerPays)
 		tfSell = true
 
-	if(book.amm){
-		ammInitial = structuredClone(book.amm)
-		ammCurrent = structuredClone(book.amm)
-	}
+	let { actualIn, actualOut, actualAffected, finalStrands } = await flow({
+		deliver: {
+			...takerPays,
+			value: tfSell
+				? div(`9999999999999999e80`, 2)
+				: takerPays.value
+		},
+		sendMax: takerGets,
+		strands: [[{ book }]],
+		limitQuality: takerGets && takerPays
+			? div(takerPays.value, takerGets.value)
+			: undefined,
+		time
+	})
 
-	if(!time){
-		time = Math.floor(Date.now() / 1000) - 946684800
-	}
+	if(eq(actualOut.value, 0)){
+		let { loadMore: _, ...sameBook } = book
 
-	let bookIndex = 0
-	let ownerFunds = { ...book.ownerFunds }
-	let fundedBookOffers = book.offers
-		.filter(offer => !offer.unfunded)
-		.filter(offer => !offer.expiration || offer.expiration >= time)
-
-	while(true){
-		let bookOffer = fundedBookOffers[bookIndex]
-		let ammOffer = ammCurrent
-			? generateSyntheticAMMOffer(
-				ammInitial, 
-				ammCurrent, 
-				{ ...book.takerPays, value: takerGetsCurrent },
-				{ ...book.takerGets, value: takerPaysCurrent },
-				bookOffer?.quality,
-				tfSell
-			)
-			: null
-
-		let offer = gt(ammOffer?.quality || 0, bookOffer?.quality || 0)
-			? ammOffer
-			: bookOffer
-
-		if(!offer){
-			partial = true
-			incomplete = true
-			break
-		}
-
-		if(minCrossQuality && lt(offer.limitQuality || offer.quality, minCrossQuality)){
-			partial = true
-			incomplete = false
-			break
-		}
-
-		let crossingTakerPaysConsumed
-		let crossingTakerGetsConsumed
-		let crossingTakerPaysFunded = offer.takerPays.value
-		let crossingTakerGetsFunded = offer.takerGets.value
-		let affectedOffer
-		
-		if(offer.account){
-			let ownerFundsAvailable = mul(ownerFunds[offer.account], sub(1, book.transferFee))
-
-			if(offer.account && lt(ownerFundsAvailable, crossingTakerGetsFunded)){
-				if(lte(ownerFundsAvailable, 0)){
-					bookIndex++
-					continue
-				}
-	
-				crossingTakerGetsFunded = ownerFundsAvailable
-				crossingTakerPaysFunded = div(crossingTakerGetsFunded, offer.quality)
-			}
-		}
-
-		let consumeOfferFully = tfSell
-			? gte(takerGetsCurrent, crossingTakerPaysFunded)
-			: gte(takerPaysCurrent, crossingTakerGetsFunded)
-
-		if(consumeOfferFully){
-			crossingTakerPaysConsumed = crossingTakerPaysFunded
-			crossingTakerGetsConsumed = crossingTakerGetsFunded
-		}else{
-			if(tfSell){
-				crossingTakerPaysConsumed = takerGetsCurrent
-				crossingTakerGetsConsumed = mul(takerGetsCurrent, offer.quality)
-			}else{
-				crossingTakerPaysConsumed = div(takerPaysCurrent, offer.quality)
-				crossingTakerGetsConsumed = takerPaysCurrent
-			}
-			done = true
-		}
-
-		takerPaysCurrent = sub(takerPaysCurrent, crossingTakerGetsConsumed)
-		takerGetsCurrent = sub(takerGetsCurrent, crossingTakerPaysConsumed)
-
-		if(offer.syntheticAMM){
-			if(isSameToken(book.takerGets, ammCurrent.amount2)){
-				ammCurrent.amount1.value = sum(ammCurrent.amount1.value, crossingTakerPaysConsumed)
-				ammCurrent.amount2.value = sub(ammCurrent.amount2.value, crossingTakerGetsConsumed)
-			}else{
-				ammCurrent.amount2.value = sum(ammCurrent.amount2.value, crossingTakerPaysConsumed)
-				ammCurrent.amount1.value = sub(ammCurrent.amount1.value, crossingTakerGetsConsumed)
-			}
-
-			affectedAMM = {
-				amount1Previous: ammInitial.amount1,
-				amount2Previous: ammInitial.amount2,
-				amount1Final: ammCurrent.amount1,
-				amount2Final: ammCurrent.amount2
-			}
-			affectedOffer = {
-				amm: true,
-				synthetic: true,
-				limitQuality: offer.limitQuality,
-			}
-		}else{
-			bookIndex++
-			ownerFunds[offer.account] = sub(ownerFunds[offer.account], mul(crossingTakerGetsConsumed, sum(1, book.transferFee)))
-			affectedOffer = {
-				index: offer.index,
-				sequence: offer.sequence,
-				account: offer.account,
-				deleted: consumeOfferFully && gte(crossingTakerGetsConsumed, offer.takerGets.value),
-				expiration: offer.expiration,
-				limitQuality: offer.quality
-			}
-		}
-
-		affectedOffers.push({
-			...affectedOffer,
-			limitQuality: mul(affectedOffer.limitQuality, sub(1, epsilon)),
-			takerPaysPrevious: offer.takerPays,
-			takerGetsPrevious: offer.takerGets,
-			takerPaysFinal: {
-				...offer.takerPays,
-				value: sub(offer.takerPays.value, crossingTakerPaysConsumed)
+		return {
+			takerGot: {
+				...takerGets,
+				value: '0'
 			},
-			takerGetsFinal: {
-				...offer.takerGets,
-				value: sub(offer.takerGets.value, crossingTakerGetsConsumed)
-			}
-		})
-		
-		done = done || (
-			tfSell
-				? lte(takerGetsCurrent, 0)
-				: lte(takerPaysCurrent, 0)
-		)
-
-		if(done){
-			partial = false
-			incomplete = false
-			break
+			takerPaid: {
+				...takerPays,
+				value: '0'
+			},
+			partial: true,
+			affectedOffers: [],
+			affectedAMM: undefined,
+			finalBook: structuredClone(sameBook)
 		}
-	}
-
-	if(incomplete && partial){
-		if(book.incomplete){
-			await book.loadMore()
-			return await simulateOffer({ takerPays, takerGets, tfSell, book })
-		}
-	}
-
-	let takerPaidValue = sub(takerPaysInitial, takerPaysCurrent)
-	let takerGotValue = sub(takerGetsInitial, takerGetsCurrent)
-
-	if(tfSell){
-		takerPaidValue = mul(takerPaidValue, sub(1, epsilon))
-	}else{
-		takerGotValue = mul(takerGotValue, sub(1, epsilon))
 	}
 
 	return {
+		takerGot: actualIn,
 		takerPaid: {
-			...takerPays,
-			value: takerPaidValue
+			...actualOut,
+			value: mul(actualOut.value, oneMinusEpsilon)
 		},
-		takerGot: {
-			...takerGets,
-			value: takerGotValue
-		},
-		partial,
-		limitQuality: affectedOffers[affectedOffers.length - 1]?.limitQuality,
-		affectedOffers,
-		affectedAMM,
-		finalBook: {
-			takerPays: book.takerPays,
-			takerGets: book.takerGets,
-			ownerFunds,
-			amm: ammCurrent,
-			offers: book.offers
-				.filter(offer => !affectedOffers.some(
-					affected => affected.index === offer.index && affected.deleted
-				))
-				.map(offer => {
-					let affected = affectedOffers.find(affected => affected.index === offer.index)
-
-					if(affected)
-						return {
-							...offer,
-							takerPays: { ...affected.takerPaysFinal },
-							takerGets: { ...affected.takerGetsFinal },
-							takerGetsFunded: undefined,
-							takerPaysFunded: undefined
-						}
-					else
-						return { ...offer }
-				})
-		}
+		partial: tfSell
+			? lt(actualIn.value, mul(takerGets.value, oneMinusEpsilon))
+			: lt(actualOut.value, mul(takerPays.value, oneMinusEpsilon)),
+		affectedOffers: actualAffected[getBookSignature(book)],
+		finalBook: finalStrands[0][0].book
 	}
 }
 
@@ -267,128 +92,16 @@ export function offerFromRippled(offer){
 	let takerPays = amountFromRippled(offer.TakerPays)
 	let takerGetsFunded = amountFromRippled(offer.taker_gets_funded || offer.TakerGets)
 	let takerPaysFunded = amountFromRippled(offer.taker_pays_funded || offer.TakerPays)
-	let unfunded = eq(takerPaysFunded.value, 0)
 	
 	return {
 		index: offer.index,
 		account: offer.Account,
 		sequence: offer.Sequence,
 		expiration: offer.Expiration,
-		takerGets: takerGets,
-		takerPays: takerPays,
-		takerGetsFunded: takerGetsFunded,
-		takerPaysFunded: takerPaysFunded,
-		unfunded,
-		quality: unfunded
-			? div(takerGets.value, takerPays.value)
-			: div(takerGetsFunded.value, takerPaysFunded.value),
-	}
-}
-
-function generateSyntheticAMMOffer(ammInitial, ammCurrent, amountIn, amountOut, minQuality, tfSell){
-	let limitQuality
-
-	if(minQuality){
-		let poolAligned = ammAlign(ammCurrent, amountIn)
-		let poolSPQ = div(poolAligned.poolPays.value, poolAligned.poolGets.value)
-
-		if(lte(poolSPQ, minQuality) || withinRelativeDistance(poolSPQ, minQuality, '0.0000001'))
-			return
-
-		let f = sub(1, ammInitial.fee)
-		let b = mul(poolAligned.poolGets.value, sum(1, f))
-		let c = sub(
-			mul(poolAligned.poolGets.value, poolAligned.poolGets.value), 
-			div(mul(poolAligned.poolGets.value, poolAligned.poolPays.value), minQuality)
-		)
-
-		let res = sub(mul(b, b), mul(mul(4, f), c))
-
-		if(lt(res, 0))
-			return
-
-		let nTakerPaysPropose = div(sum(neg(b), sqrt(res)), mul(f, 2))
-
-		if(lte(nTakerPaysPropose, 0))
-			return
-
-		let nTakerPaysConstraint = sub(
-			div(poolAligned.poolPays.value, minQuality), 
-			div(poolAligned.poolGets.value, f)
-		)
-
-		let nTakerPays = min(nTakerPaysPropose, nTakerPaysConstraint)
-
-		if(lte(nTakerPays, 0))
-			return
-
-		let takerPays = {
-			...amountIn,
-			value: nTakerPays
-		}
-
-		let takerGets = ammSwapIn(ammCurrent, takerPays)
-		let buyOfferSizeExceeded = !tfSell && gt(takerGets.value, amountOut.value)
-		let quality = limitQuality = div(takerGets.value, takerPays.value)
-
-		if(lt(nTakerPays, amountIn.value) && !buyOfferSizeExceeded){
-			return {
-				takerPays: takerPays,
-				takerGets: takerGets,
-				quality,
-				limitQuality,
-				syntheticAMM: true
-			}
-		}
-	}
-
-	let takerPays = tfSell ? amountIn : ammSwapOut(ammCurrent, amountOut)
-	let takerGets = tfSell ? ammSwapIn(ammCurrent, amountIn) : amountOut
-	let quality = div(takerGets.value, takerPays.value)
-
-	return {
-		takerPays,
 		takerGets,
-		quality,
-		limitQuality: limitQuality || quality,
-		syntheticAMM: true
-	}
-}
-
-function withinRelativeDistance(value1, value2, distance){
-	if(eq(value1, value2))
-		return true
-
-	let valueMin = min(value1, value2)
-	let valueMax = max(value1, value2)
-
-	return lt(div(sub(valueMax, valueMin), valueMax), distance)
-}
-
-
-const fib = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987,
-	1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393,
-	196418, 317811, 514229, 832040]
-
-function generateAMMFibSeqOffer(initial, current, iter, takerGetsAsset){
-	let initialAligned = ammAlign(initial, takerGetsAsset)
-	let takerPays = {
-		...initialAligned.poolGets,
-		value: div(initialAligned.poolGets.value, 40000)
-	}
-	let takerGets = swapAssetAMM(initial, takerPays)
-
-	if(iter > 0){
-		takerGets.value = mul(takerGets.value, fib[iter - 1])
-		takerPays = swapAssetAMM(current, takerGets)
-	}
-
-	return { 
 		takerPays,
-		takerGets,
-		takerPaysFunded: takerPays,
-		takerGetsFunded: takerGets,
+		takerGetsFunded,
+		takerPaysFunded,
 		quality: div(takerGets.value, takerPays.value),
-		syntheticAMM: true
 	}
 }
