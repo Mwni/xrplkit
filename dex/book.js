@@ -108,19 +108,59 @@ async function loadMoreBookOffers({ book, limit=100, socket }){
 		book.incomplete = false
 	}
 }
+
+export function cloneBook(book){
+	return {
+		...book,
+		ownerFunds: {...book.ownerFunds},
+		amm: book.amm ? {
+			...book.amm,
+			amount1: { ...book.amm.amount1 },
+			amount2: { ...book.amm.amount2 },
+		} : undefined,
+		offers: book.offers.map(
+			offer => ({
+				...offer,
+				takerGets: { ...offer.takerGets },
+				takerPays: { ...offer.takerPays },
+				takerGetsFunded: { ...offer.takerGetsFunded },
+				takerPaysFunded: { ...offer.takerPaysFunded },
+			})
+		)
+	}
+}
+
+export function getBookSpotQuality(book, includeFees){
 	if(book.offers.length === 0 && !book.amm)
 		return
 
 	let quality = book.offers[0]?.quality
 	
 	if(book.amm){
-		let ammAligned = ammAlign(book.amm, book.takerPays)
+		let ammAligned = alignAMM(book.amm, book.takerPays)
 		let poolQuality = div(ammAligned.poolPays.value, ammAligned.poolGets.value)
 
-		quality = quality
-			? max(quality, poolQuality)
-			: poolQuality
+		if(!quality || gt(poolQuality, quality))
+			return poolQuality
 	}
 
-	return div(1, quality)
+	if(includeFees){
+		quality = div(quality, book.transferRateOut)
+	}
+
+	return quality
+}
+
+export function getBookSpotPrice(book){
+	return div(1, getBookSpotQuality(book))
+}
+
+export function getBookSignature(book){
+	return [book.takerGets, book.takerPays]
+		.map(token => token.currency === 'XRP' ? `XRP` : `${token.currency}:${token.issuer}`)
+		.join('/')
+}
+
+export function filterExpiredBookOffers(offers, time){
+	return offers.filter(offer => !offer.expiration || offer.expiration >= time)
 }
