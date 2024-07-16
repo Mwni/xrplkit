@@ -1,89 +1,166 @@
-import { EventEmitter } from '@mwni/events'
-import { formatCurrency } from '@xrplkit/amount'
-import { div } from '@xrplkit/xfl'
-import { fillOffer } from './fill.js'
-import { diffLedger, diffTx } from './diff.js'
-import { calcOfferValues } from './offer.js'
+import { XFL, div, gt} from '@xrplkit/xfl'
+import { ammFromRippled, alignAMM } from '@xrplkit/amm'
+import { tokenFromAmount } from '@xrplkit/tokens'
+import { offerFromRippled } from './offer.js'
 
+export function bookFromRippled(book, amm){
+	let offers = []
+	let ownerFunds = {}
 
-export default function Book({ socket, takerPays, takerGets }){
-	let book = new EventEmitter()
-
-	takerPays = {
-		currency: takerPays.currency,
-		issuer: takerPays.issuer
+	if(book.offers.length === 0 && !amm){
+		throw new Error(`Book is empty and no AMM passed`)
 	}
 
-	takerGets = {
-		currency: takerGets.currency,
-		issuer: takerGets.issuer
-	}
+	if(amm)
+		amm = ammFromRippled(amm)
 
+	for(let raw of book.offers){
+		let offer = offerFromRippled(raw)
 
-	return Object.assign(
-		book,
-		{
-			offers: [],
-			takerPays,
-			takerGets,
-
-			async load({ limit = 1000, ledgerSequence = 'current' } = {}){
-				let result = await socket.request({
-					command: 'book_offers',
-					ledger_index: ledgerSequence,
-					taker_gets: this.takerGets,
-					taker_pays: this.takerPays,
-					limit
-				})
-		
-				book.offers.length = 0
-				book.offers.push(...result.offers)
-				book.ledgerSequence = result.ledger_current_index
-				book.emit('update')
-			},
-
-			async fillLazy({ initial = 5, stride = 10, ...args }){
-				let limit = initial
-				let steps = 0
-
-				while(true){
-					let offerCount = offers.length
-
-					await book.load(limit)
-
-					let res = fillOffer({ book, ...args })
-
-					if(!res.incomplete || offers.length <= offerCount)
-						return res
-
-					limit += stride * ++steps
-				}
-			},
-
-			fill({ takerGets, takerPays, tfSell = false, cushion = 0 }){
-				return fillOffer({ book, takerPays, takerGets, tfSell, cushion })
-			},
-
-			diffLedger(ledger){
-				diffLedger({ book, ledger })
-			},
-
-			diffTx(tx){
-				diffTx({ book, tx })
-			},
-
-			getBestPrice(){
-				for(let offer of book.offers){
-					let { funded, quality } = calcOfferValues(offer)
-
-					if(funded)
-						return div(1, quality)
-				}
-			},
-
-			toString(){
-				return `Book (${formatCurrency(takerGets)} / ${formatCurrency(takerPays)})`
-			}
+		if(raw.owner_funds){
+			ownerFunds[raw.Account] = offer.takerGets.currency === 'XRP'
+				? div(raw.owner_funds, '1000000')
+				: XFL(raw.owner_funds)
 		}
+
+		offers.push(offer)
+	}
+
+	return {
+		takerGets: tokenFromAmount(offers[0] ? offers[0].takerGets : amm.amount1),
+		takerPays: tokenFromAmount(offers[0] ? offers[0].takerPays : amm.amount2),
+		offers,
+		ownerFunds,
+		amm,
+		ledgerSequence: book.ledger_index || book.ledger_current_index
+	}
+}
+
+export async function loadBook({ takerPays, takerGets, ledgerSequence='validated', limit=100, socket }){
+	let promises = []
+	let book = {
+		takerPays,
+		takerGets,
+		ledgerSequence,
+		offers: [],
+		transferRateIn: 1,
+		transferRateOut: 1,
+		amm: null,
+		incomplete: true,
+	}
+
+	for(let token of [takerPays, takerGets]){
+		if(token.currency === 'XRP')
+			continue
+
+		promises.push(
+			socket.request({ command: 'account_info', account: token.issuer})
+				.then(info => info.account_data.TransferRate || 1000000000)
+				.then(rate => rate / 1000000000)
+				.then(fee => book[token === takerPays ? 'transferRateIn' : 'transferRateOut'] = fee)
+		)
+	}
+
+	promises.push(loadMoreBookOffers({ book, limit, socket }))
+	promises.push(
+		socket.request({
+			command: 'amm_info',
+			asset: {
+				currency: takerGets.currency,
+				issuer: takerGets.issuer
+			},
+			asset2: {
+				currency: takerPays.currency,
+				issuer: takerPays.issuer
+			},
+			ledger_index: ledgerSequence
+		})
+			.then(info => ammFromRippled(info.amm))
+			.then(amm => book.amm = amm)
+			.catch(e => void e)
 	)
+
+	await Promise.all(promises)
+
+	return book
+}
+
+async function loadMoreBookOffers({ book, limit=100, socket }){
+	let offerCount = (book.requestedOfferCount || 0) + limit
+	let result = await socket.request({
+		command: 'book_offers',
+		ledger_index: book.ledgerSequence,
+		taker_gets: {
+			currency: book.takerGets.currency,
+			issuer: book.takerGets.issuer
+		},
+		taker_pays: {
+			currency: book.takerPays.currency,
+			issuer: book.takerPays.issuer
+		},
+		limit: offerCount
+	})
+
+	if(result.offers.length > book.offers.length){
+		Object.assign(book, bookFromRippled(result))
+		book.requestedOfferCount = offerCount
+	}else{
+		book.incomplete = false
+	}
+}
+
+export function cloneBook(book){
+	return {
+		...book,
+		ownerFunds: {...book.ownerFunds},
+		amm: book.amm ? {
+			...book.amm,
+			amount1: { ...book.amm.amount1 },
+			amount2: { ...book.amm.amount2 },
+		} : undefined,
+		offers: book.offers.map(
+			offer => ({
+				...offer,
+				takerGets: { ...offer.takerGets },
+				takerPays: { ...offer.takerPays },
+				takerGetsFunded: { ...offer.takerGetsFunded },
+				takerPaysFunded: { ...offer.takerPaysFunded },
+			})
+		)
+	}
+}
+
+export function getBookSpotQuality(book, includeFees){
+	if(book.offers.length === 0 && !book.amm)
+		return
+
+	let quality = book.offers[0]?.quality
+	
+	if(book.amm){
+		let ammAligned = alignAMM(book.amm, book.takerPays)
+		let poolQuality = div(ammAligned.poolPays.value, ammAligned.poolGets.value)
+
+		if(!quality || gt(poolQuality, quality))
+			return poolQuality
+	}
+
+	if(includeFees){
+		quality = div(quality, book.transferRateOut)
+	}
+
+	return quality
+}
+
+export function getBookSpotPrice(book){
+	return div(1, getBookSpotQuality(book))
+}
+
+export function getBookSignature(book){
+	return [book.takerGets, book.takerPays]
+		.map(token => token.currency === 'XRP' ? `XRP` : `${token.currency}:${token.issuer}`)
+		.join('/')
+}
+
+export function filterExpiredBookOffers(offers, time){
+	return offers.filter(offer => !offer.expiration || offer.expiration >= time)
 }

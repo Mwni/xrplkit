@@ -1,21 +1,22 @@
-import { fromRippled as amountFromRippled } from '@xrplkit/amount'
-import { XFL, div, eq } from '@xrplkit/xfl'
+import { div } from '@xrplkit/xfl'
+import { amountFromRippled } from '@xrplkit/tokens'
 
 
-export function calcOfferValues(offer){
+export function offerFromRippled(offer){
 	let takerGets = amountFromRippled(offer.TakerGets)
 	let takerPays = amountFromRippled(offer.TakerPays)
 	let takerGetsFunded = amountFromRippled(offer.taker_gets_funded || offer.TakerGets)
 	let takerPaysFunded = amountFromRippled(offer.taker_pays_funded || offer.TakerPays)
 	
 	return {
-		takerGets: takerGetsFunded.value,
-		takerGetsRaw: takerGets.value,
-		takerPays: takerPaysFunded.value,
-		takerPaysRaw: takerPays.value,
-		funded: !eq(takerPaysFunded.value, 0),
-		quality: eq(takerPaysFunded.value, 0)
-			? div(takerGets.value, takerPays.value)
-			: div(takerGetsFunded.value, takerPaysFunded.value),
+		index: offer.index,
+		account: offer.Account,
+		sequence: offer.Sequence,
+		expiration: offer.Expiration,
+		takerGets,
+		takerPays,
+		takerGetsFunded,
+		takerPaysFunded,
+		quality: div(takerGets.value, takerPays.value),
 	}
 }
