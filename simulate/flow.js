@@ -2,9 +2,9 @@
 // https://ripple.com/reports/Payment-Engine-System-Design.pdf
 
 import { div, eq, gt, lt, lte, sum, sub, mul, neg, sqrt, min } from '@xrplkit/xfl'
-import { getBookSignature, loadBook, cloneBook, filterExpiredBookOffers, getBookSpotQuality } from './book.js'
+import { getBookSignature, cloneBook, filterExpiredBookOffers, getBookSpotQuality } from '@xrplkit/book'
 import { isSameToken } from '@xrplkit/tokens'
-import { alignAMM, swapInAMM, swapOutAMM } from './amm.js'
+import { alignAMM, swapInAMM, swapOutAMM } from '@xrplkit/amm'
 import { withinRelativeDistance } from './utils.js'
 
 const maxAmount = div(`9999999999999999e80`, 2)

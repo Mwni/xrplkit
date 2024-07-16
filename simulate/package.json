@@ -1,15 +1,14 @@
 {
-    "name": "@xrplkit/dex",
+    "name": "@xrplkit/simulate",
     "type": "module",
-    "version": "1.2.0",
+    "version": "1.0.0",
     "main": "index.js",
     "license": "ISC",
     "author": "xrplkit",
     "dependencies": {
+        "@xrplkit/book": "3.0.0",
+        "@xrplkit/amm": "1.0.0",
         "@xrplkit/tokens": "1.0.0",
         "@xrplkit/xfl": "2.1.0"
-    },
-    "publishConfig": {
-        "access": "public"
     }
 }

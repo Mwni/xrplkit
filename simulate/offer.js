@@ -1,6 +1,6 @@
 import { div, eq, sub, mul, lt } from '@xrplkit/xfl'
-import { getBookSignature, loadBook } from './book.js'
-import { amountFromRippled, isSameToken } from '@xrplkit/tokens'
+import { getBookSignature, loadBook } from '@xrplkit/book'
+import { isSameToken } from '@xrplkit/tokens'
 import { flow } from './flow.js'
 
 const epsilon = '0.00000000001'
@@ -84,24 +84,5 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 			: lt(actualOut.value, mul(takerPays.value, oneMinusEpsilon)),
 		affectedOffers: actualAffected[getBookSignature(book)],
 		finalBook: finalStrands[0][0].book
-	}
-}
-
-export function offerFromRippled(offer){
-	let takerGets = amountFromRippled(offer.TakerGets)
-	let takerPays = amountFromRippled(offer.TakerPays)
-	let takerGetsFunded = amountFromRippled(offer.taker_gets_funded || offer.TakerGets)
-	let takerPaysFunded = amountFromRippled(offer.taker_pays_funded || offer.TakerPays)
-	
-	return {
-		index: offer.index,
-		account: offer.Account,
-		sequence: offer.Sequence,
-		expiration: offer.Expiration,
-		takerGets,
-		takerPays,
-		takerGetsFunded,
-		takerPaysFunded,
-		quality: div(takerGets.value, takerPays.value),
 	}
 }

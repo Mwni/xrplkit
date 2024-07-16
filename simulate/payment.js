@@ -1,6 +1,5 @@
 import { mul, div, eq, sub, lt } from '@xrplkit/xfl'
-import { cloneBook, getBookSignature, loadBook } from './book.js'
-import { amountFromRippled, isSameToken } from '@xrplkit/tokens'
+import { cloneBook, getBookSignature, loadBook } from '@xrplkit/book'
 import { flow } from './flow.js'
 
 const epsilon = '0.00000000001'
@@ -63,28 +62,5 @@ export async function simulatePayment({ deliverMax, deliverMin, sendMax, tfParti
 		partial,
 		affectedOffers: actualAffected[getBookSignature(book)],
 		finalBook: finalStrands[0][0]
-	}
-}
-
-export function offerFromRippled(offer){
-	let takerGets = amountFromRippled(offer.TakerGets)
-	let takerPays = amountFromRippled(offer.TakerPays)
-	let takerGetsFunded = amountFromRippled(offer.taker_gets_funded || offer.TakerGets)
-	let takerPaysFunded = amountFromRippled(offer.taker_pays_funded || offer.TakerPays)
-	let unfunded = eq(takerPaysFunded.value, 0)
-	
-	return {
-		index: offer.index,
-		account: offer.Account,
-		sequence: offer.Sequence,
-		expiration: offer.Expiration,
-		takerGets: takerGets,
-		takerPays: takerPays,
-		takerGetsFunded: takerGetsFunded,
-		takerPaysFunded: takerPaysFunded,
-		unfunded,
-		quality: unfunded
-			? div(takerGets.value, takerPays.value)
-			: div(takerGetsFunded.value, takerPaysFunded.value),
 	}
 }
