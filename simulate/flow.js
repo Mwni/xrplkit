@@ -210,9 +210,13 @@ function directStepForward(ctx, step, in_){
 }
 
 function forEachOffer(ctx, step, callback){
-	let offers = filterExpiredBookOffers(step.book.offers, ctx.time)
-		.filter(offer => gt(step.book.ownerFunds[offer.account], 0))
+	let offers = step.book.offers.filter(
+		offer => gt(step.book.ownerFunds[offer.account], 0)
+	)
 
+	if(ctx.time)
+		offers = filterExpiredBookOffers(step.book.offers, ctx.time)
+	
 	if(offers.length > 0){
 		if(tryAMM(ctx, step, offers[0].quality, callback)){
 			for(let offer of offers){
