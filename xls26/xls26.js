@@ -83,6 +83,7 @@ const issuerFields = [
 const tokenFields = [
 	{
 		key: 'currency',
+		alternativeKeys: ['code'],
 		essential: true,
 		validate: v => {
 			if(typeof v !== 'string' && v.length < 3)
