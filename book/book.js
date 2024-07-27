@@ -3,9 +3,13 @@ import { ammFromRippled, alignAMM } from '@xrplkit/amm'
 import { tokenFromAmount } from '@xrplkit/tokens'
 import { offerFromRippled } from './offer.js'
 
-export function bookFromRippled(book, amm){
+export function bookFromRippled(book, amm, issuers){
 	let offers = []
 	let ownerFunds = {}
+	let rates = {
+		transferRateIn: 1,
+		transferRateOut: 1
+	}
 
 	if(book.offers.length === 0 && !amm){
 		throw new Error(`Book is empty and no AMM passed`)
@@ -26,13 +30,33 @@ export function bookFromRippled(book, amm){
 		offers.push(offer)
 	}
 
+	let takerGets = tokenFromAmount(offers[0] ? offers[0].takerGets : amm.amount1)
+	let takerPays = tokenFromAmount(offers[0] ? offers[0].takerPays : amm.amount2)
+
+	if(issuers){
+		for(let token of [takerPays, takerGets]){
+			if(token.currency === 'XRP')
+				continue
+
+			let issuer = issuers.find(issuer => issuer.Account === token.issuer)
+
+			if(!issuer)
+				continue
+
+			rates[token === takerPays ? 'transferRateIn' : 'transferRateOut'] = (
+				(issuer.TransferRate || 1000000000) / 1000000000
+			)
+		}
+	}
+
 	return {
-		takerGets: tokenFromAmount(offers[0] ? offers[0].takerGets : amm.amount1),
-		takerPays: tokenFromAmount(offers[0] ? offers[0].takerPays : amm.amount2),
+		takerGets,
+		takerPays,
 		offers,
 		ownerFunds,
 		amm,
-		ledgerSequence: book.ledger_index || book.ledger_current_index
+		ledgerSequence: book.ledger_index || book.ledger_current_index,
+		...rates
 	}
 }
 
@@ -143,6 +167,7 @@ export function getBookSpotQuality(book, includeFees){
 		if(!quality || gt(poolQuality, quality))
 			return poolQuality
 	}
+
 
 	if(includeFees){
 		quality = div(quality, book.transferRateOut)
