@@ -7,8 +7,5 @@
     "dependencies": {
         "@mwni/events": "^1.0.0",
         "ws": "^8.7.0"
-    },
-    "publishConfig": {
-        "access": "public"
     }
 }

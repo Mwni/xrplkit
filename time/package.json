@@ -4,8 +4,5 @@
     "version": "1.0.0",
     "main": "time.js",
     "license": "ISC",
-    "author": "xrplkit",
-    "publishConfig": {
-        "access": "public"
-    }
+    "author": "xrplkit"
 }

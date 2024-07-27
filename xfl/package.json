@@ -7,8 +7,5 @@
 		".": "./wrappers/class.js",
 		"./str": "./wrappers/string.js",
 		"./extras": "./extras/index.js"
-	},
-	"publishConfig": {
-		"access": "public"
 	}
 }
