@@ -47,12 +47,19 @@ export async function simulatePayment({ deliverMax, deliverMin, sendMax, tfParti
 	})
 
 	let partial = lt(actualOut.value, mul(deliverMax.value, oneMinusEpsilon))
+	let deliveredInsufficient = lt(actualOut.value, mul(deliverMin.value, oneMinusEpsilon))
 
-	if(eq(actualOut.value, 0) || (partial && !tfPartialPayment)){
+	if(eq(actualOut.value, 0) || (partial && !tfPartialPayment) || deliveredInsufficient){
 		return {
 			pathDry: true,
-			delivered: actualOut,
-			sent: actualIn,
+			delivered: {
+				...actualOut,
+				value: 0
+			},
+			sent: {
+				...actualIn,
+				value: 0
+			},
 			partial,
 			affectedOffers: [],
 			finalBook: cloneBook(book)
