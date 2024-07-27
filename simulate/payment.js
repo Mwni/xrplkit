@@ -36,7 +36,10 @@ export async function simulatePayment({ deliverMax, deliverMin, sendMax, tfParti
 	let { actualIn, actualOut, actualAffected, finalStrands } = await flow({
 		deliver: deliverMax,
 		sendMax: sendMax,
-		strands: [[{ book, payment: true }]],
+		strands: [[
+			{ book }, 
+			{ direct: true, transferRate: book.transferRateOut }
+		]],
 		limitQuality: tfLimitQuality
 			? div(deliverMax.value, sendMax.value)
 			: undefined,

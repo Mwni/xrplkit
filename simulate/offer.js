@@ -48,6 +48,7 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 		},
 		sendMax: takerGets,
 		strands: [[{ book }]],
+		offerCrossing: tfSell ? 2 : 1,
 		limitQuality: takerGets && takerPays
 			? div(takerPays.value, takerGets.value)
 			: undefined,

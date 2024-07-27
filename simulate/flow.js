@@ -9,7 +9,7 @@ import { withinRelativeDistance } from './utils.js'
 
 const maxAmount = div(`9999999999999999e80`, 2)
 
-export async function flow({ deliver, sendMax, strands, limitQuality, time }){
+export async function flow({ deliver, sendMax, strands, offerCrossing, limitQuality, time }){
 	let remainingOut = deliver.value
 	let remainingIn = sendMax.value
 	let actualOut = 0
@@ -26,13 +26,13 @@ export async function flow({ deliver, sendMax, strands, limitQuality, time }){
 		}
 
 		for(let strand of activeStrands){
-			if(limitQuality){
-				if(lt(qualityUpperBound(strand), limitQuality))
+			if(offerCrossing && limitQuality){
+				if(lt(qualityUpperBound(strand, offerCrossing), limitQuality))
 					continue
 			}
 
 			let { valueIn, valueOut, finalStrand } = executeStrand(
-				{ limitQuality, isMultiPath, time }, 
+				{ offerCrossing, limitQuality, isMultiPath, time }, 
 				strand, 
 				remainingIn, 
 				remainingOut
@@ -56,12 +56,14 @@ export async function flow({ deliver, sendMax, strands, limitQuality, time }){
 			strands.splice(strands.indexOf(best.strand), 1, best.finalStrand)
 
 			for(let step of best.finalStrand){
-				let signature = getBookSignature(step.book)
+				if(step.book){
+					let signature = getBookSignature(step.book)
 
-				actualAffected[signature] = [
-					...(actualAffected[signature] || []),
-					...(step.affected || [])
-				]
+					actualAffected[signature] = [
+						...(actualAffected[signature] || []),
+						...(step.affected || [])
+					]
+				}
 			}
 		}else{
 			break
@@ -109,7 +111,7 @@ function executeStrand(ctx, strand, maxIn, out){
 			strand = cloneStrand(originalStrand)
 			limitingStep = i
 
-			let [ valueIn, valueOut ] = stepForward(ctx, strand[i], maxIn)
+			;([ valueIn, valueOut ] = stepForward(ctx, strand[i], maxIn))
 			
 			limitStepOut = valueOut
 
@@ -121,13 +123,16 @@ function executeStrand(ctx, strand, maxIn, out){
 			limitingStep = i
 			stepOut = valueOut
 			
-			let [ valueIn, out ] = stepReverse(ctx, strand[i], stepOut)
+			;([ valueIn, out ] = stepReverse(ctx, strand[i], stepOut))
 
 			if(!eq(out, stepOut))
 				return { valueOut: 0 }
 
 			stepOut = valueIn
+			limitStepOut = valueOut
 		}
+
+		stepOut = valueIn
 	}
 
 	stepIn = limitStepOut
@@ -149,6 +154,20 @@ function executeStrand(ctx, strand, maxIn, out){
 }
 
 function stepReverse(ctx, step, out){
+	if(step.book)
+		return bookStepReverse(ctx, step, out)
+	else
+		return directStepReverse(ctx, step, out)
+}
+
+function stepForward(ctx, step, in_){
+	if(step.book)
+		return bookStepForward(ctx, step, in_)
+	else
+		return directStepForward(ctx, step, in_)
+}
+
+function bookStepReverse(ctx, step, out){
 	step.reverse = true
 	step.targetOut = out
 	step.remainingOut = out
@@ -162,7 +181,7 @@ function stepReverse(ctx, step, out){
 	return step.result
 }
 
-function stepForward(ctx, step, in_){
+function bookStepForward(ctx, step, in_){
 	step.reverse = false
 	step.targetIn = in_
 	step.remainingIn = in_
@@ -174,6 +193,20 @@ function stepForward(ctx, step, in_){
 	forEachOffer(ctx, step, eachOfferFwd)
 
 	return step.result
+}
+
+function directStepReverse(ctx, step, out){
+	return step.result = [
+		mul(out, step.transferRate), 
+		out
+	]
+}
+
+function directStepForward(ctx, step, in_){
+	return step.result = [
+		in_, 
+		div(in_, step.transferRate)
+	]
 }
 
 function forEachOffer(ctx, step, callback){
@@ -466,11 +499,11 @@ function limitOut(strand, remainingOut, limitQuality){
 	return remainingOut
 }
 
-function qualityUpperBound(strand){
+function qualityUpperBound(strand, offerCrossing){
 	let quality = 1
 
 	for(let step of strand){
-		quality = mul(quality, getBookSpotQuality(step.book, step.payment))
+		quality = mul(quality, getBookSpotQuality(step.book, !offerCrossing))
 	}
 
 	return quality
@@ -482,10 +515,12 @@ function offerFullyConsumed(step, offer){
 
 function cloneStrand(strand){
 	return strand.map(
-		step => ({
-			...step,
-			affected: step.affected ? [...step.affected] : undefined,
-			book: cloneBook(step.book)
-		})
+		step => step.book
+			? {
+				...step,
+				affected: step.affected ? [...step.affected] : undefined,
+				book: cloneBook(step.book)
+			}
+			: { ...step }
 	)
 }
