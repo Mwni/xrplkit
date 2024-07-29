@@ -168,7 +168,6 @@ export function getBookSpotQuality(book, includeFees){
 			return poolQuality
 	}
 
-
 	if(includeFees){
 		quality = div(quality, book.transferRateOut)
 	}
@@ -177,7 +176,9 @@ export function getBookSpotQuality(book, includeFees){
 }
 
 export function getBookSpotPrice(book){
-	return div(1, getBookSpotQuality(book))
+	let quality = getBookSpotQuality(book)
+
+	return quality ? div(1, quality) : undefined
 }
 
 export function getBookSignature(book){
