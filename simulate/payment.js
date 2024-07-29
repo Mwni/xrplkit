@@ -23,9 +23,6 @@ export async function simulatePayment({ deliverMax, deliverMin, sendMax, tfParti
 	if(!deliverMax)
 		throw new Error(`Parameter "deliverMax" is required`)
 
-	if(tfPartialPayment && !deliverMin)
-		throw new Error(`Parameter "deliverMin" must be set for an offer with tfPartialPayment=true`)
-
 	if(deliverMin){
 		if(tfPartialPayment === false)
 			throw new Error(`"tfPartialPayment" cannot be false for a payment with "deliverMin"`)
@@ -47,7 +44,9 @@ export async function simulatePayment({ deliverMax, deliverMin, sendMax, tfParti
 	})
 
 	let partial = lt(actualOut.value, mul(deliverMax.value, oneMinusEpsilon))
-	let deliveredInsufficient = lt(actualOut.value, mul(deliverMin.value, oneMinusEpsilon))
+	let deliveredInsufficient = deliverMin
+		? lt(actualOut.value, mul(deliverMin.value, oneMinusEpsilon))
+		: false
 
 	if(eq(actualOut.value, 0) || (partial && !tfPartialPayment) || deliveredInsufficient){
 		return {

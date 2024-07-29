@@ -41,7 +41,7 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 
 	let { actualIn, actualOut, actualAffected, finalStrands } = await flow({
 		deliver: {
-			...takerPays,
+			...(takerPays || book.takerGets),
 			value: tfSell
 				? div(`9999999999999999e80`, 2)
 				: takerPays.value

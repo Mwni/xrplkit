@@ -215,7 +215,7 @@ function forEachOffer(ctx, step, callback){
 	)
 
 	if(ctx.time)
-		offers = filterExpiredBookOffers(step.book.offers, ctx.time)
+		offers = filterExpiredBookOffers(offers, ctx.time)
 	
 	if(offers.length > 0){
 		if(tryAMM(ctx, step, offers[0].quality, callback)){
@@ -425,8 +425,10 @@ function getAMMOffer(ctx, step, quality){
 	let { poolGets, poolPays } = alignAMM(step.book.amm, step.book.takerPays)
 	let spotPriceQ = div(poolPays.value, poolGets.value)
 
-	if(lte(spotPriceQ, quality) || withinRelativeDistance(spotPriceQ, quality, '0.0000001'))
-		return
+	if(quality){
+		if(lte(spotPriceQ, quality) || withinRelativeDistance(spotPriceQ, quality, '0.0000001'))
+			return
+	}
 
 	if(ctx.isMultiPath){
 		// todo
@@ -437,7 +439,10 @@ function getAMMOffer(ctx, step, quality){
 			amm: true,
 			takerPays: {
 				...poolGets,
-				value: swapOutAMM(step.book.amm, out)
+				value: swapOutAMM(step.book.amm, {
+					...step.book.takerGets,
+					value: out
+				}).value
 			},
 			takerGets: {
 				...poolPays,
