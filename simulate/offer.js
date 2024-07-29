@@ -5,6 +5,7 @@ import { flow } from './flow.js'
 
 const epsilon = '0.00000000001'
 const oneMinusEpsilon = sub('1', epsilon)
+const onePlusEpsilon = sub('1', epsilon)
 
 export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, socket }){
 	if(!book){
@@ -69,10 +70,14 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 			},
 			partial: true,
 			affectedOffers: [],
-			affectedAMM: undefined,
-			finalBook: structuredClone(sameBook)
+			finalBook: structuredClone(sameBook),
+			limitQuality: undefined
 		}
 	}
+
+	let affectedOffers = actualAffected[getBookSignature(book)]
+	let finalBook = finalStrands[0][0].book
+	let limitQuality = affectedOffers[affectedOffers.length - 1].quality
 
 	return {
 		takerGot: actualIn,
@@ -83,7 +88,8 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 		partial: tfSell
 			? lt(actualIn.value, mul(takerGets.value, oneMinusEpsilon))
 			: lt(actualOut.value, mul(takerPays.value, oneMinusEpsilon)),
-		affectedOffers: actualAffected[getBookSignature(book)],
-		finalBook: finalStrands[0][0].book
+		affectedOffers,
+		finalBook,
+		limitQuality
 	}
 }
