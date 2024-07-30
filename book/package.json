@@ -8,6 +8,6 @@
     "dependencies": {
         "@xrplkit/tokens": "1.0.0",
         "@xrplkit/amm": "1.0.0",
-        "@xrplkit/xfl": "2.1.0"
+        "@xrplkit/xfl": "2.1.1"
     }
 }
