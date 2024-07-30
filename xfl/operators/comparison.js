@@ -20,14 +20,16 @@ export function lt(a, b){
     if (b.mantissa === 0n)
         return false
 
+	let bothNegative = aNegative && bNegative
+
     if (a.exponent > b.exponent)
         return aNegative
     if (a.exponent < b.exponent)
         return !aNegative
     if (a.mantissa > b.mantissa)
-        return aNegative
+        return bothNegative ? !aNegative : aNegative
     if (a.mantissa < b.mantissa)
-        return !aNegative
+        return bothNegative ? aNegative: !aNegative
 
     return false
 }
