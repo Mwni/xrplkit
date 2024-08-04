@@ -268,8 +268,6 @@ function eachOfferFwd(step, offer, ofrAmt, stpAmt, ownerGives, rates){
 		step.result = [step.savedIn, step.savedOut]
 
 		processMore = true
-
-		return true
 	}else{
 		({ ofrAmt, stpAmt, ownerGives } = limitStepIn(step, offer, stpAmt, ofrAmt, ownerGives, rates));
 
@@ -481,11 +479,16 @@ function getAMMOffer(ctx, step, quality){
 			...step.book.takerPays,
 			value: nTakerPays
 		}
+		let takerGets = swapInAMM(step.book.amm, takerPays)
+		let effectiveQuality = div(takerGets.value, takerPays.value)
+
+		if(lt(effectiveQuality, quality) && !withinRelativeDistance(effectiveQuality, quality, '0.0000001'))
+			return
 
 		return {
 			amm: true,
 			takerPays,
-			takerGets: swapInAMM(step.book.amm, takerPays)
+			takerGets
 		}
 	}
 }
