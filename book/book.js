@@ -60,7 +60,7 @@ export function bookFromRippled(book, amm, issuers){
 	}
 }
 
-export async function loadBook({ takerPays, takerGets, ledgerSequence='validated', limit=100, socket }){
+export async function loadBook({ takerPays, takerGets, ledgerSequence='current', limit=100, socket }){
 	let promises = []
 	let book = {
 		takerPays,
