@@ -11,10 +11,10 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 		if(!socket)
 			throw new Error(`Either "book" or "socket" is required`)
 
-		book = await loadBook({ 
+		book = await loadBook({
 			takerPays: takerGets, 
 			takerGets: takerPays, 
-			socket 
+			socket
 		})
 	}
 
@@ -28,15 +28,15 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 			throw new Error(`Parameter "takerGets" is different than in the passed book`)
 	}
 	
-	if(takerPays && eq(takerPays.value, 0))
+	if(takerPays?.value !== undefined && eq(takerPays.value, 0))
 		throw new Error(`Value of "takerPays" must be greater than zero`)
 
-	if(takerGets && eq(takerGets.value, 0))
+	if(takerGets?.value !== undefined && eq(takerGets.value, 0))
 		throw new Error(`Value of "takerGets" must be greater than zero`)
 	
-	if(tfSell && !takerGets)
+	if(tfSell && !takerGets?.value)
 		throw new Error(`Parameter "takerGets" must be set for an offer with tfSell=true`)
-	else if(!takerPays)
+	else if(!takerPays?.value)
 		tfSell = true
 
 	let { actualIn, actualOut, actualAffected, finalStrands } = await flow({
@@ -46,10 +46,15 @@ export async function simulateOffer({ takerPays, takerGets, tfSell, time, book, 
 				? div(`9999999999999999e80`, 2)
 				: takerPays.value
 		},
-		sendMax: takerGets,
+		sendMax: {
+			...(takerGets || book.takerPays),
+			value: takerGets?.value 
+				? takerGets.value
+				: div(`9999999999999999e80`, 2)
+		},
 		strands: [[{ book }]],
 		offerCrossing: tfSell ? 2 : 1,
-		limitQuality: takerGets && takerPays
+		limitQuality: takerGets?.value && takerPays?.value
 			? div(takerPays.value, takerGets.value)
 			: undefined,
 		time
