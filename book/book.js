@@ -1,4 +1,4 @@
-import { XFL, div, gt} from '@xrplkit/xfl'
+import { XFL, div, gt, lt} from '@xrplkit/xfl'
 import { ammFromRippled, alignAMM } from '@xrplkit/amm'
 import { tokenFromAmount } from '@xrplkit/tokens'
 import { offerFromRippled } from './offer.js'
@@ -131,6 +131,25 @@ async function loadMoreBookOffers({ book, limit=100, socket }){
 	}else{
 		book.incomplete = false
 	}
+}
+
+export function addOfferToBook({ book, offer, ownerFunds }){
+	if(!offer.quality)
+		offer.quality = div(offer.takerGets.value, offer.takerPays.value)
+
+	for(let i=0; i<book.offers.length; i++){
+		if(lt(book.offers[i].quality, offer.quality)){
+			book.offers.splice(i, 0, offer)
+			break
+		}
+	}
+
+	if(!book.offers.includes(offer))
+		book.offers.push(offer)
+
+	book.ownerFunds[offer.account] = ownerFunds === undefined
+		? (offer.takerGetsFunded?.value || offer.takerGets.value)
+		: ownerFunds
 }
 
 export function cloneBook(book){
