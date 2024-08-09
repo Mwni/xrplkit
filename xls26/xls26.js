@@ -204,8 +204,8 @@ export function parse(str){
 	let advisories = []
 
 
-	if(toml.ISSUERS){
-		for(let stanza of toml.ISSUERS){
+	if((toml.ISSUERS || toml.ACCOUNTS)){
+		for(let stanza of (toml.ISSUERS || toml.ACCOUNTS)){
 			let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, issuerFields)
 
 			if(valid)
@@ -238,8 +238,8 @@ export function parse(str){
 		}
 	}
 
-	if(toml.TOKENS){
-		for(let stanza of toml.TOKENS){
+	if((toml.TOKENS || toml.CURRENCIES)){
+		for(let stanza of (toml.TOKENS || toml.CURRENCIES)){
 			let { valid, parsed: token, issues: tokenIssues } = parseStanza(stanza, tokenFields)
 
 			if(valid)
