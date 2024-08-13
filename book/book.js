@@ -1,6 +1,6 @@
 import { XFL, div, gt, lt} from '@xrplkit/xfl'
 import { ammFromRippled, alignAMM } from '@xrplkit/amm'
-import { tokenFromAmount } from '@xrplkit/tokens'
+import { tokenFromAmount, currencyUTF8ToHex } from '@xrplkit/tokens'
 import { offerFromRippled } from './offer.js'
 
 export function bookFromRippled(book, amm, issuers){
@@ -115,11 +115,11 @@ async function loadMoreBookOffers({ book, limit=100, socket }){
 		command: 'book_offers',
 		ledger_index: book.ledgerSequence,
 		taker_gets: {
-			currency: book.takerGets.currency,
+			currency: currencyUTF8ToHex(book.takerGets.currency),
 			issuer: book.takerGets.issuer
 		},
 		taker_pays: {
-			currency: book.takerPays.currency,
+			currency: currencyUTF8ToHex(book.takerPays.currency),
 			issuer: book.takerPays.issuer
 		},
 		limit: offerCount
