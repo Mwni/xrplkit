@@ -126,7 +126,10 @@ async function loadMoreBookOffers({ book, limit=100, socket }){
 	})
 
 	if(result.offers.length > book.offers.length){
-		Object.assign(book, bookFromRippled(result))
+		let { offers, ownerFunds } = bookFromRippled(result)
+
+		book.offers = offers
+		book.ownerFunds = ownerFunds
 		book.requestedOfferCount = offerCount
 	}else{
 		book.incomplete = false
