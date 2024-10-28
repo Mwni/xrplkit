@@ -293,7 +293,7 @@ function execOffer(ctx, step, offer, callback){
 	else if(!eq(step.ofrQ, offerQuality))
 		return false
 
-	if(ctx.limitQuality && lt(offerQuality, ctx.limitQuality))
+	if(!offer.amm && ctx.offerCrossing > 0 && ctx.limitQuality && lt(offerQuality, ctx.limitQuality))
 		return false
 
 	let rates = adjustRates(step, offer)
@@ -317,20 +317,19 @@ function execOffer(ctx, step, offer, callback){
 
 function consumeOffer(step, offer, ofrAmt, stpAmt, ownerGives){
 	let affected
-	let takerGetsPrevious = offer.takerGets
-	let takerPaysPrevious = offer.takerPays
-
-	offer.takerPays = {
-		...offer.takerPays,
-		value: sub(offer.takerPays.value, stpAmt[0])
-	}
-
-	offer.takerGets = {
-		...offer.takerGets,
-		value: sub(offer.takerGets.value, stpAmt[1])
-	}
+	let takerPaysPrevious
+	let takerGetsPrevious
 
 	if(offer.amm){
+		takerPaysPrevious = {
+			...offer.takerPays,
+			value: ofrAmt[0]
+		}
+		takerGetsPrevious = {
+			...offer.takerGets,
+			value: ofrAmt[1]
+		}
+
 		if(isSameToken(step.book.takerGets, step.book.amm.amount2)){
 			step.book.amm.amount1.value = sum(step.book.amm.amount1.value, stpAmt[0])
 			step.book.amm.amount2.value = sub(step.book.amm.amount2.value, stpAmt[1])
@@ -343,7 +342,11 @@ function consumeOffer(step, offer, ofrAmt, stpAmt, ownerGives){
 			amm: true
 		}
 	}else{
+		takerPaysPrevious = offer.takerPays
+		takerGetsPrevious = offer.takerGets
+
 		step.book.ownerFunds[offer.account] = sub(step.book.ownerFunds[offer.account], ownerGives)
+
 		affected = {
 			index: offer.index,
 			sequence: offer.sequence,
@@ -351,6 +354,16 @@ function consumeOffer(step, offer, ofrAmt, stpAmt, ownerGives){
 			expiration: offer.expiration,
 			deleted: offerFullyConsumed(step, offer),
 		}
+	}
+
+	offer.takerPays = {
+		...offer.takerPays,
+		value: sub(offer.takerPays.value, stpAmt[0])
+	}
+
+	offer.takerGets = {
+		...offer.takerGets,
+		value: sub(offer.takerGets.value, stpAmt[1])
 	}
 
 	step.affected = [
@@ -408,6 +421,9 @@ function limitOfferOut(step, offer, ofrAmt, limit){
 }
 
 function tryAMM(ctx, step, quality, callback){
+	if(quality && ctx.limitQuality && gt(ctx.limitQuality, quality))
+		quality = undefined
+
 	let ammOffer = getAMMOffer(ctx, step, quality)
 
 	if(ammOffer && !execOffer(ctx, step, ammOffer, callback))
@@ -435,62 +451,136 @@ function getAMMOffer(ctx, step, quality){
 
 		return {
 			amm: true,
-			takerPays: {
-				...poolGets,
-				value: swapOutAMM(step.book.amm, {
-					...step.book.takerGets,
-					value: out
-				}).value
-			},
+			takerPays: swapOutAMM(step.book.amm, {
+				...poolPays,
+				value: out
+			}),
 			takerGets: {
 				...poolPays,
 				value: out
 			}
 		}
 	}else{
-		let f = sub(1, step.book.amm.fee)
-		let b = mul(poolGets.value, sum(1, f))
-		let c = sub(
-			mul(poolGets.value, poolGets.value), 
-			div(mul(poolGets.value, poolPays.value), quality)
-		)
+		let offer = poolPays.currency === 'XRP'
+			? getAMMOfferStartWithTakerGets(ctx, step, quality, poolGets, poolPays)
+			: getAMMOfferStartWithTakerPays(ctx, step, quality, poolGets, poolPays)
 
-		let res = sub(mul(b, b), mul(mul(4, f), c))
-
-		if(lt(res, 0))
+		if(!offer)
 			return
 
-		let nTakerPaysPropose = div(sum(neg(b), sqrt(res)), mul(f, 2))
-
-		if(lte(nTakerPaysPropose, 0))
-			return
-
-		let nTakerPaysConstraint = sub(
-			div(poolPays.value, quality), 
-			div(poolGets.value, f)
-		)
-
-		let nTakerPays = min(nTakerPaysPropose, nTakerPaysConstraint)
-
-		if(lte(nTakerPays, 0))
-			return
-
-		let takerPays = {
-			...step.book.takerPays,
-			value: nTakerPays
-		}
-		let takerGets = swapInAMM(step.book.amm, takerPays)
-		let effectiveQuality = div(takerGets.value, takerPays.value)
-
-		if(lt(effectiveQuality, quality) && !withinRelativeDistance(effectiveQuality, quality, '0.0000001'))
+		if(lt(offer.quality, quality))
 			return
 
 		return {
 			amm: true,
-			takerPays,
-			takerGets
+			...offer
 		}
 	}
+}
+
+function getAMMOfferStartWithTakerGets(ctx, step, quality, poolGets, poolPays){
+	let f = sub(1, step.book.amm.fee)
+	let a = 1
+	let b = sub(
+		mul(poolGets.value, mul(sub(1, div(1, f)), quality)), 
+		mul(2, poolPays.value)
+	)
+	let c = sub(
+		mul(poolPays.value, poolPays.value), 
+		mul(mul(poolGets.value, poolPays.value), quality)
+	)
+
+	let nTakerGets = solveQuadraticEqSmallest(a, b, c)
+
+	if(!nTakerGets)
+		return
+
+	let nTakerGetsConstraint = mul(mul(poolGets.value, poolPays.value), mul(quality, f))
+
+	if(lt(nTakerGetsConstraint, 0))
+		return
+
+	if(lt(nTakerGetsConstraint, nTakerGets))
+		nTakerGets = nTakerGetsConstraint
+
+	let getOffer = nTakerGetsProposed => {
+		let takerGets = {
+			...step.book.takerGets,
+			value: nTakerGetsProposed
+		}
+		let takerPays = swapOutAMM(step.book.amm, takerGets)
+		let quality = div(nTakerGetsProposed, takerPays.value)
+		
+		return {
+			takerGets,
+			takerPays,
+			quality
+		}
+	}
+
+	let offer = getOffer(nTakerGets)
+
+	if(lt(offer.quality, quality))
+		return getOffer(mul(nTakerGets, '0.9999'))
+	else
+		return offer
+}
+
+function getAMMOfferStartWithTakerPays(ctx, step, quality, poolGets, poolPays){
+	let f = sub(1, step.book.amm.fee)
+	let a = f
+	let b = mul(poolGets.value, sum(1, f))
+	let c = sub(
+		mul(poolGets.value, poolGets.value), 
+		div(mul(poolGets.value, poolPays.value), quality)
+	)
+
+	let nTakerPays = solveQuadraticEqSmallest(a, b, c)
+
+	if(!nTakerPays)
+		return
+
+	let nTakerPaysConstraint = sub(
+		div(poolPays.value, quality), 
+		div(poolGets.value, f)
+	)
+	
+	if(lt(nTakerPaysConstraint, nTakerPays))
+		nTakerPays = nTakerPaysConstraint
+
+	let getOffer = nTakerPaysProposed => {
+		let takerPays = {
+			...step.book.takerPays,
+			value: nTakerPaysProposed
+		}
+		let takerGets = swapInAMM(step.book.amm, takerPays)
+		let quality = div(takerGets.value, nTakerPaysProposed)
+
+		return {
+			takerPays,
+			takerGets,
+			quality
+		}
+	}
+
+	let offer = getOffer(nTakerPays)
+
+	if(lt(offer.quality, quality))
+		return getOffer(mul(nTakerPays, '0.9999'))
+	else
+		return offer
+}
+
+function solveQuadraticEqSmallest(a, b, c){
+	let d = sub(mul(b, b), mul(mul(4, a), c))
+
+	if(lt(d, 0))
+		return
+
+	if(gt(b, 0))
+		return div(mul(c, 2), sub(neg(b), sqrt(d)))
+	else
+		return div(mul(c, 2), sum(neg(b), sqrt(d)))
 }
 
 function adjustRates(step, offer){
