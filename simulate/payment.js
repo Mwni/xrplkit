@@ -70,6 +70,6 @@ export async function simulatePayment({ deliverMax, deliverMin, sendMax, tfParti
 		delivered: actualOut,
 		partial,
 		affectedOffers: actualAffected[getBookSignature(book)],
-		finalBook: finalStrands[0][0]
+		finalBook: finalStrands[0][0].book
 	}
 }
