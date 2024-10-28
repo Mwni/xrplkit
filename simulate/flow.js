@@ -351,8 +351,7 @@ function consumeOffer(step, offer, ofrAmt, stpAmt, ownerGives){
 			index: offer.index,
 			sequence: offer.sequence,
 			account: offer.account,
-			expiration: offer.expiration,
-			deleted: offerFullyConsumed(step, offer),
+			expiration: offer.expiration
 		}
 	}
 
@@ -378,7 +377,8 @@ function consumeOffer(step, offer, ofrAmt, stpAmt, ownerGives){
 		}
 	]
 
-	if(affected.deleted){
+	if(offerFullyConsumed(step, offer)){
+		offer.deleted = true
 		step.book.offers.splice(step.book.offers.indexOf(offer), 1)
 	}
 }
