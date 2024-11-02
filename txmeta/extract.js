@@ -1,28 +1,27 @@
 import { amountFromRippled, isSameToken } from '@xrplkit/tokens'
-import { sum, sub, div, mul, eq, gt, lt } from '@xrplkit/xfl'
+import { sum, sub, div, mul, eq, gt, lt, abs } from '@xrplkit/xfl'
 
 
 export function extractExchanges(tx, options={}){
 	let hash = tx.hash || tx.transaction?.hash || tx.tx?.hash
 	let taker = tx.Account || tx.transaction?.Account || tx.tx?.Account
 	let exchanges = []
-	
 
-	for(let affected of (tx.meta || tx.metaData).AffectedNodes){
-		let node = affected.ModifiedNode || affected.DeletedNode
+	let affectedNodes = (tx.meta || tx.metaData).AffectedNodes
+		.map(affected => affected.ModifiedNode || affected.DeletedNode)
+		.filter(node => !!node)
 
-		if(!node || node.LedgerEntryType !== 'Offer')
-			continue
+	let affectedOffers = affectedNodes
+		.filter(node => node.LedgerEntryType === 'Offer')
+		.filter(node => node.PreviousFields && node.PreviousFields.TakerPays && node.PreviousFields.TakerGets)
 
-		if(!node.PreviousFields || !node.PreviousFields.TakerPays || !node.PreviousFields.TakerGets)
-			continue
-
-		let maker = node.FinalFields.Account
-		let sequence = node.FinalFields.Sequence
-		let previousTakerPays = amountFromRippled(node.PreviousFields.TakerPays)
-		let previousTakerGets = amountFromRippled(node.PreviousFields.TakerGets)
-		let finalTakerPays = amountFromRippled(node.FinalFields.TakerPays)
-		let finalTakerGets = amountFromRippled(node.FinalFields.TakerGets)
+	for(let { PreviousFields, FinalFields } of affectedOffers){
+		let maker = FinalFields.Account
+		let sequence = FinalFields.Sequence
+		let previousTakerPays = amountFromRippled(PreviousFields.TakerPays)
+		let previousTakerGets = amountFromRippled(PreviousFields.TakerGets)
+		let finalTakerPays = amountFromRippled(FinalFields.TakerPays)
+		let finalTakerGets = amountFromRippled(FinalFields.TakerGets)
 
 		exchanges.push({
 			hash,
@@ -30,15 +29,66 @@ export function extractExchanges(tx, options={}){
 			taker,
 			sequence,
 			takerPaid: {
-				currency: finalTakerPays.currency, 
-				issuer: finalTakerPays.issuer,
+				...finalTakerPays,
 				value: sub(previousTakerPays.value, finalTakerPays.value).toString()
 			},
 			takerGot: {
-				currency: finalTakerGets.currency, 
-				issuer: finalTakerGets.issuer,
+				...finalTakerGets,
 				value: sub(previousTakerGets.value, finalTakerGets.value).toString()
 			}
+		})
+	}
+
+	let affectedAMMs = affectedNodes
+		.filter(node => node.LedgerEntryType === 'AccountRoot')
+		.filter(node => node.FinalFields?.AMMID)
+
+	for(let { FinalFields, PreviousFields } of affectedAMMs){
+		let maker = FinalFields.Account
+		let amm = FinalFields.AMMID
+		let rippleState = affectedNodes
+			.filter(node => node.LedgerEntryType === 'RippleState')
+			.find(node => node.FinalFields.HighLimit.issuer === maker || node.FinalFields.LowLimit.issuer === maker)
+
+		if(!rippleState)
+			continue
+
+		let takerPaid
+		let takerGot
+
+		let xrpDelta = div(sub(FinalFields.Balance, PreviousFields.Balance), '1000000')
+		let iouDelta = sub(abs(rippleState.FinalFields.Balance.value), abs(rippleState.PreviousFields.Balance.value))
+		let iouToken = rippleState.FinalFields.HighLimit.issuer === maker
+			? rippleState.FinalFields.LowLimit
+			: rippleState.FinalFields.HighLimit
+
+		if(gt(xrpDelta, '0')){
+			takerPaid = {
+				currency: 'XRP',
+				value: xrpDelta.toString()
+			}
+			takerGot = {
+				...iouToken,
+				value: abs(iouDelta).toString()
+			}
+		}else{
+			takerPaid = {
+				...iouToken,
+				value: iouDelta.toString()
+			}
+			takerGot = {
+				currency: 'XRP',
+				value: abs(xrpDelta).toString()
+			}
+		}
+		
+		exchanges.push({
+			hash,
+			maker,
+			taker,
+			amm,
+			takerPaid,
+			takerGot
 		})
 	}
 
