@@ -24,10 +24,12 @@ export function currencyUTF8ToHex(code){
 	if(/^[A-Z0-9]{40}$/.test(code))
 		return code
 
+	let encoder = new TextEncoder()
+	let encoded = encoder.encode(code)
 	let hex = ''
 
-	for(let i=0; i<code.length; i++){
-		hex += code.charCodeAt(i).toString(16)
+	for (let byte of encoded) {
+		hex += byte.toString(16).padStart(2, '0')
 	}
 
 	return hex
