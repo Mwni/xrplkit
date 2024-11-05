@@ -1,6 +1,11 @@
+import crypto from 'crypto'
 import rk from 'ripple-keypairs'
 
-export function generateSeed({ entropy, algorithm } = {}){
+export function generateSeed({ entropy, algorithm = 'ed25519' } = {}){
+	if(entropy && entropy.length < 16){
+		entropy = [...Array.from(crypto.randomBytes(16 - entropy.length)), ...entropy]
+	}
+
 	return rk.generateSeed({ entropy, algorithm })
 }
 
