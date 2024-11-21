@@ -1,7 +1,7 @@
 import { createEmitter } from '@mwni/events'
 
 
-export default function ({ url, apiVersion = 2, autoReconnect = true, autoRetryRequests = true, socketOptions, socketImpl }){
+export default function ({ url, apiVersion, autoReconnect, autoRetryRequests, socketOptions, socketImpl }){
 	let events = createEmitter()
 	let socket
 	let requestCounter = 0
@@ -91,6 +91,21 @@ export default function ({ url, apiVersion = 2, autoReconnect = true, autoRetryR
 
 	return {
 		...events,
+		get url(){
+			return url
+		},
+		get apiVersion(){
+			return apiVersion
+		},
+		get autoReconnect(){
+			return autoReconnect
+		},
+		get autoRetryRequests(){
+			return autoRetryRequests
+		},
+		get socketOptions(){
+			return socketOptions
+		},
 		get connected(){
 			return connected
 		},
