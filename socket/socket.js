@@ -1,13 +1,13 @@
-import { EventEmitter } from '@mwni/events'
+import { createEmitter } from '@mwni/events'
 
 
-export default function ({ url, autoReconnect = true, autoRetryRequests = true, socketOptions, socketImpl }){
+export default function ({ url, apiVersion = 2, autoReconnect = true, autoRetryRequests = true, socketOptions, socketImpl }){
+	let events = createEmitter()
 	let socket
 	let requestCounter = 0
 	let requestRegistry = []
 	let connected = false
 	let connectionError
-	let events = new EventEmitter()
 
 	function connect(){
 		socket = socketImpl({ url, options: socketOptions })
@@ -89,33 +89,39 @@ export default function ({ url, autoReconnect = true, autoRetryRequests = true, 
 
 	connect()
 
-	return Object.assign(
-		events,
-		{
-			status(){
-				return {
-					connected,
-					connectionError,
-					openRequests: requestRegistry.map(
-						request => ({
-							id: request.id,
-							sent: request.sent
-						})
-					)
-				}
-			},
-			request(payload){
-				let id = ++requestCounter
-				let message = {...payload, id}
-
-				return new Promise((resolve, reject) => {
-					requestRegistry.push({ id, message, resolve, reject })
-					pushRequests()
-				})
-			},
-			close(){
-				socket.close()
+	return {
+		...events,
+		get connected(){
+			return connected
+		},
+		get connectionError(){
+			return connectionError
+		},
+		get requests(){
+			return requestRegistry
+				.filter(request => !!request.id)
+				.map(
+					request => ({
+						id: request.id,
+						sent: request.sent
+					})
+				)
+		},
+		request(payload){
+			let id = ++requestCounter
+			let message = {
+				api_version: apiVersion,
+				...payload, 
+				id, 
 			}
+
+			return new Promise((resolve, reject) => {
+				requestRegistry.push({ id, message, resolve, reject })
+				pushRequests()
+			})
+		},
+		close(){
+			socket.close()
 		}
-	)
+	}
 }
