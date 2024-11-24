@@ -379,7 +379,9 @@ function consumeOffer(step, offer, ofrAmt, stpAmt, ownerGives){
 
 	if(offerFullyConsumed(step, offer)){
 		offer.deleted = true
-		step.book.offers.splice(step.book.offers.indexOf(offer), 1)
+
+		if(!offer.amm)
+			step.book.offers.splice(step.book.offers.indexOf(offer), 1)
 	}
 }
 
