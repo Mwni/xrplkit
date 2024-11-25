@@ -1,7 +1,7 @@
 {
     "name": "@xrplkit/simulate",
     "type": "module",
-    "version": "1.1.2",
+    "version": "1.1.5",
     "main": "index.js",
     "license": "ISC",
     "author": "xrplkit",

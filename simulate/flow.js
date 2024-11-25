@@ -325,6 +325,7 @@ function consumeOffer(step, offer, ofrAmt, stpAmt, ownerGives){
 			...offer.takerPays,
 			value: ofrAmt[0]
 		}
+
 		takerGetsPrevious = {
 			...offer.takerGets,
 			value: ofrAmt[1]
@@ -337,13 +338,33 @@ function consumeOffer(step, offer, ofrAmt, stpAmt, ownerGives){
 			step.book.amm.amount2.value = sum(step.book.amm.amount2.value, stpAmt[0])
 			step.book.amm.amount1.value = sub(step.book.amm.amount1.value, stpAmt[1])
 		}
-
+		
 		affected = {
-			amm: true
+			amm: true,
+			takerPaysPrevious,
+			takerGetsPrevious,
+			takerPaysFinal: {
+				...offer.takerPays,
+				value: '0'
+			},
+			takerGetsFinal: {
+				...offer.takerGets,
+				value: '0'
+			}
 		}
 	}else{
 		takerPaysPrevious = offer.takerPays
 		takerGetsPrevious = offer.takerGets
+
+		offer.takerPays = {
+			...offer.takerPays,
+			value: sub(offer.takerPays.value, stpAmt[0])
+		}
+	
+		offer.takerGets = {
+			...offer.takerGets,
+			value: sub(offer.takerGets.value, stpAmt[1])
+		}
 
 		step.book.ownerFunds[offer.account] = sub(step.book.ownerFunds[offer.account], ownerGives)
 
@@ -351,38 +372,29 @@ function consumeOffer(step, offer, ofrAmt, stpAmt, ownerGives){
 			index: offer.index,
 			sequence: offer.sequence,
 			account: offer.account,
-			expiration: offer.expiration
+			expiration: offer.expiration,
+			takerPaysPrevious,
+			takerGetsPrevious,
+			takerPaysFinal: { ...offer.takerPays },
+			takerGetsFinal: { ...offer.takerGets }
 		}
-	}
 
-	offer.takerPays = {
-		...offer.takerPays,
-		value: sub(offer.takerPays.value, stpAmt[0])
-	}
-
-	offer.takerGets = {
-		...offer.takerGets,
-		value: sub(offer.takerGets.value, stpAmt[1])
+		if(offerFullyConsumed(step, offer)){
+			step.book.offers.splice(step.book.offers.indexOf(offer), 1)
+			affected.deleted = true
+		}
 	}
 
 	step.affected = [
 		...(step.affected || []),
 		{
 			...affected,
-			quality: div(takerGetsPrevious.value, takerPaysPrevious.value),
-			takerPaysPrevious,
-			takerGetsPrevious,
-			takerPaysFinal: { ...offer.takerPays },
-			takerGetsFinal: { ...offer.takerGets }
+			quality: div(
+				affected.takerGetsPrevious.value, 
+				affected.takerPaysPrevious.value
+			)
 		}
 	]
-
-	if(offerFullyConsumed(step, offer)){
-		offer.deleted = true
-
-		if(!offer.amm)
-			step.book.offers.splice(step.book.offers.indexOf(offer), 1)
-	}
 }
 
 function limitStepIn(step, offer, stpAmt, ofrAmt, ownerGives, rates){
@@ -497,7 +509,13 @@ function getAMMOfferStartWithTakerGets(ctx, step, quality, poolGets, poolPays){
 	if(!nTakerGets)
 		return
 
-	let nTakerGetsConstraint = mul(mul(poolGets.value, poolPays.value), mul(quality, f))
+	let nTakerGetsConstraint = sub(
+		poolPays.value, 
+		div(
+			poolGets.value, 
+			mul(div(1, quality), f)
+		)
+	)
 
 	if(lt(nTakerGetsConstraint, 0))
 		return
