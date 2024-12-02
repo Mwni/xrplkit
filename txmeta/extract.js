@@ -50,7 +50,7 @@ export function extractExchanges(tx, options={}){
 			.filter(node => node.LedgerEntryType === 'RippleState')
 			.find(node => node.FinalFields.HighLimit.issuer === maker || node.FinalFields.LowLimit.issuer === maker)
 
-		if(!rippleState)
+		if(!rippleState || !rippleState.PreviousFields)
 			continue
 
 		let takerPaid
