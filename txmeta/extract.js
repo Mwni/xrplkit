@@ -179,12 +179,12 @@ export function extractBalanceChanges(tx, options={}){
 				final
 			})
 		}else if(node.LedgerEntryType === 'AccountRoot'){
-			if(!finalFields)
+			if(!finalFields?.Balance || !previousFields?.Balance)
 				continue
 
 			let account = finalFields.Account
-			let final = div(finalFields?.Balance || '0', '1000000')
-			let previous = div(previousFields?.Balance || '0', '1000000')
+			let final = div(finalFields.Balance, '1000000')
+			let previous = div(previousFields.Balance, '1000000')
 
 			if(options.ignoreTxFee)
 				final = sum(
