@@ -1,10 +1,10 @@
 {
     "name": "@xrplkit/txmeta",
     "type": "module",
-    "version": "1.4.2",
+    "version": "1.4.3",
     "main": "extract.js",
     "dependencies": {
-        "@xrplkit/xfl": "2.1.1",
-        "@xrplkit/tokens": "1.0.1"
+        "@xrplkit/xfl": "2.1.2",
+        "@xrplkit/tokens": "1.0.2"
     }
 }

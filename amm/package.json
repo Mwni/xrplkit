@@ -1,12 +1,12 @@
 {
     "name": "@xrplkit/amm",
     "type": "module",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "main": "amm.js",
     "license": "ISC",
     "author": "xrplkit",
     "dependencies": {
-        "@xrplkit/tokens": "1.0.1",
-        "@xrplkit/xfl": "2.1.1"
+        "@xrplkit/tokens": "1.0.2",
+        "@xrplkit/xfl": "2.1.2"
     }
 }

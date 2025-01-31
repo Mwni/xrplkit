@@ -1,14 +1,14 @@
 {
     "name": "@xrplkit/simulate",
     "type": "module",
-    "version": "1.1.5",
+    "version": "1.1.6",
     "main": "index.js",
     "license": "ISC",
     "author": "xrplkit",
     "dependencies": {
-        "@xrplkit/book": "3.1.4",
-        "@xrplkit/amm": "1.0.1",
-        "@xrplkit/tokens": "1.0.1",
-        "@xrplkit/xfl": "2.1.1"
+        "@xrplkit/book": "3.1.5",
+        "@xrplkit/amm": "1.0.2",
+        "@xrplkit/tokens": "1.0.2",
+        "@xrplkit/xfl": "2.1.2"
     }
 }
