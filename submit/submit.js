@@ -85,7 +85,8 @@ export async function fill({ tx, socket }){
 	if(!tx.Sequence){
 		let { account_data: { Sequence }} = await socket.request({
 			command: 'account_info',
-			account: tx.Account
+			account: tx.Account,
+			ledger_sequence: 'current'
 		})
 
 		filledTx.Sequence = Sequence
