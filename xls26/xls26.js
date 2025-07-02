@@ -1,18 +1,49 @@
 // The XLS-26 standard adds additional asset metadata fields to the existing xrp-ledger.toml standard,
 // https://github.com/XRPLF/XRPL-Standards/discussions/71
 // This package provides an implementation for a parser according to this standard.
+// Version 5 from 2025-06-06.
 
 
 import { parse as parseToml } from '@xrplkit/toml'
 
-const validWeblinkTypes = [
-	'info',
-	'socialmedia',
-	'community',
-	'support',
-	'whitepaper',
-	'certificate'
+const validUrlRegex = /^(https?)|(ipfs):\/\/.*$/
+const validUrlTypes = {
+	website: 'website',
+	social: 'social',
+	docs: 'docs',
+	other: 'other',
+	info: 'website',
+	socialmedia: 'social',
+	community: 'social',
+	support: 'website',
+	whitepaper: 'docs',
+	certificate: 'docs',
+}
+
+const validAssetClasses = [
+	'rwa',
+	'memes',
+	'wrapped',
+	'gaming',
+	'defi',
+	'other'
 ]
+
+const validAssetSubClasses = [
+	'stablecoin',
+	'commodity',
+	'real_estate',
+	'private_credit',
+	'equity',
+	'treasury',
+	'other'
+]
+
+const legacyAssetClasses = {
+	fiat: { asset_class: 'rwa', asset_subclass: 'stablecoin' },
+	commodity: { asset_class: 'rwa', asset_subclass: 'commodity' },
+	equity: { asset_class: 'rwa', asset_subclass: 'equity' }
+} 
 
 const validAdvisoryTypes = [
 	'scam',
@@ -22,17 +53,10 @@ const validAdvisoryTypes = [
 	'hijacked'
 ]
 
-const validAssetClasses = [
-	'fiat',
-	'commodity',
-	'equity',
-	'cryptocurrency'
-]
-
 const issuerFields = [
 	{
 		key: 'address',
-		essential: true,
+		required: true,
 		validate: v => {
 			if(!/^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v))
 				throw 'is not a valid XRPL address'
@@ -42,40 +66,40 @@ const issuerFields = [
 		key: 'name',
 		validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
-				throw 'has to be a non empty string'
+				throw 'must be a non empty string'
 		}
 	},
 	{
-		key: 'description',
-		alternativeKeys: ['desc'],
+		key: 'desc',
+		alternativeKeys: ['description'],
 		validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
-				throw 'has to be a non empty string'
+				throw 'must be a non empty string'
 		}
 	},
 	{
 		key: 'domain',
 		validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
-				throw 'has to be a non empty string'
+				throw 'must be a non empty string'
 		}
 	},
 	{
 		key: 'icon',
 		alternativeKeys: ['avatar'],
 		validate: v => {
-			if(!/^https?:\/\/.*$/.test(v))
-				throw 'has to be a valid HTTP URL that starts with "http"'
+			if(!validUrlRegex.test(v))
+				throw 'must be a valid URL that starts with "http" or "ipfs"'
 		}
 	},
 	{
 		key: 'trust_level',
 		validate: v => {
 			if(v !== parseInt(v))
-				throw 'has to be a integer'
+				throw 'must be a integer'
 
 			if(v < 0 || v > 3)
-				throw 'has to be between 0 and 3'
+				throw 'must be between 0 and 3'
 		}
 	}
 ]
@@ -84,7 +108,7 @@ const tokenFields = [
 	{
 		key: 'currency',
 		alternativeKeys: ['code'],
-		essential: true,
+		required: true,
 		validate: v => {
 			if(typeof v !== 'string' && v.length < 3)
 				throw 'is not a valid XRPL currency code'
@@ -92,7 +116,7 @@ const tokenFields = [
 	},
 	{
 		key: 'issuer',
-		essential: true,
+		required: true,
 		validate: v => {
 			if(!/^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v))
 				throw 'is not a valid XRPL address'
@@ -102,65 +126,75 @@ const tokenFields = [
 		key: 'name',
 		validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
-				throw 'has to be a non empty string'
+				throw 'must be a non empty string'
 		}
 	},
 	{
-		key: 'description',
-		alternativeKeys: ['desc'],
+		key: 'desc',
+		alternativeKeys: ['description'],
 		validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
-				throw 'has to be a non empty string'
+				throw 'must be a non empty string'
 		}
 	},
 	{
 		key: 'icon',
 		alternativeKeys: ['avatar'],
 		validate: v => {
-			if(!/^https?:\/\/.*$/.test(v))
-				throw 'has to be a valid HTTP URL that starts with "http"'
+			if(!validUrlRegex.test(v))
+				throw 'must be a valid URL starting with "http" or "ipfs"'
 		}
 	},
 	{
 		key: 'trust_level',
 		validate: v => {
 			if(v !== parseInt(v))
-				throw 'has to be a integer'
+				throw 'must be a integer'
 
 			if(v < 0 || v > 3)
-				throw 'has to be between 0 and 3'
+				throw 'must be between 0 and 3'
 		}
 	},
 	{
 		key: 'asset_class',
 		validate: v => {
-			if(!validAssetClasses.includes(v))
-				throw `needs to be one of the following: ${validAssetClasses.join(', ')}`
+			if(!legacyAssetClasses[v] && !validAssetClasses.includes(v))
+				throw `must be one of: ${validAssetClasses.join(', ')}`
+		}
+	},
+	{
+		key: 'asset_subclass',
+		validate: v => {
+			if(!validAssetSubClasses.includes(v))
+				throw `must be one of: ${validAssetSubClasses.join(', ')}`
 		}
 	}
 ]
 
-const weblinkFields = [
+const urlFields = [
 	{
 		key: 'url',
-		essential: true,
+		required: true,
 		validate: v => {
-			if(!/^https?:\/\/.*$/.test(v))
-				throw 'has to be a valid HTTP URL that starts with "http"'
+			if(!validUrlRegex.test(v))
+				throw 'must be a valid URL starting with "http" or "ipfs"'
 		}
 	},
 	{
 		key: 'type',
 		validate: v => {
-			if(!validWeblinkTypes.includes(v))
-				throw `has to be one of (${validWeblinkTypes.join(', ')})`
+			if(!validUrlTypes[v])
+				throw `must be one of: ${Array.from(new Set(Object.values(validUrlTypes))).join(', ')}`
+		},
+		transform: v => {
+			return validUrlTypes[v]
 		}
 	},
 	{
 		key: 'title',
 		validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
-				throw 'has to be a non empty string'
+				throw 'must be a non empty string'
 		}
 	},
 ]
@@ -168,7 +202,7 @@ const weblinkFields = [
 const advisoryFields = [
 	{
 		key: 'address',
-		essential: true,
+		required: true,
 		validate: v => {
 			if(!/^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v))
 				throw 'is not a valid XRPL address'
@@ -178,7 +212,7 @@ const advisoryFields = [
 		key: 'type',
 		validate: v => {
 			if(!validAdvisoryTypes.includes(v))
-				throw `has to be one of (${validAdvisoryTypes.join(', ')})`
+				throw `must be one of: ${validAdvisoryTypes.join(', ')}`
 		}
 	},
 	{
@@ -186,7 +220,7 @@ const advisoryFields = [
 		alternativeKeys: ['desc'],
 		validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
-				throw 'has to be a non empty string'
+				throw 'must be a non empty string'
 		}
 	}
 ]
@@ -204,71 +238,67 @@ export function parse(str){
 	let advisories = []
 
 
-	if((toml.ISSUERS || toml.ACCOUNTS)){
-		for(let stanza of (toml.ISSUERS || toml.ACCOUNTS)){
-			let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, issuerFields)
+	for(let stanza of (toml.ISSUERS || toml.ACCOUNTS || [])){
+		let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, issuerFields)
 
-			if(valid)
-				issuers.push(issuer)
+		issues.push(
+			...issuerIssues.map(
+				issue => `[[ISSUERS]] ${issue}`
+			)
+		)
+
+		if(valid)
+			issuers.push(issuer)
+		else
+			continue
+
+		for(let substanza of (stanza.URLS || stanza.WEBLINKS || [])){
+			let { valid, parsed: url, issues: urlIssues } = parseStanza(substanza, urlFields)
+
+			if(valid){
+				issuer.urls = [
+					...(issuer.urls || []),
+					url
+				]
+			}
 
 			issues.push(
-				...issuerIssues.map(
-					issue => `[[ISSUERS]] ${issue}`
+				...urlIssues.map(
+					issue => `[[ISSUERS.URLS]] ${issue}`
 				)
 			)
-
-			if(valid && stanza.WEBLINKS){
-				for(let substanza of stanza.WEBLINKS){
-					let { valid, parsed: weblink, issues: weblinkIssues } = parseStanza(substanza, weblinkFields)
-
-					if(valid){
-						issuer.weblinks = [
-							...(issuer.weblinks || []),
-							weblink
-						]
-					}
-
-					issues.push(
-						...weblinkIssues.map(
-							issue => `[[WEBLINK]] ${issue}`
-						)
-					)
-				}
-			}
 		}
 	}
 
-	if((toml.TOKENS || toml.CURRENCIES)){
-		for(let stanza of (toml.TOKENS || toml.CURRENCIES)){
-			let { valid, parsed: token, issues: tokenIssues } = parseStanza(stanza, tokenFields)
+	for(let stanza of (toml.TOKENS || toml.CURRENCIES || [])){
+		let { valid, parsed: token, issues: tokenIssues } = parseStanza(stanza, tokenFields)
 
-			if(valid)
-				tokens.push(token)
-				
+		issues.push(
+			...tokenIssues.map(
+				issue => `[[TOKENS]] ${issue}`
+			)
+		)
+
+		if(valid)
+			tokens.push(token)
+		else
+			continue
+
+		for(let substanza of (stanza.URLS || stanza.WEBLINKS || [])){
+			let { valid, parsed: url, issues: urlIssues } = parseStanza(substanza, urlFields)
+
+			if(valid){
+				token.urls = [
+					...(token.urls || []),
+					url
+				]
+			}
+
 			issues.push(
-				...tokenIssues.map(
-					issue => `[[TOKENS]] ${issue}`
+				...urlIssues.map(
+					issue => `[[TOKENS.URLS]] ${issue}`
 				)
 			)
-
-			if(valid && stanza.WEBLINKS){
-				for(let substanza of stanza.WEBLINKS){
-					let { valid, parsed: weblink, issues: weblinkIssues } = parseStanza(substanza, weblinkFields)
-
-					if(valid){
-						token.weblinks = [
-							...(token.weblinks || []),
-							weblink
-						]
-					}
-
-					issues.push(
-						...weblinkIssues.map(
-							issue => `[[WEBLINK]] ${issue}`
-						)
-					)
-				}
-			}
 		}
 	}
 
@@ -287,6 +317,32 @@ export function parse(str){
 		}
 	}
 
+	// Issuer URLs have been dropped since Version 5
+	// Issuer URLs now get mapped to respective tokens
+
+	for(let issuer of issuers){
+		if(!issuer.urls)
+			continue
+
+		for(let token of tokens){
+			if(token.issuer !== issuer.address)
+				continue
+
+			token.urls = [
+				...issuer.urls,
+				...(token.urls || [])
+			] 
+		}
+
+		delete issuer.urls
+	}
+
+	for(let token of tokens){
+		if(!legacyAssetClasses[token.asset_class])
+			continue
+
+		Object.assign(token, legacyAssetClasses[token.asset_class])
+	}
 
 	return {
 		issuers,
@@ -301,7 +357,7 @@ function parseStanza(stanza, schemas){
 	let issues = []
 	let valid = true
 
-	for(let { key, alternativeKeys, essential, validate } of schemas){
+	for(let { key, alternativeKeys, required, validate, transform } of schemas){
 		let keys = [key]
 
 		if(alternativeKeys)
@@ -322,11 +378,14 @@ function parseStanza(stanza, schemas){
 				}
 			}
 
+			if(transform)
+				value = transform(value)
+
 			parsed[key] = value
 			break
 		}
 
-		if(essential && parsed[key] === undefined){
+		if(required && parsed[key] === undefined){
 			issues.push(`${key} field missing: skipping stanza`)
 			valid = false
 		}

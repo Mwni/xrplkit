@@ -22,29 +22,27 @@ console.log(xls26Data)
 
 ```toml
 [[ISSUERS]]
-address = "rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg"
-name = "Aesthetes"
-
-[[ISSUERS.WEBLINKS]]
-url = "https://aesthetes.art"
-type = "info"
-title = "Official Website"
-
-[[ISSUERS.WEBLINKS]]
-url = "https://twitter.com/aesthetes_art"
-type = "socialmedia"
+address = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"
+name = "Ripple"
+desc = "We're building the Internet of Value."
 
 [[TOKENS]]
-issuer = "rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg"
-currency = "ELS"
-name = "Elysian"
-desc = "The first Token for the Art and NFT Industry running on the XRPL."
-icon = "https://static.xrplmeta.org/icons/els.png"
-asset_class = "cryptocurrency"
+issuer = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"
+currency = "RLUSD"
+name = "Ripple USD"
+desc = "Ripple USD (RLUSD) is natively issued on the XRP Ledger and Ethereum blockchains and is enabled with a number of features to ensure strict adherence to compliance standards, flexibility for developers, and security for holders."
+icon = "https://ripple.com/assets/rlusd-logo.png"
+asset_class = "rwa"
+asset_subclass = "stablecoin"
 
-[[TOKENS.WEBLINKS]]
-url = "https://twitter.com/Elysianers"
-type = "community"
+[[TOKENS.URLS]]
+url = "https://ripple.com"
+type = "website"
+title = "Official Website"
+
+[[TOKENS.URLS]]
+url = "https://x.com/ripple"
+type = "social"
 ```
 
 
@@ -52,40 +50,32 @@ type = "community"
 
 ```javascript
 {
-    issuers: [
+  issuers: [
+    {
+      address: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De',
+      name: 'Ripple',
+      desc: "We're building the Internet of Value."
+    }
+  ],
+  tokens: [
+    {
+      currency: 'RLUSD',
+      issuer: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De',
+      name: 'Ripple USD',
+      desc: 'Ripple USD (RLUSD) is natively issued on the XRP Ledger and Ethereum blockchains and is enabled with a number of features to ensure strict adherence to compliance standards, flexibility for developers, and security for holders.',
+      icon: 'https://ripple.com/assets/rlusd-logo.png',
+      asset_class: 'rwa',
+      asset_subclass: 'stablecoin',
+      urls: [
         {
-            address: 'rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg',
-            name: 'Aesthetes',
-            weblinks: [
-                {
-                    url: 'https://aesthetes.art',
-                    type: 'info',
-                    title: 'Official Website'
-                },
-                {
-                    url: 'https://twitter.com/aesthetes_art', 
-                    type: 'socialmedia' 
-                }
-            ]
-        }
-    ],
-    tokens: [
-        {
-            currency: 'ELS',
-            issuer: 'rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg',
-            name: 'Elysian',
-            desc: 'The first Token for the Art and NFT Industry running on the XRPL.',
-            icon: 'https://static.xrplmeta.org/icons/els.png',
-            asset_class: 'cryptocurrency',
-            weblinks: [
-                {
-                    url: 'https://twitter.com/Elysianers', 
-                    type: 'community' 
-                }
-            ]
-        }
-    ],
-    issues: []
+          url: 'https://ripple.com',
+          type: 'website',
+          title: 'Official Website'
+        },
+        { url: 'https://x.com/ripple', type: 'social' }
+      ]
+    }
+  ],
+  issues: []
 }
-
 ```
