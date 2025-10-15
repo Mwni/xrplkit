@@ -1,4 +1,6 @@
 const validUriRegex = /^(https?)|(ipfs):\/\/.*$/
+const validHexRegex = /^[0-9A-Fa-f]+$/
+const MAX_MPT_METADATA_LENGTH = 2048
 
 const validAssetClasses = [
 	'rwa',
@@ -33,7 +35,7 @@ const tokenFields = [
         required: true,
         validate: v => {
             if (!/^[A-Z0-9]{1,6}$/.test(v))
-                throw 'ticker should have uppercase letters (A-Z) and digits (0-9) only. Max 6 characters recommended.'
+                throw 'ticker should have uppercase letters (A-Z) and digits (0-9) only. Max 6 characters allowed'
         }
 
     },
@@ -112,7 +114,7 @@ const tokenFields = [
         key: 'additional_info',
         alternateKeys: ['ai'],
         validate: v => {
-			if(Array.isArray(v) || typeof v !== 'object')
+			if(v == null || Array.isArray(v) || typeof v !== 'object')
 				throw `must be JSON object`
 		}
 
@@ -138,7 +140,7 @@ const uriFields = [
         required: true,
 		validate: v => {
 			if(!validUriCategories.includes(v))
-				throw `must be one of: ${Array.from(new Set(Object.values(validUriCategories))).join(', ')}`
+				throw `must be one of: ${validUriCategories.join(', ')}`
 		}		
 	},
 	{
@@ -156,10 +158,30 @@ export function parse(str) {
     let jsonInput = {}
     let issues = []
 
+    if (!validHexRegex.test(str)){
+        issues.push(`${str} must be hex encoded`)
+        return {
+            token: {},
+            issues
+        }
+    }
+
+    if (str.length > MAX_MPT_METADATA_LENGTH) {
+        issues.push(`${str.length} > ${MAX_MPT_METADATA_LENGTH}`)
+        return {
+            token: {},
+            issues
+        }
+    }
+
     try {
         jsonInput = JSON.parse(hexToUTF8(str))
     } catch(err) {
-        throw new Error(`Failed to parse ${str}`)
+        issues.push(`Failed to parse ${str} - ${err.message}`)
+        return {
+            token: {},
+            issues
+        }
     }
 
     let {valid: validToken, parsed: parsedToken, issues: tokenIssues} = parseObject(jsonInput, tokenFields)
@@ -173,6 +195,11 @@ export function parse(str) {
         return {token: {}, issues}
     }
 
+    if (parsedToken['asset_class'] === 'rwa' && parsedToken['asset_subclass'] == null) {
+        issues.push('asset_subclass is required when asset_class is rwa')
+        return {token: {}, issues}
+    }
+
     let validUris = []
     for (let uri of parsedToken['uris']) {
         let {valid, parsed: parsedUri, issues: uriIssues} = parseObject(uri, uriFields)
@@ -182,7 +209,7 @@ export function parse(str) {
                 issue => `Uri - ${issue}`
             )
         )
-        
+
         if (valid)
             validUris.push(parsedUri)
     }
@@ -202,6 +229,15 @@ function parseObject(input, schemas) {
     let parsed = {}
 	let issues = []
 	let valid = true
+
+    if (
+        input == null ||
+        typeof input !== 'object' ||
+        Array.isArray(input)
+    ) {
+        issues.push(`${input} must be non-empty JSON object`)
+        return { valid: false, parsed, issues }
+    }
 
     for (let { key, alternativeKeys, required, validate } of schemas) {
         let keys = [key, ...alternativeKeys]
