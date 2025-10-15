@@ -31,7 +31,7 @@ const validUriCategories = [
 const tokenFields = [
     {
         key: 'ticker',
-        alternateKeys: ['t'],
+        alternativeKeys: ['t'],
         required: true,
         validate: v => {
             if (!/^[A-Z0-9]{1,6}$/.test(v))
@@ -41,7 +41,7 @@ const tokenFields = [
     },
     {
         key: 'name',
-        alternateKeys: ['n'],
+        alternativeKeys: ['n'],
         required: true,
         validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
@@ -51,7 +51,7 @@ const tokenFields = [
     },
     {
         key: 'desc',
-        alternateKeys: ['d'],
+        alternativeKeys: ['d'],
         validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
 				throw 'must be a non empty string'
@@ -60,7 +60,7 @@ const tokenFields = [
     },
     {
         key: 'icon',
-        alternateKeys: ['i'],
+        alternativeKeys: ['i'],
         required: true,
         validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
@@ -71,10 +71,9 @@ const tokenFields = [
 		}
 
     },
-    ,
     {
         key: 'issuer_name',
-        alternateKeys: ['in'],
+        alternativeKeys: ['in'],
         required: true,
         validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
@@ -84,7 +83,7 @@ const tokenFields = [
     },
     {
         key: 'asset_class',
-        alternateKeys: ['ac'],
+        alternativeKeys: ['ac'],
         required: true,
         validate: v => {
 			if(!validAssetClasses.includes(v))
@@ -94,7 +93,7 @@ const tokenFields = [
     },
     {
         key: 'asset_subclass',
-        alternateKeys: ['as'],
+        alternativeKeys: ['as'],
         validate: v => {
 			if(!validAssetSubClasses.includes(v))
 				throw `must be one of: ${validAssetSubClasses.join(', ')}`
@@ -103,7 +102,7 @@ const tokenFields = [
     },
     {
         key: 'uris',
-        alternateKeys: ['us'],
+        alternativeKeys: ['us'],
         validate: v => {
 			if(!Array.isArray(v) || v.length === 0)
 				throw `must be non empty array`
@@ -112,7 +111,7 @@ const tokenFields = [
     },
     {
         key: 'additional_info',
-        alternateKeys: ['ai'],
+        alternativeKeys: ['ai'],
         validate: v => {
 			if(v == null || Array.isArray(v) || typeof v !== 'object')
 				throw `must be JSON object`
@@ -124,7 +123,7 @@ const tokenFields = [
 const uriFields = [
 	{
 		key: 'uri',
-        alternateKeys: ['u'],
+        alternativeKeys: ['u'],
 		required: true,
 		validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
@@ -136,7 +135,7 @@ const uriFields = [
 	},
 	{
 		key: 'category',
-        alternateKeys: ['c'],
+        alternativeKeys: ['c'],
         required: true,
 		validate: v => {
 			if(!validUriCategories.includes(v))
@@ -145,7 +144,7 @@ const uriFields = [
 	},
 	{
 		key: 'title',
-        alternateKeys: ['t'],
+        alternativeKeys: ['t'],
         required: true,
 		validate: v => {
 			if(typeof v !== 'string' || v.length === 0)
@@ -198,6 +197,13 @@ export function parse(str) {
     if (parsedToken['asset_class'] === 'rwa' && parsedToken['asset_subclass'] == null) {
         issues.push('asset_subclass is required when asset_class is rwa')
         return {token: {}, issues}
+    }
+
+    if (!Array.isArray(parsedToken['uris'])) {
+        return {
+            token: parsedToken,
+            issues
+	    }
     }
 
     let validUris = []
