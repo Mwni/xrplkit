@@ -68,8 +68,13 @@ const tokenFields = [
 
             if ((v.startsWith('http') || v.startsWith('ipfs')) && !validUriRegex.test(v))
                 throw 'must be a valid URI that starts with "http" or "ipfs"'
+		},
+        transform: v => {
+			if (!v.startsWith('http') && !v.startsWith('ipfs'))
+                return `https://${v}`
+            
+            return v
 		}
-
     },
     {
         key: 'issuer_name',
@@ -131,6 +136,12 @@ const uriFields = [
 
             if ((v.startsWith('http') || v.startsWith('ipfs')) && !validUriRegex.test(v))
                 throw 'must be a valid URI that starts with "http" or "ipfs"'
+		},
+        transform: v => {
+			if (!v.startsWith('http') && !v.startsWith('ipfs'))
+                return `https://${v}`
+            
+            return v
 		}
 	},
 	{
@@ -262,6 +273,9 @@ function parseObject(input, schemas) {
 				}
 			}
 
+            if(transform)
+				value = transform(value)
+            
             parsed[key] = value
 			break
         }

@@ -104,30 +104,22 @@ const issuerFields = [
 	}
 ]
 
-const tokenFields = [
+const iouTokenFields = [
 	{
 		key: 'currency',
 		alternativeKeys: ['code'],
-		required: stanza => !stanza['mpt_issuance_id'],
+		required: true,
 		validate: v => {
-			if(typeof v !== 'string' || v.length < 3)
-				throw 'is not a valid XRPL currency code';
+			if(typeof v !== 'string' && v.length < 3)
+				throw 'is not a valid XRPL currency code'
 		}
 	},
 	{
 		key: 'issuer',
-		required: stanza => !stanza['mpt_issuance_id'],
+		required: true,
 		validate: v => {
 			if(!/^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v))
-				throw 'is not a valid XRPL address';
-		}
-	},
-	{
-		key: 'mpt_issuance_id',
-		required: stanza => !stanza['currency'] && !stanza['issuer'],
-		validate: v => {
-			if(!/^[0-9a-fA-F]{48}$/.test(v))
-				throw 'is not a valid mpt_issuance_id';
+				throw 'is not a valid XRPL address'
 		}
 	},
 	{
@@ -175,6 +167,28 @@ const tokenFields = [
 		validate: v => {
 			if(!validAssetSubClasses.includes(v))
 				throw `must be one of: ${validAssetSubClasses.join(', ')}`
+		}
+	}
+]
+
+const mpTokenFields = [
+	{
+		key: 'mpt_issuance_id',
+		required: true,
+		validate: v => {
+			if(!/^[0-9a-fA-F]{48}$/.test(v))
+				throw 'is not a valid mpt_issuance_id'
+		}
+	},	
+	{
+		key: 'trust_level',
+		required: true,
+		validate: v => {
+			if(v !== parseInt(v))
+				throw 'must be a integer'
+
+			if(v < 0 || v > 3)
+				throw 'must be between 0 and 3'
 		}
 	}
 ]
@@ -247,7 +261,7 @@ export function parse(str){
 
 
 	for(let stanza of (toml.ISSUERS || toml.ACCOUNTS || [])){
-		let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, issuerFields)
+		let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, stanza['mpt_issuance_id'] != null ? mpTokenFields : iouTokenFields)
 
 		issues.push(
 			...issuerIssues.map(
@@ -393,8 +407,7 @@ function parseStanza(stanza, schemas){
 			break
 		}
 
-		const isRequired = typeof required === 'function' ? required(stanza) : required;
-		if(isRequired && parsed[key] === undefined){
+		if(required && parsed[key] === undefined){
 			issues.push(`${key} field missing: skipping stanza`)
 			valid = false
 		}
