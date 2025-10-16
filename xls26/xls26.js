@@ -261,7 +261,7 @@ export function parse(str){
 
 
 	for(let stanza of (toml.ISSUERS || toml.ACCOUNTS || [])){
-		let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, stanza['mpt_issuance_id'] != null ? mpTokenFields : iouTokenFields)
+		let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, iouTokenFields)
 
 		issues.push(
 			...issuerIssues.map(
@@ -293,7 +293,7 @@ export function parse(str){
 	}
 
 	for(let stanza of (toml.TOKENS || toml.CURRENCIES || [])){
-		let { valid, parsed: token, issues: tokenIssues } = parseStanza(stanza, tokenFields)
+		let { valid, parsed: token, issues: tokenIssues } = parseStanza(stanza, stanza['mpt_issuance_id'] != null ? mpTokenFields : iouTokenFields)
 
 		issues.push(
 			...tokenIssues.map(
