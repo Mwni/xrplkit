@@ -256,7 +256,7 @@ function parseObject(input, schemas) {
         return { valid: false, parsed, issues }
     }
 
-    for (let { key, alternativeKeys, required, validate } of schemas) {
+    for (let { key, alternativeKeys, required, validate, transform } of schemas) {
         let keys = [key, ...alternativeKeys]
         
         for (let k of keys) {
