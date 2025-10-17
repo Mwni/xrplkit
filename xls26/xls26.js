@@ -261,7 +261,7 @@ export function parse(str){
 
 
 	for(let stanza of (toml.ISSUERS || toml.ACCOUNTS || [])){
-		let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, iouTokenFields)
+		let { valid, parsed: issuer, issues: issuerIssues } = parseStanza(stanza, issuerFields)
 
 		issues.push(
 			...issuerIssues.map(
