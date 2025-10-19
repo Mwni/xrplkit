@@ -173,14 +173,6 @@ const iouTokenFields = [
 
 const mpTokenFields = [
 	{
-		key: 'issuer',
-		required: true,
-		validate: v => {
-			if(!/^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v))
-				throw 'is not a valid XRPL address'
-		}
-	},
-	{
 		key: 'mpt_issuance_id',
 		required: true,
 		validate: v => {
