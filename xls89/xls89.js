@@ -37,7 +37,6 @@ const tokenFields = [
             if (!/^[A-Z0-9]{1,6}$/.test(v))
                 throw 'ticker should have uppercase letters (A-Z) and digits (0-9) only. Max 6 characters allowed'
         }
-
     },
     {
         key: 'name',
@@ -47,7 +46,6 @@ const tokenFields = [
 			if(typeof v !== 'string' || v.length === 0)
 				throw 'must be a non empty string'
 		}
-
     },
     {
         key: 'desc',
@@ -56,7 +54,6 @@ const tokenFields = [
 			if(typeof v !== 'string' || v.length === 0)
 				throw 'must be a non empty string'
 		}
-
     },
     {
         key: 'icon',
@@ -84,7 +81,6 @@ const tokenFields = [
 			if(typeof v !== 'string' || v.length === 0)
 				throw 'must be a non empty string'
 		}
-
     },
     {
         key: 'asset_class',
@@ -94,7 +90,6 @@ const tokenFields = [
 			if(!validAssetClasses.includes(v))
 				throw `must be one of: ${validAssetClasses.join(', ')}`
 		}
-
     },
     {
         key: 'asset_subclass',
@@ -103,7 +98,6 @@ const tokenFields = [
 			if(!validAssetSubClasses.includes(v))
 				throw `must be one of: ${validAssetSubClasses.join(', ')}`
 		}
-
     },
     {
         key: 'uris',
@@ -112,16 +106,16 @@ const tokenFields = [
 			if(!Array.isArray(v) || v.length === 0)
 				throw `must be non empty array`
 		}
-
     },
     {
         key: 'additional_info',
         alternativeKeys: ['ai'],
         validate: v => {
-			if(v == null || Array.isArray(v) || typeof v !== 'object')
-				throw `must be JSON object`
+            if (typeof v === 'string')
+                return true
+			if(Array.isArray(v) || typeof v !== 'object')
+				throw `must be JSON object or a string`
 		}
-
     }
 ]
 
@@ -177,7 +171,7 @@ export function parse(str) {
     }
 
     if (str.length > MAX_MPT_METADATA_LENGTH) {
-        issues.push(`${str.length} > ${MAX_MPT_METADATA_LENGTH}`)
+        issues.push(`${str} length (${str.length}) > max length (${MAX_MPT_METADATA_LENGTH}) allowed`)
         return {
             token: {},
             issues
@@ -260,7 +254,7 @@ function parseObject(input, schemas) {
         let keys = [key, ...alternativeKeys]
         
         for (let k of keys) {
-            if (input[k] == null)
+            if (input[k] === undefined)
                 continue
 
             let value = input[k]
