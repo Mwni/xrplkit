@@ -8,6 +8,7 @@
 		"@xrplkit/simulate": "file:../simulate",
 		"@xrplkit/socket": "file:../socket",
 		"@xrplkit/xfl": "file:../xfl",
+		"@xrplkit/xls26": "file:../xls26",
 		"@xrplkit/xls89": "file:../xls89"
 	},
 	"devDependencies": {

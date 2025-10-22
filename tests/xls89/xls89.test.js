@@ -1,5 +1,5 @@
 import { assert } from 'chai'
-import { parse } from '../../xls89/xls89.js'
+import { parse } from '@xrplkit/xls89'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
