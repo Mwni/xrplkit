@@ -1,0 +1,14 @@
+{
+    "name": "@xrplkit/xls89",
+    "type": "module",
+    "version": "0.1.0",
+    "main": "xls89.js",
+    "keywords": [
+        "xrpl",
+        "xls-89",
+        "parser",
+        "metadata",
+        "tokens",
+        "MPT"
+    ]
+}

@@ -1,0 +1,67 @@
+[
+    {
+        "name": "valid metadata as per xls26",
+        "input": "[[ISSUERS]]\naddress = \"rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De\"\nname = \"Ripple\"\ndesc = \"We're building the Internet of Value.\"\n\n[[TOKENS]]\nissuer = \"rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De\"\ncurrency = \"RLUSD\"\nname = \"Ripple USD\"\ndesc = \"Ripple USD (RLUSD) is natively issued on the XRP Ledger and Ethereum blockchains and is enabled with a number of features to ensure strict adherence to compliance standards, flexibility for developers, and security for holders.\"\nicon = \"https://ripple.com/assets/rlusd-logo.png\"\nasset_class = \"rwa\"\nasset_subclass = \"stablecoin\"\n\n[[TOKENS.URLS]]\nurl = \"https://ripple.com\"\ntype = \"website\"\ntitle = \"Official Website\"\n\n[[TOKENS.URLS]]\nurl = \"https://x.com/ripple\"\ntype = \"social\"",
+        "output": {
+            "issuers": [
+                {
+                    "address": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De",
+                    "name": "Ripple",
+                    "desc": "We're building the Internet of Value."
+                }
+            ],
+            "tokens": [
+                {
+                    "issuer": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De",
+                    "currency": "RLUSD",
+                    "name": "Ripple USD",
+                    "desc": "Ripple USD (RLUSD) is natively issued on the XRP Ledger and Ethereum blockchains and is enabled with a number of features to ensure strict adherence to compliance standards, flexibility for developers, and security for holders.",
+                    "icon": "https://ripple.com/assets/rlusd-logo.png",
+                    "asset_class": "rwa",
+                    "asset_subclass": "stablecoin",
+                    "urls": [
+                        {
+                            "url": "https://ripple.com",
+                            "type": "website",
+                            "title": "Official Website"
+                        },
+                        {
+                            "url": "https://x.com/ripple",
+                            "type": "social"
+                        }
+                    ]
+                }
+            ],
+            "issues": []
+        }
+    },
+    {
+        "name": "missing required fields",
+        "input": "[[ISSUERS]]\ndesc = \"We're building the Internet of Value.\"\n\n[[TOKENS]]\nissuer = \"rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De\"\ncurrency = \"RLUSD\"\n\ndesc = \"Ripple USD (RLUSD) is natively issued on the XRP Ledger and Ethereum blockchains and is enabled with a number of features to ensure strict adherence to compliance standards, flexibility for developers, and security for holders.\"\nicon = \"https://ripple.com/assets/rlusd-logo.png\"\nasset_class = \"rwa\"\nasset_subclass = \"stablecoin\"\n\n[[TOKENS.URLS]]\nurl = \"https://ripple.com\"\ntype = \"website\"\ntitle = \"Official Website\"\n\n[[TOKENS.URLS]]\nurl = \"https://x.com/ripple\"\ntype = \"social\"",
+        "output": {
+            "issuers": [],
+            "tokens": [
+                {
+                    "issuer": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De",
+                    "currency": "RLUSD",
+                    "desc": "Ripple USD (RLUSD) is natively issued on the XRP Ledger and Ethereum blockchains and is enabled with a number of features to ensure strict adherence to compliance standards, flexibility for developers, and security for holders.",
+                    "icon": "https://ripple.com/assets/rlusd-logo.png",
+                    "asset_class": "rwa",
+                    "asset_subclass": "stablecoin",
+                    "urls": [
+                        {
+                            "url": "https://ripple.com",
+                            "type": "website",
+                            "title": "Official Website"
+                        },
+                        {
+                            "url": "https://x.com/ripple",
+                            "type": "social"
+                        }
+                    ]
+                }
+            ],
+            "issues": ["[[ISSUERS]] address field missing: skipping stanza"]
+        }
+    }
+]

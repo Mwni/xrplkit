@@ -104,7 +104,7 @@ const issuerFields = [
 	}
 ]
 
-const tokenFields = [
+const iouTokenFields = [
 	{
 		key: 'currency',
 		alternativeKeys: ['code'],
@@ -167,6 +167,28 @@ const tokenFields = [
 		validate: v => {
 			if(!validAssetSubClasses.includes(v))
 				throw `must be one of: ${validAssetSubClasses.join(', ')}`
+		}
+	}
+]
+
+const mpTokenFields = [
+	{
+		key: 'mpt_issuance_id',
+		required: true,
+		validate: v => {
+			if(!/^[0-9a-fA-F]{48}$/.test(v))
+				throw 'is not a valid mpt_issuance_id'
+		}
+	},	
+	{
+		key: 'trust_level',
+		required: true,
+		validate: v => {
+			if(v !== parseInt(v))
+				throw 'must be a integer'
+
+			if(v < 0 || v > 3)
+				throw 'must be between 0 and 3'
 		}
 	}
 ]
@@ -271,7 +293,7 @@ export function parse(str){
 	}
 
 	for(let stanza of (toml.TOKENS || toml.CURRENCIES || [])){
-		let { valid, parsed: token, issues: tokenIssues } = parseStanza(stanza, tokenFields)
+		let { valid, parsed: token, issues: tokenIssues } = parseStanza(stanza, stanza['mpt_issuance_id'] != null ? mpTokenFields : iouTokenFields)
 
 		issues.push(
 			...tokenIssues.map(
