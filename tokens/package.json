@@ -6,6 +6,6 @@
     "license": "ISC",
     "author": "xrplkit",
     "dependencies": {
-        "@xrplkit/xfl": "2.1.2"
+        "@xrplkit/xfl": "file:../xfl"
     }
 }
