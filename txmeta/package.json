@@ -4,7 +4,7 @@
     "version": "1.4.3",
     "main": "extract.js",
     "dependencies": {
-        "@xrplkit/xfl": "2.1.2",
-        "@xrplkit/tokens": "1.0.2"
+        "@xrplkit/xfl": "file:../xfl",
+        "@xrplkit/tokens": "file:../tokens"
     }
 }

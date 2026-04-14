@@ -46,21 +46,46 @@ export function extractExchanges(tx, options={}){
 	for(let { FinalFields, PreviousFields } of affectedAMMs){
 		let maker = FinalFields.Account
 		let amm = FinalFields.AMMID
+		let token
+		let delta
+
+		let xrpDelta = div(sub(FinalFields.Balance, PreviousFields.Balance), '1000000')
+
+		// Check for IOU side (RippleState)
 		let rippleState = affectedNodes
 			.filter(node => node.LedgerEntryType === 'RippleState')
-			.find(node => node.FinalFields.HighLimit.issuer === maker || node.FinalFields.LowLimit.issuer === maker)
+			.find(node => node.PreviousFields
+				&& (node.FinalFields.HighLimit.issuer === maker || node.FinalFields.LowLimit.issuer === maker))
 
-		if(!rippleState || !rippleState.PreviousFields)
+		if(rippleState){
+			let fields = rippleState.FinalFields
+			delta = sub(abs(fields.Balance.value), abs(rippleState.PreviousFields.Balance.value))
+			let iouToken = fields.HighLimit.issuer === maker
+				? fields.LowLimit
+				: fields.HighLimit
+
+			token = { currency: iouToken.currency, issuer: iouToken.issuer }
+		}
+
+		// Check for MPT side (MPToken)
+		if(!token){
+			let mptoken = affectedNodes
+				.filter(node => node.LedgerEntryType === 'MPToken')
+				.find(node => node.FinalFields.Account === maker)
+
+			if(mptoken){
+				let fields = mptoken.FinalFields
+				let previousAmount = mptoken.PreviousFields?.MPTAmount || '0'
+				delta = sub(fields.MPTAmount || '0', previousAmount)
+				token = { mpt_issuance_id: fields.MPTokenIssuanceID }
+			}
+		}
+
+		if(!token)
 			continue
 
 		let takerPaid
 		let takerGot
-
-		let xrpDelta = div(sub(FinalFields.Balance, PreviousFields.Balance), '1000000')
-		let iouDelta = sub(abs(rippleState.FinalFields.Balance.value), abs(rippleState.PreviousFields.Balance.value))
-		let iouToken = rippleState.FinalFields.HighLimit.issuer === maker
-			? rippleState.FinalFields.LowLimit
-			: rippleState.FinalFields.HighLimit
 
 		if(gt(xrpDelta, '0')){
 			takerPaid = {
@@ -68,20 +93,20 @@ export function extractExchanges(tx, options={}){
 				value: xrpDelta.toString()
 			}
 			takerGot = {
-				...iouToken,
-				value: abs(iouDelta).toString()
+				...token,
+				value: abs(delta).toString()
 			}
 		}else{
 			takerPaid = {
-				...iouToken,
-				value: iouDelta.toString()
+				...token,
+				value: delta.toString()
 			}
 			takerGot = {
 				currency: 'XRP',
 				value: abs(xrpDelta).toString()
 			}
 		}
-		
+
 		exchanges.push({
 			hash,
 			maker,
