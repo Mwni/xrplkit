@@ -1,0 +1,113 @@
+{
+  "description": "MPT/XRP AMM consumption: XRP for raw MPT via AMM pool",
+  "tx": {
+    "Account": "rU3ovNwQLBDocSsW4cS71szfCmjkF8eTZr",
+    "Fee": "12",
+    "Flags": 0,
+    "LastLedgerSequence": 16255,
+    "Sequence": 16231,
+    "SigningPubKey": "ED13E0E446C72026E786E470E6546C2B3B43AAC6F7CD2F419D2C7D3593C0EAB0F6",
+    "TakerGets": "10000000",
+    "TakerPays": {
+      "mpt_issuance_id": "00003F6375D00DFDB36367033BB1A4290476D06B211C5028",
+      "value": "100"
+    },
+    "TransactionType": "OfferCreate",
+    "TxnSignature": "2190B699DABE7291E3BB53E5DB4BEEC216FDE484700F3553A5D1886DEE97E3F9357E5DF2DBD64451926449E6DDCEDD19A555092ACD609E25224F1090D77DA50D",
+    "hash": "41809FF2487C77B0FD1E358323B71C7C1A368474C20A615B25D2B204D0B0962D",
+    "metaData": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rfwYTifqaehhboCq6CW66RQ74bXCQESp9P",
+              "Flags": 4,
+              "MPTAmount": "499900",
+              "MPTokenIssuanceID": "00003F6375D00DFDB36367033BB1A4290476D06B211C5028",
+              "OwnerNode": "0"
+            },
+            "LedgerEntryType": "MPToken",
+            "LedgerIndex": "5E4F31456C3C2D7224B13E8A8E8EE036995AE092F700AACC35D23D036AE1A1BB",
+            "PreviousFields": {
+              "MPTAmount": "500000"
+            },
+            "PreviousTxnID": "56E9D10984920D5FB89E5E349D73E3D534BF2AD3A67E86F46B4B530C3ADD9BA5",
+            "PreviousTxnLgrSeq": 16235
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "AMMID": "0381DD891E64EEFBA1222773C1D2A806E3F5C592F9408A859D902FC39E3BD458",
+              "Account": "rfwYTifqaehhboCq6CW66RQ74bXCQESp9P",
+              "Balance": "100020005",
+              "Flags": 26214400,
+              "OwnerCount": 0,
+              "Sequence": 0
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "9B2F637B7CF255108030B90065E2A478578D5AE8C0493D3B5B5BB4642CA01C81",
+            "PreviousFields": {
+              "Balance": "100000000"
+            },
+            "PreviousTxnID": "56E9D10984920D5FB89E5E349D73E3D534BF2AD3A67E86F46B4B530C3ADD9BA5",
+            "PreviousTxnLgrSeq": 16235
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rU3ovNwQLBDocSsW4cS71szfCmjkF8eTZr",
+              "Balance": "999979971",
+              "Flags": 0,
+              "OwnerCount": 1,
+              "Sequence": 16232
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "B5A0C132748290FE812B3BA4A610A343550876B0DB4219F76C154D3CA06E4EFA",
+            "PreviousFields": {
+              "Balance": "999999988",
+              "Sequence": 16231
+            },
+            "PreviousTxnID": "AEB28F21533AF17453F9B52A0D9FDD210C33E8D2E1C830573D7171AEEA82B2D0",
+            "PreviousTxnLgrSeq": 16233
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rU3ovNwQLBDocSsW4cS71szfCmjkF8eTZr",
+              "Flags": 0,
+              "MPTAmount": "100",
+              "MPTokenIssuanceID": "00003F6375D00DFDB36367033BB1A4290476D06B211C5028",
+              "OwnerNode": "0"
+            },
+            "LedgerEntryType": "MPToken",
+            "LedgerIndex": "DC8ED2D18B8B8EB5A123763AC88AF12E490A3F3936E9CAEE8D565DF5EF6D9198",
+            "PreviousFields": {},
+            "PreviousTxnID": "AEB28F21533AF17453F9B52A0D9FDD210C33E8D2E1C830573D7171AEEA82B2D0",
+            "PreviousTxnLgrSeq": 16233
+          }
+        }
+      ],
+      "TransactionIndex": 0,
+      "TransactionResult": "tesSUCCESS"
+    }
+  },
+  "expected": [
+    {
+      "hash": "41809FF2487C77B0FD1E358323B71C7C1A368474C20A615B25D2B204D0B0962D",
+      "maker": "rfwYTifqaehhboCq6CW66RQ74bXCQESp9P",
+      "taker": "rU3ovNwQLBDocSsW4cS71szfCmjkF8eTZr",
+      "amm": "0381DD891E64EEFBA1222773C1D2A806E3F5C592F9408A859D902FC39E3BD458",
+      "takerPaid": {
+        "currency": "XRP",
+        "value": "0.020005"
+      },
+      "takerGot": {
+        "mpt_issuance_id": "00003F6375D00DFDB36367033BB1A4290476D06B211C5028",
+        "value": "100"
+      }
+    }
+  ]
+}
