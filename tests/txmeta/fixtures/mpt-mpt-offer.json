@@ -1,0 +1,211 @@
+{
+  "description": "MPT/MPT exact offer match: 20000 raw MPT-B for 500 raw MPT-A",
+  "tx": {
+    "Account": "r4y5ZebdHVPDTB9FrUvBPXJ5uWkqZJ8Dzd",
+    "Fee": "12",
+    "Flags": 0,
+    "LastLedgerSequence": 13794,
+    "Sequence": 13767,
+    "SigningPubKey": "EDFB7BAB9EB8A65297F6EF81804092509EB80D35E8E9FF05555FBF30F575CF3D8C",
+    "TakerGets": {
+      "mpt_issuance_id": "000035C3EF87206A038CB19EBA940D085533E90F5652B540",
+      "value": "20000"
+    },
+    "TakerPays": {
+      "mpt_issuance_id": "000035C2BEC3E1B595B81356315F272DA0210595C477D999",
+      "value": "500"
+    },
+    "TransactionType": "OfferCreate",
+    "TxnSignature": "2DC5FCFCBDFBD042757C6959C0EEAADF3BA16F5458673903F2B6EDC90DF768407B22F2B0E03322B7ADC4E39B7A4B09FEBF8610E955065AAD26155B955AFBAE0D",
+    "hash": "6B39E0B22F87884A5AED2A7C9ACBD37A9E43349A467144AF17BDA180B2708B26",
+    "metaData": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Flags": 0,
+              "Owner": "rfedM6KrcATyXjFg49FEFMiiT1y3jcnpmR",
+              "RootIndex": "05529D8175EF4F3AC20F70B56A36ABCC5C8E38A6D55A137BC7D5775A32B92334"
+            },
+            "LedgerEntryType": "DirectoryNode",
+            "LedgerIndex": "05529D8175EF4F3AC20F70B56A36ABCC5C8E38A6D55A137BC7D5775A32B92334",
+            "PreviousTxnID": "7B402EBCABB167345491F201F7BF87FBF84453C594B854EEBC695C7761028B51",
+            "PreviousTxnLgrSeq": 13774
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rfedM6KrcATyXjFg49FEFMiiT1y3jcnpmR",
+              "Flags": 0,
+              "MPTAmount": "20000",
+              "MPTokenIssuanceID": "000035C3EF87206A038CB19EBA940D085533E90F5652B540",
+              "OwnerNode": "0"
+            },
+            "LedgerEntryType": "MPToken",
+            "LedgerIndex": "4147635B965968AF2F035843D8AF63069F50F24F29EFC06615979229DD0193CC",
+            "PreviousFields": {},
+            "PreviousTxnID": "857A0331D1BE5C4ACD5F9C32A6699D35EB88A0F2333182C6AB1D46FEE88FAA6B",
+            "PreviousTxnLgrSeq": 13769
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "r4y5ZebdHVPDTB9FrUvBPXJ5uWkqZJ8Dzd",
+              "Flags": 0,
+              "MPTAmount": "500",
+              "MPTokenIssuanceID": "000035C2BEC3E1B595B81356315F272DA0210595C477D999",
+              "OwnerNode": "0"
+            },
+            "LedgerEntryType": "MPToken",
+            "LedgerIndex": "588CB75D35635F72164DCD7BBD7C830686FBF4800B33CCDF96BA03BA27DFC2A6",
+            "PreviousFields": {},
+            "PreviousTxnID": "320F833F23C6B94384BF3BCE5C95214A78B87A7554D33885C5172A7148FD525D",
+            "PreviousTxnLgrSeq": 13770
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rfedM6KrcATyXjFg49FEFMiiT1y3jcnpmR",
+              "Flags": 0,
+              "MPTAmount": "500",
+              "MPTokenIssuanceID": "000035C2BEC3E1B595B81356315F272DA0210595C477D999",
+              "OwnerNode": "0"
+            },
+            "LedgerEntryType": "MPToken",
+            "LedgerIndex": "5FD71B8C909AA6F0E15762001ADE2AC00A09586BE8C51FBE0B63A585487D9D41",
+            "PreviousFields": {
+              "MPTAmount": "1000"
+            },
+            "PreviousTxnID": "6A819898948CEB871F860E21CED04E02BC56D4A5725986EFB0B32D6CA3038067",
+            "PreviousTxnLgrSeq": 13772
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "r4y5ZebdHVPDTB9FrUvBPXJ5uWkqZJ8Dzd",
+              "Balance": "399999964",
+              "Flags": 0,
+              "OwnerCount": 2,
+              "Sequence": 13768
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "9F51B6C58E09B622349F36FF0248BD69C7D25B1D0463B231722326814CEFD6CE",
+            "PreviousFields": {
+              "Balance": "399999976",
+              "Sequence": 13767
+            },
+            "PreviousTxnID": "49F47270A643AF2F1E174CFEC116814976DFA1FAA85EF2E96BCB9E5061D3AC48",
+            "PreviousTxnLgrSeq": 13771
+          }
+        },
+        {
+          "DeletedNode": {
+            "FinalFields": {
+              "ExchangeRate": "560e35fa931a0000",
+              "Flags": 0,
+              "PreviousTxnID": "7B402EBCABB167345491F201F7BF87FBF84453C594B854EEBC695C7761028B51",
+              "PreviousTxnLgrSeq": 13774,
+              "RootIndex": "A58BC08D4005593A0FD6D4FD4B646D2AEE3B0DB7730A36E7560E35FA931A0000",
+              "TakerGetsMPT": "000035C2BEC3E1B595B81356315F272DA0210595C477D999",
+              "TakerPaysMPT": "000035C3EF87206A038CB19EBA940D085533E90F5652B540"
+            },
+            "LedgerEntryType": "DirectoryNode",
+            "LedgerIndex": "A58BC08D4005593A0FD6D4FD4B646D2AEE3B0DB7730A36E7560E35FA931A0000"
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "r4y5ZebdHVPDTB9FrUvBPXJ5uWkqZJ8Dzd",
+              "Flags": 0,
+              "MPTAmount": "30000",
+              "MPTokenIssuanceID": "000035C3EF87206A038CB19EBA940D085533E90F5652B540",
+              "OwnerNode": "0"
+            },
+            "LedgerEntryType": "MPToken",
+            "LedgerIndex": "AF49B4F9127C6B4EF2DAF2C20D4F0FF0EB03776973F905D47F4BDFF7DA52983C",
+            "PreviousFields": {
+              "MPTAmount": "50000"
+            },
+            "PreviousTxnID": "666FF7F984533276781FB7ABC68B83C8AB996EA41D0B06276675AC1C57B41AC2",
+            "PreviousTxnLgrSeq": 13773
+          }
+        },
+        {
+          "DeletedNode": {
+            "FinalFields": {
+              "Account": "rfedM6KrcATyXjFg49FEFMiiT1y3jcnpmR",
+              "BookDirectory": "A58BC08D4005593A0FD6D4FD4B646D2AEE3B0DB7730A36E7560E35FA931A0000",
+              "BookNode": "0",
+              "Flags": 0,
+              "OwnerNode": "0",
+              "PreviousTxnID": "7B402EBCABB167345491F201F7BF87FBF84453C594B854EEBC695C7761028B51",
+              "PreviousTxnLgrSeq": 13774,
+              "Sequence": 13766,
+              "TakerGets": {
+                "mpt_issuance_id": "000035C2BEC3E1B595B81356315F272DA0210595C477D999",
+                "value": "0"
+              },
+              "TakerPays": {
+                "mpt_issuance_id": "000035C3EF87206A038CB19EBA940D085533E90F5652B540",
+                "value": "0"
+              }
+            },
+            "LedgerEntryType": "Offer",
+            "LedgerIndex": "D5FFFDFEDD2C537E959BCF87E7052C921B26E21E1F8A5D7B8BEC26B2FF0F2A20",
+            "PreviousFields": {
+              "TakerGets": {
+                "mpt_issuance_id": "000035C2BEC3E1B595B81356315F272DA0210595C477D999",
+                "value": "500"
+              },
+              "TakerPays": {
+                "mpt_issuance_id": "000035C3EF87206A038CB19EBA940D085533E90F5652B540",
+                "value": "20000"
+              }
+            }
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rfedM6KrcATyXjFg49FEFMiiT1y3jcnpmR",
+              "Balance": "399999964",
+              "Flags": 0,
+              "OwnerCount": 2,
+              "Sequence": 13767
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "E5001319C143ACE91D30A95CA6C8CBEC552F0751D5C6C39497389C0156CD0CD6",
+            "PreviousFields": {
+              "OwnerCount": 3
+            },
+            "PreviousTxnID": "7B402EBCABB167345491F201F7BF87FBF84453C594B854EEBC695C7761028B51",
+            "PreviousTxnLgrSeq": 13774
+          }
+        }
+      ],
+      "TransactionIndex": 0,
+      "TransactionResult": "tesSUCCESS"
+    }
+  },
+  "expected": [
+    {
+      "hash": "6B39E0B22F87884A5AED2A7C9ACBD37A9E43349A467144AF17BDA180B2708B26",
+      "maker": "rfedM6KrcATyXjFg49FEFMiiT1y3jcnpmR",
+      "taker": "r4y5ZebdHVPDTB9FrUvBPXJ5uWkqZJ8Dzd",
+      "sequence": 13766,
+      "takerPaid": {
+        "mpt_issuance_id": "000035C3EF87206A038CB19EBA940D085533E90F5652B540",
+        "value": "20000"
+      },
+      "takerGot": {
+        "mpt_issuance_id": "000035C2BEC3E1B595B81356315F272DA0210595C477D999",
+        "value": "500"
+      }
+    }
+  ]
+}

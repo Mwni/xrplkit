@@ -1,0 +1,96 @@
+{
+  "description": "IOU/MPT AMM non-consumption: offer does NOT cross",
+  "tx": {
+    "Account": "rDgCWku5EvbfnZFFD8kFzxuzpZRJTZbmHY",
+    "Fee": "12",
+    "Flags": 0,
+    "LastLedgerSequence": 17448,
+    "Sequence": 17420,
+    "SigningPubKey": "EDA1E31E04435BAA7B0A38EC4C483582E32421CB5A7D482580D750AE1E678102E6",
+    "TakerGets": {
+      "mpt_issuance_id": "0000440975FFB7DF5FA61340D0E8BECC77E33A1C30C3399F",
+      "value": "50000"
+    },
+    "TakerPays": {
+      "currency": "USD",
+      "issuer": "rsjpuu4SVse7ZUXdQ2BiL6on83QVVacz7K",
+      "value": "50"
+    },
+    "TransactionType": "OfferCreate",
+    "TxnSignature": "0795E4EB62E07F2711755F7FF844CD77B878FF3CA941A5BC130C4779AD7C51E8681E8001A3ADF12D3B0D7DDF22EC6A2ED4F37B12ADD27BF9FF40710D1F4F5C0B",
+    "hash": "F8EFA539DF1E855FAF5AA02FB60164C086B5DC6840EC4713D02F0649BE0A0717",
+    "metaData": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rDgCWku5EvbfnZFFD8kFzxuzpZRJTZbmHY",
+              "Balance": "999999976",
+              "Flags": 0,
+              "OwnerCount": 2,
+              "Sequence": 17421
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "80CBA09202A76FCFF6FF3F8660522E543F0CFF188ABA009152D87354FA9481A4",
+            "PreviousFields": {
+              "Balance": "999999988",
+              "OwnerCount": 1,
+              "Sequence": 17420
+            },
+            "PreviousTxnID": "E5F210752E3F2D8A3D1CDBFA6D413EF07178D3C7F49D15B6D08F8387D5B3FF96",
+            "PreviousTxnLgrSeq": 17424
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Flags": 0,
+              "Owner": "rDgCWku5EvbfnZFFD8kFzxuzpZRJTZbmHY",
+              "RootIndex": "90B6B51EEFE093BFD2FBAE54393228773B18814510A308AA1D49D36D26CD995C"
+            },
+            "LedgerEntryType": "DirectoryNode",
+            "LedgerIndex": "90B6B51EEFE093BFD2FBAE54393228773B18814510A308AA1D49D36D26CD995C",
+            "PreviousTxnID": "E5F210752E3F2D8A3D1CDBFA6D413EF07178D3C7F49D15B6D08F8387D5B3FF96",
+            "PreviousTxnLgrSeq": 17424
+          }
+        },
+        {
+          "CreatedNode": {
+            "LedgerEntryType": "DirectoryNode",
+            "LedgerIndex": "971E4B33CE83C21F42AA8889BD899FFB09456B0FDCF5A4FB52038D7EA4C68000",
+            "NewFields": {
+              "ExchangeRate": "52038d7ea4c68000",
+              "RootIndex": "971E4B33CE83C21F42AA8889BD899FFB09456B0FDCF5A4FB52038D7EA4C68000",
+              "TakerGetsMPT": "0000440975FFB7DF5FA61340D0E8BECC77E33A1C30C3399F",
+              "TakerPaysCurrency": "0000000000000000000000005553440000000000",
+              "TakerPaysIssuer": "1DE3517049223E2E55118DACD345BDFFB08265EE"
+            }
+          }
+        },
+        {
+          "CreatedNode": {
+            "LedgerEntryType": "Offer",
+            "LedgerIndex": "F9CB697A09E381EB70FC8537F6F41C5500136EDBFB9D1B2D3831FF283112C9FC",
+            "NewFields": {
+              "Account": "rDgCWku5EvbfnZFFD8kFzxuzpZRJTZbmHY",
+              "BookDirectory": "971E4B33CE83C21F42AA8889BD899FFB09456B0FDCF5A4FB52038D7EA4C68000",
+              "Sequence": 17420,
+              "TakerGets": {
+                "mpt_issuance_id": "0000440975FFB7DF5FA61340D0E8BECC77E33A1C30C3399F",
+                "value": "50000"
+              },
+              "TakerPays": {
+                "currency": "USD",
+                "issuer": "rsjpuu4SVse7ZUXdQ2BiL6on83QVVacz7K",
+                "value": "50"
+              }
+            }
+          }
+        }
+      ],
+      "TransactionIndex": 0,
+      "TransactionResult": "tesSUCCESS"
+    }
+  },
+  "expected": []
+}
