@@ -39,9 +39,14 @@ export function extractExchanges(tx, options={}){
 		})
 	}
 
-	let affectedAMMs = affectedNodes
-		.filter(node => node.LedgerEntryType === 'AccountRoot')
-		.filter(node => node.FinalFields?.AMMID)
+	let txType = tx.TransactionType || tx.transaction?.TransactionType || tx.tx?.TransactionType
+	let isAMMLiquidityOperation = txType === 'AMMDeposit' || txType === 'AMMWithdraw'
+
+	let affectedAMMs = isAMMLiquidityOperation
+		? []
+		: affectedNodes
+			.filter(node => node.LedgerEntryType === 'AccountRoot')
+			.filter(node => node.FinalFields?.AMMID)
 
 	for(let { FinalFields, PreviousFields } of affectedAMMs){
 		let maker = FinalFields.Account
@@ -51,7 +56,7 @@ export function extractExchanges(tx, options={}){
 
 		let xrpDelta = div(sub(FinalFields.Balance, PreviousFields.Balance), '1000000')
 
-		// Check for IOU side (RippleState)
+		// XRP-IOU AMM pool consumption
 		let rippleState = affectedNodes
 			.filter(node => node.LedgerEntryType === 'RippleState')
 			.find(node => node.PreviousFields
@@ -67,7 +72,7 @@ export function extractExchanges(tx, options={}){
 			token = { currency: iouToken.currency, issuer: iouToken.issuer }
 		}
 
-		// Check for MPT side (MPToken)
+		// XRP-MPT AMM pool consumption
 		if(!token){
 			let mptoken = affectedNodes
 				.filter(node => node.LedgerEntryType === 'MPToken')

@@ -1,0 +1,189 @@
+{
+  "description": "MPT/XRP AMM withdraw (no trade): Bob withdraws LP tokens from AMM pool. 0 exchanges.",
+  "tx": {
+    "Account": "rUX7KVnt4MocYuR43h9NheEhjxNtguThT5",
+    "Asset": {
+      "mpt_issuance_id": "000068131067BCD7C22517DFE865E938AB1DF668A546B22D"
+    },
+    "Asset2": {
+      "currency": "XRP"
+    },
+    "Fee": "12",
+    "Flags": 65536,
+    "LPTokenIn": {
+      "currency": "03F077DA9F26945991C0C4F286E18B3AD48008D7",
+      "issuer": "rDyqVFHB4Kd4mXN1sJD9u3kZXAbCvRkhah",
+      "value": "50000"
+    },
+    "LastLedgerSequence": 26672,
+    "Sequence": 26647,
+    "SigningPubKey": "EDD0E1FCA9C64030EB6479672888491FD3F87D1A16C603871BBE162FEA821B0130",
+    "TransactionType": "AMMWithdraw",
+    "TxnSignature": "7730216683C77CAAE813068334EF08865EA7603D64550755DEFB7BE9386B279B9E3F0701867E8A3A3F1EEDACA136C51586A3420DD4E336E90BB13D8824C97800",
+    "hash": "29A0F14038593B11DC99FE33288E3C16C1B88078A1B053B4A291DEBFFF2D972E",
+    "metaData": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "AMMID": "0BD398A9BCA45003AAE646AE305558BE82A4FA394FB14E4FEBF5CD66D07C9CA4",
+              "Account": "rDyqVFHB4Kd4mXN1sJD9u3kZXAbCvRkhah",
+              "Balance": "109292894",
+              "Flags": 26214400,
+              "OwnerCount": 0,
+              "Sequence": 0
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "017058D3E442FEF8D68892573BA81A2BBAC541BDBD7455DB4062360E826ACCD3",
+            "PreviousFields": {
+              "Balance": "110000000"
+            },
+            "PreviousTxnID": "F7D08E7E743FFD6181C9D034E6C303D35F9B795322DBE3EFEA6BE40FD4BEF8AC",
+            "PreviousTxnLgrSeq": 26652
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rDyqVFHB4Kd4mXN1sJD9u3kZXAbCvRkhah",
+              "Asset": {
+                "mpt_issuance_id": "000068131067BCD7C22517DFE865E938AB1DF668A546B22D"
+              },
+              "Asset2": {
+                "currency": "XRP"
+              },
+              "AuctionSlot": {
+                "Account": "rDevP6bzEcCMiMB2qJwzNWhhzbrVU1EAa2",
+                "Expiration": 829780917,
+                "Price": {
+                  "currency": "03F077DA9F26945991C0C4F286E18B3AD48008D7",
+                  "issuer": "rDyqVFHB4Kd4mXN1sJD9u3kZXAbCvRkhah",
+                  "value": "0"
+                }
+              },
+              "Flags": 0,
+              "LPTokenBalance": {
+                "currency": "03F077DA9F26945991C0C4F286E18B3AD48008D7",
+                "issuer": "rDyqVFHB4Kd4mXN1sJD9u3kZXAbCvRkhah",
+                "value": "7728174.593052022"
+              },
+              "OwnerNode": "0",
+              "VoteSlots": [
+                {
+                  "VoteEntry": {
+                    "Account": "rDevP6bzEcCMiMB2qJwzNWhhzbrVU1EAa2",
+                    "VoteWeight": 100000
+                  }
+                }
+              ]
+            },
+            "LedgerEntryType": "AMM",
+            "LedgerIndex": "0BD398A9BCA45003AAE646AE305558BE82A4FA394FB14E4FEBF5CD66D07C9CA4",
+            "PreviousFields": {
+              "LPTokenBalance": {
+                "currency": "03F077DA9F26945991C0C4F286E18B3AD48008D7",
+                "issuer": "rDyqVFHB4Kd4mXN1sJD9u3kZXAbCvRkhah",
+                "value": "7778174.593052022"
+              }
+            },
+            "PreviousTxnID": "F7D08E7E743FFD6181C9D034E6C303D35F9B795322DBE3EFEA6BE40FD4BEF8AC",
+            "PreviousTxnLgrSeq": 26652
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rUX7KVnt4MocYuR43h9NheEhjxNtguThT5",
+              "Balance": "990707070",
+              "Flags": 0,
+              "OwnerCount": 2,
+              "Sequence": 26648
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "39C3BF20ABED593EEAA83F83850B7CA9C10F51E5AF93ECCB712CD6B504D17CA9",
+            "PreviousFields": {
+              "Balance": "989999976",
+              "Sequence": 26647
+            },
+            "PreviousTxnID": "F7D08E7E743FFD6181C9D034E6C303D35F9B795322DBE3EFEA6BE40FD4BEF8AC",
+            "PreviousTxnLgrSeq": 26652
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Balance": {
+                "currency": "03F077DA9F26945991C0C4F286E18B3AD48008D7",
+                "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+                "value": "657106.781186547"
+              },
+              "Flags": 1114112,
+              "HighLimit": {
+                "currency": "03F077DA9F26945991C0C4F286E18B3AD48008D7",
+                "issuer": "rDyqVFHB4Kd4mXN1sJD9u3kZXAbCvRkhah",
+                "value": "0"
+              },
+              "HighNode": "0",
+              "LowLimit": {
+                "currency": "03F077DA9F26945991C0C4F286E18B3AD48008D7",
+                "issuer": "rUX7KVnt4MocYuR43h9NheEhjxNtguThT5",
+                "value": "0"
+              },
+              "LowNode": "0"
+            },
+            "LedgerEntryType": "RippleState",
+            "LedgerIndex": "CD89783E718E1D477DFA0808AE244B6D7281FF0B07DD53BD3FA9DEFD4499B5D1",
+            "PreviousFields": {
+              "Balance": {
+                "currency": "03F077DA9F26945991C0C4F286E18B3AD48008D7",
+                "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+                "value": "707106.781186547"
+              }
+            },
+            "PreviousTxnID": "F7D08E7E743FFD6181C9D034E6C303D35F9B795322DBE3EFEA6BE40FD4BEF8AC",
+            "PreviousTxnLgrSeq": 26652
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rUX7KVnt4MocYuR43h9NheEhjxNtguThT5",
+              "Flags": 0,
+              "MPTAmount": "953535",
+              "MPTokenIssuanceID": "000068131067BCD7C22517DFE865E938AB1DF668A546B22D",
+              "OwnerNode": "0"
+            },
+            "LedgerEntryType": "MPToken",
+            "LedgerIndex": "D57584A8104514C1D32D5D0F281E8662464C121E2404F4A353E5DA9A63ACC838",
+            "PreviousFields": {
+              "MPTAmount": "950000"
+            },
+            "PreviousTxnID": "F7D08E7E743FFD6181C9D034E6C303D35F9B795322DBE3EFEA6BE40FD4BEF8AC",
+            "PreviousTxnLgrSeq": 26652
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rDyqVFHB4Kd4mXN1sJD9u3kZXAbCvRkhah",
+              "Flags": 4,
+              "MPTAmount": "546465",
+              "MPTokenIssuanceID": "000068131067BCD7C22517DFE865E938AB1DF668A546B22D",
+              "OwnerNode": "0"
+            },
+            "LedgerEntryType": "MPToken",
+            "LedgerIndex": "E3B885205505E03CDF774EA04842A48778BBD53CC40170D4FE74C88CCD205B8C",
+            "PreviousFields": {
+              "MPTAmount": "550000"
+            },
+            "PreviousTxnID": "F7D08E7E743FFD6181C9D034E6C303D35F9B795322DBE3EFEA6BE40FD4BEF8AC",
+            "PreviousTxnLgrSeq": 26652
+          }
+        }
+      ],
+      "TransactionIndex": 0,
+      "TransactionResult": "tesSUCCESS"
+    }
+  },
+  "expected": []
+}
