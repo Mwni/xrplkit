@@ -1,13 +1,13 @@
 {
     "name": "@xrplkit/book",
     "type": "module",
-    "version": "3.1.5",
+    "version": "3.1.6",
     "main": "index.js",
     "license": "ISC",
     "author": "xrplkit",
     "dependencies": {
-        "@xrplkit/tokens": "1.0.2",
-        "@xrplkit/amm": "1.0.2",
+        "@xrplkit/tokens": "1.1.0",
+        "@xrplkit/amm": "1.0.3",
         "@xrplkit/xfl": "2.1.2"
     }
 }
