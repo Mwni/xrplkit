@@ -1,15 +1,29 @@
 import { createEmitter } from '@mwni/events'
 
 
-export default function ({ url, apiVersion, autoReconnect, autoRetryRequests, socketOptions, socketImpl }){
+export default function ({ 
+	url, 
+	apiVersion, 
+	autoReconnect, 
+	autoRetryRequests, 
+	reconnectDelay = 1000,
+	rateLimitBackoff = 5000,
+	maxRateLimitBackoff = 300000,
+	socketOptions, 
+	socketImpl 
+}){
 	let events = createEmitter()
 	let socket
 	let requestCounter = 0
 	let requestRegistry = []
 	let connected = false
 	let connectionError
+	let rateLimited = false
+	let rateLimitHits = 0
+	let nextReconnectDelay = reconnectDelay
 
 	function connect(){
+		rateLimited = false
 		socket = socketImpl({ url, options: socketOptions })
 		socket.addEventListener('open', handleOpen)
 		socket.addEventListener('close', handleClose)
@@ -17,15 +31,43 @@ export default function ({ url, apiVersion, autoReconnect, autoRetryRequests, so
 		socket.addEventListener('message', handleMessage)
 	}
 
+	function isRateLimitError(event){
+		let message = event?.message || event?.error?.message || ''
+		return /\b429\b/.test(message)
+	}
+
+	function computeReconnectDelay(){
+		if(!rateLimited)
+			return reconnectDelay
+
+		let delay = Math.min(
+			rateLimitBackoff * 2 ** rateLimitHits,
+			maxRateLimitBackoff
+		)
+
+		rateLimitHits++
+
+		return delay
+	}
+
 	function handleOpen(event){
 		connected = true
+		rateLimited = false
+		rateLimitHits = 0
+		nextReconnectDelay = reconnectDelay
 		events.emit('open', event)
 		pushRequests()
 	}
 
 	function handleClose(event){
 		if(autoReconnect){
-			setTimeout(connect, 1000)
+			nextReconnectDelay = computeReconnectDelay()
+
+			if(rateLimited){
+				events.emit('backoff', { delay: nextReconnectDelay, hits: rateLimitHits })
+			}
+
+			setTimeout(connect, nextReconnectDelay)
 		}
 
 		if(!connected){
@@ -49,6 +91,11 @@ export default function ({ url, apiVersion, autoReconnect, autoRetryRequests, so
 
 	function handleError(event){
 		connectionError = event
+
+		if(isRateLimitError(event)){
+			rateLimited = true
+		}
+
 		events.emit('error', event)
 	}
 
@@ -111,6 +158,12 @@ export default function ({ url, apiVersion, autoReconnect, autoRetryRequests, so
 		},
 		get connectionError(){
 			return connectionError
+		},
+		get rateLimited(){
+			return rateLimited
+		},
+		get nextReconnectDelay(){
+			return nextReconnectDelay
 		},
 		get requests(){
 			return requestRegistry
